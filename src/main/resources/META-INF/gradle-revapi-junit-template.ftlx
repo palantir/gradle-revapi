@@ -1,0 +1,19 @@
+<#ftl output_format="XML">
+<#-- @ftlvariable name="reports" type="java.util.Collection<org.revapi.Report>" -->
+<#-- @ftlvariable name="analysis" type="org.revapi.AnalysisContext" -->
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<testsuites failures="1" id="project-name" name="project-name" tests="1" time="0.000">
+    <testsuite failures="1" id="<#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>" name="<#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>" tests="1" time="0.000">
+        <#list reports as report>
+        <#list report.differences as diff>
+        <testcase id="${diff.code}-${report.oldElement!"none"}" name="Revapi Java API/ABI compatibility checker - ${diff.code}">
+            <failure message="${report.oldElement!(report.newElement!"<none>")}<#if diff.description??>: ${diff.description}</#if>"><![CDATA[
+<#include "gradle-revapi-difference-template.ftl">
+
+Category: ${diff.code}
+            ]]></failure>
+        </testcase>
+        </#list>
+        </#list>
+    </testsuite>
+</testsuites>

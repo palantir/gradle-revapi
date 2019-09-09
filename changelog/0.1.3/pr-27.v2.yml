@@ -1,0 +1,8 @@
+type: improvement
+improvement:
+  description: If the previous API jars that gradle-revapi is trying to compare against
+    do not exist, analysis will be skipped as there is no way to compare against the
+    previous version of the API. This behaviour is configurable with the `failIfOldApiCannotBeResolved`
+    toggle.
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/27

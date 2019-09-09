@@ -1,0 +1,6 @@
+type: feature
+feature:
+  description: Initial release of gradle revapi - will check your API and ABI compatibility
+    for Java projects
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/12

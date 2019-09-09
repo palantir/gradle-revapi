@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Fixed a bug where tag builds would cause revapi to fail.
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/24

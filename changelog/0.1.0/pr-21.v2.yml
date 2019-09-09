@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: We explain that revapi is Java API compatibility checker in junit test
+    failures
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/21

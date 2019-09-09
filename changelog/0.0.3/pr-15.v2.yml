@@ -1,0 +1,8 @@
+type: improvement
+improvement:
+  description: '`gradle-revapi` now detects the presence of the `gradle-git-version`
+    plugin and will use the last tag returned by that as a default for the `oldVersion`.
+    Now will only create the `revapi` task when applied on projects that have the
+    `maven-publish` plugin as well as the `java` plugin.'
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/15

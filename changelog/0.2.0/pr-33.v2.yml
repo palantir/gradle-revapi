@@ -1,0 +1,8 @@
+type: break
+break:
+  description: |-
+    Revapi will always fail if the previous version of the API cannot be resolved, unless you use the `./gradlew revapiVersionOverride --replacement-version <version>` task to configure a new version to use instead.
+
+    The `failIfOldApiCannotBeResolved` toggle has been deleted.
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/33
