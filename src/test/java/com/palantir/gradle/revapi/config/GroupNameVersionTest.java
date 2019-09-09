@@ -25,9 +25,11 @@ class GroupNameVersionTest {
     @Test
     void parses_from_string_properly() {
         GroupNameVersion groupNameVersion = GroupNameVersion.fromString("foo:bar:4.5.6");
-        assertThat(groupNameVersion.group()).isEqualTo("foo");
-        assertThat(groupNameVersion.name()).isEqualTo("bar");
-        assertThat(groupNameVersion.version()).isEqualTo("4.5.6");
+        assertThat(groupNameVersion.groupAndName()).isEqualTo(GroupAndName.builder()
+                .group("foo")
+                .name("bar")
+                .build());
+        assertThat(groupNameVersion.version()).isEqualTo(Version.fromString("4.5.6"));
     }
 
     @Test

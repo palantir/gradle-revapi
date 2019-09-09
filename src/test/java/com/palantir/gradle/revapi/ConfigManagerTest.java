@@ -66,7 +66,8 @@ class ConfigManagerTest {
         assertThat(oldConfigFile).hasContent(String.join("\n",
                 "versionOverrides:",
                 "  foo:bar:3.12: \"1.0\"",
-                "  quux:baz:2.0: \"3.6\""));
+                "  quux:baz:2.0: \"3.6\"",
+                "acceptedBreaks: {}"));
     }
 
     private UnaryOperator<RevapiConfig> identityFunction() {

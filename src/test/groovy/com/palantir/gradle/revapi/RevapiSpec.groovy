@@ -141,6 +141,32 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingResolutionFailure("root-project")
     }
 
+    def 'errors out when the there are breaks but then is fine when breaks are accepted'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.revapi'
+                oldName = 'revapi'
+                oldVersion = '0.11.1'
+            }
+        """.stripIndent()
+
+        rootProjectNameIs("root-project")
+
+        and:
+        runTasksSuccessfully("revapiAcceptBreaks", "--justification", "it's all good :)")
+
+        then:
+        runTasksSuccessfully("revapi")
+    }
+
     private File rootProjectNameIs(String projectName) {
         settingsFile << "rootProject.name = '${projectName}'"
     }

@@ -24,32 +24,29 @@ import java.util.List;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface GroupNameVersion {
-    GroupAndName groupAndName();
-    Version version();
+public interface GroupAndName {
+    String group();
+    String name();
 
     @JsonValue
     default String asString() {
-        return String.join(":", groupAndName().group(), groupAndName().name(), version().asString());
+        return String.join(":", group(), name());
     }
 
     @JsonCreator
-    static GroupNameVersion fromString(String groupNameVersionString) {
-        List<String> split = Splitter.on(':').splitToList(groupNameVersionString);
+    static GroupAndName fromString(String groupAndName) {
+        List<String> split = Splitter.on(':').splitToList(groupAndName);
 
-        Preconditions.checkArgument(split.size() == 3,
-                "%s could not be split into group name and version", groupNameVersionString);
+        Preconditions.checkArgument(split.size() == 2,
+                "%s could not be split into group and name", groupAndName);
 
         return builder()
-                .groupAndName(GroupAndName.builder()
-                        .group(split.get(0))
-                        .name(split.get(1))
-                        .build())
-                .version(Version.fromString(split.get(2)))
+                .group(split.get(0))
+                .name(split.get(1))
                 .build();
     }
 
-    class Builder extends ImmutableGroupNameVersion.Builder { }
+    class Builder extends ImmutableGroupAndName.Builder { }
 
     static Builder builder() {
         return new Builder();

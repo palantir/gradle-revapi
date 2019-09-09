@@ -21,14 +21,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.google.common.collect.Streams;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutableRevapiConfig.class)
 public abstract class RevapiConfig {
     protected abstract Map<GroupNameVersion, String> versionOverrides();
+    protected abstract Map<Version, VersionedAcceptedBreaks> acceptedBreaks();
 
     public final Optional<String> versionOverrideFor(GroupNameVersion groupNameVersion) {
         return Optional.ofNullable(versionOverrides().get(groupNameVersion));
@@ -38,6 +42,31 @@ public abstract class RevapiConfig {
         return ImmutableRevapiConfig.builder()
                 .from(this)
                 .putVersionOverrides(groupNameVersion, versionOverride)
+                .build();
+    }
+
+    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
+        return Streams.stream(Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version())))
+                .flatMap(versionedAcceptedBreaks -> versionedAcceptedBreaks.asMultimap()
+                        .get(groupNameVersion.groupAndName())
+                        .stream())
+                .collect(Collectors.toSet());
+    }
+
+    public final RevapiConfig addAcceptedBreak(
+            GroupNameVersion groupNameVersion,
+            Iterable<AcceptedBreak> acceptedBreaks) {
+
+        VersionedAcceptedBreaks existingAcceptedBreaks =
+                acceptedBreaks().getOrDefault(groupNameVersion.version(), VersionedAcceptedBreaks.empty());
+
+        VersionedAcceptedBreaks newVersionedAcceptedBreaks = existingAcceptedBreaks.merge(
+                groupNameVersion.groupAndName(),
+                acceptedBreaks);
+
+        return ImmutableRevapiConfig.builder()
+                .from(this)
+                .putAcceptedBreaks(groupNameVersion.version(), newVersionedAcceptedBreaks)
                 .build();
     }
 
