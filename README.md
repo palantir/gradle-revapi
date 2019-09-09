@@ -60,7 +60,7 @@ revapi {
 
 ### Version overrides
 
-Sometimes the previous release may have successfully applied a git tag but the publish build may have failed. In this
+Sometimes the previous release will have a successfully applied a git tag but a failed publish build. In this
 case `gradle-revapi` will fail as it cannot resolve the previous API to compare against. To resolve this, you can
 possible to set a *version override* that will use a different version instead of the last git tag. To do so, 
 use the
