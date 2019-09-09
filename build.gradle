@@ -15,11 +15,12 @@ buildscript {
 }
 
 plugins {
+    id 'com.gradle.plugin-publish' version '0.10.1'
     id 'com.jfrog.bintray' version '1.8.4' apply false
-    id 'com.palantir.consistent-versions' version '1.12.1'
-    id 'org.inferred.processors' version '3.1.0'
     id 'com.palantir.baseline' version '2.0.0'
+    id 'com.palantir.consistent-versions' version '1.12.1'
     id 'com.palantir.git-version' version '0.12.2'
+    id 'org.inferred.processors' version '3.1.0'
 }
 
 repositories {
@@ -60,8 +61,6 @@ dependencies {
 }
 
 gradlePlugin {
-    automatedPublishing = false
-
     plugins {
         revapi {
             id = 'com.palantir.revapi'
@@ -69,4 +68,24 @@ gradlePlugin {
         }
     }
 }
+
+pluginBundle {
+    website = 'https://github.com/palantir/gradle-revapi'
+    vcsUrl = 'https://github.com/palantir/gradle-revapi'
+    description = 'API/ABI backwards compatibility for Java libraries using Revapi'
+    tags = ['versions']
+
+    plugins {
+        revapi {
+            displayName = 'API/ABI backwards compatibility for Java libraries using Revapi'
+        }
+    }
+}
+
+tasks.publish.dependsOn tasks.publishPlugins
+publishPlugins.onlyIf {
+    versionDetails().isCleanTag
+}
+project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
+project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
 
