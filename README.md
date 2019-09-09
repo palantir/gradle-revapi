@@ -47,7 +47,7 @@ among projects.
 ## Configuration
 
 `gradle-revapi` should work out of the box for most uses cases once applied. By default it compares against the previous
-version of the jar from the project it is applied in by finding the last tag using `git decsribe`. However, if you need
+version of the jar from the project it is applied in by finding the last tag using `git describe`. However, if you need
 to need to override the artifact to compare against, you can do so:
 
 ```gradle
@@ -55,7 +55,24 @@ revapi {
     oldGroup = '<artifact-group>'
     oldNamed = '<artifact-name>'
     oldVersion = '<artifact-version>'
-
-    // By default, analysis will be skipped if the old API artifact can't be resolved. Set the below to true to fail instead.
-    failIfOldApiCannotBeResolved = true
 }
+```
+
+### Version overrides
+
+Sometimes the previous release may have successfully applied a git tag but the publish build may have failed. In this
+case `gradle-revapi` will fail as it cannot resolve the previous API to compare against. To resolve this, you can
+possible to set a *version override* that will use a different version instead of the last git tag. To do so, 
+use the
+
+```
+./gradle revapiVersionOverride --replacement-version <last-published-version>
+```
+
+task to use correctly published version instead. This will creare an entry in `.palantir/revapi.yml` of the following
+format:
+
+```yml
+versionOverrides:
+  group:name:version: versionOverride
+```
