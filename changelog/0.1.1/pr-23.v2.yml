@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Fixes bug where dependent jars would not be built - they are now explicitly
+    depended on by the revapi task.
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/23

@@ -1,0 +1,5 @@
+type: break
+break:
+  description: The plugin `com.palantir.gradle.revapi` has been renamed to `com.palantir.revapi`
+  links:
+  - https://internal-github/foundry/gradle-revapi/pull/19

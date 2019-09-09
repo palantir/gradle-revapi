@@ -1,0 +1,72 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            url 'https://dl.bintray.com/palantir/releases/'
+        }
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+
+    dependencies {
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:13.2.0'
+    }
+}
+
+plugins {
+    id 'com.jfrog.bintray' version '1.8.4' apply false
+    id 'com.palantir.consistent-versions' version '1.12.1'
+    id 'org.inferred.processors' version '3.1.0'
+    id 'com.palantir.baseline' version '2.0.0'
+    id 'com.palantir.git-version' version '0.12.2'
+}
+
+repositories {
+    jcenter()
+    maven {
+        url 'https://dl.bintray.com/palantir/releases/'
+    }
+}
+
+group 'com.palantir.gradle.revapi'
+version System.env.CIRCLE_TAG ?: gitVersion()
+
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+apply from: "$rootDir/gradle/publish-jar.gradle"
+
+sourceCompatibility = 1.8
+
+dependencies {
+    implementation 'com.google.guava:guava'
+    implementation 'org.revapi:revapi-basic-features'
+    implementation 'org.revapi:revapi-java'
+    implementation 'org.revapi:revapi-reporter-text'
+    implementation 'org.freemarker:freemarker'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava'
+
+    testCompile platform('org.junit:junit-bom')
+    testImplementation 'com.netflix.nebula:nebula-test'
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.assertj:assertj-core'
+
+    annotationProcessor "org.immutables:value"
+    compileOnly "org.immutables:value::annotations"
+}
+
+gradlePlugin {
+    automatedPublishing = false
+
+    plugins {
+        revapi {
+            id = 'com.palantir.revapi'
+            implementationClass = 'com.palantir.gradle.revapi.RevapiPlugin'
+        }
+    }
+}
+
