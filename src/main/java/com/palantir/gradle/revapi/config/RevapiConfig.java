@@ -65,12 +65,12 @@ public abstract class RevapiConfig {
                 groupNameVersion.groupAndName(),
                 acceptedBreaks);
 
-        Map<Version, PerProjectAcceptedBreaks> blah = new HashMap<>(acceptedBreaks());
-        blah.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
+        Map<Version, PerProjectAcceptedBreaks> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
+        newAcceptedBreaks.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
 
         return ImmutableRevapiConfig.builder()
                 .putAllVersionOverrides(versionOverrides())
-                .putAllAcceptedBreaks(blah)
+                .putAllAcceptedBreaks(newAcceptedBreaks)
                 .build();
     }
 
