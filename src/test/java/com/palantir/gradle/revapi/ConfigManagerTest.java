@@ -107,8 +107,6 @@ class ConfigManagerTest {
                 "      newElement: \"new2\"",
                 "      justification: \"j\""));
 
-        configManager.modifyConfigFile(foo -> foo);
-
     }
 
     private UnaryOperator<RevapiConfig> identityFunction() {
