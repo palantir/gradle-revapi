@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.collect.Streams;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +33,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutableRevapiConfig.class)
 public abstract class RevapiConfig {
     protected abstract Map<GroupNameVersion, String> versionOverrides();
-    protected abstract Map<Version, VersionedAcceptedBreaks> acceptedBreaks();
+    protected abstract Map<Version, PerProjectAcceptedBreaks> acceptedBreaks();
 
     public final Optional<String> versionOverrideFor(GroupNameVersion groupNameVersion) {
         return Optional.ofNullable(versionOverrides().get(groupNameVersion));
@@ -47,7 +48,7 @@ public abstract class RevapiConfig {
 
     public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return Streams.stream(Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version())))
-                .flatMap(versionedAcceptedBreaks -> versionedAcceptedBreaks.asMultimap()
+                .flatMap(versionedAcceptedBreaks -> versionedAcceptedBreaks.acceptedBreaks()
                         .get(groupNameVersion.groupAndName())
                         .stream())
                 .collect(Collectors.toSet());
@@ -55,18 +56,21 @@ public abstract class RevapiConfig {
 
     public final RevapiConfig addAcceptedBreak(
             GroupNameVersion groupNameVersion,
-            Iterable<AcceptedBreak> acceptedBreaks) {
+            Set<AcceptedBreak> acceptedBreaks) {
 
-        VersionedAcceptedBreaks existingAcceptedBreaks =
-                acceptedBreaks().getOrDefault(groupNameVersion.version(), VersionedAcceptedBreaks.empty());
+        PerProjectAcceptedBreaks existingAcceptedBreaks =
+                acceptedBreaks().getOrDefault(groupNameVersion.version(), PerProjectAcceptedBreaks.empty());
 
-        VersionedAcceptedBreaks newVersionedAcceptedBreaks = existingAcceptedBreaks.merge(
+        PerProjectAcceptedBreaks newPerProjectAcceptedBreaks = existingAcceptedBreaks.merge(
                 groupNameVersion.groupAndName(),
                 acceptedBreaks);
 
+        Map<Version, PerProjectAcceptedBreaks> blah = new HashMap<>(acceptedBreaks());
+        blah.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
+
         return ImmutableRevapiConfig.builder()
-                .from(this)
-                .putAcceptedBreaks(groupNameVersion.version(), newVersionedAcceptedBreaks)
+                .putAllVersionOverrides(versionOverrides())
+                .putAllAcceptedBreaks(blah)
                 .build();
     }
 

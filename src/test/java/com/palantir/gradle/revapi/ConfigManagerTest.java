@@ -59,26 +59,26 @@ class ConfigManagerTest {
         Files.write(oldConfigFile.toPath(), String.join("\n",
                 "versionOverrides:",
                 "  foo:bar:3.12: \"1.0\"",
-                "acceptedBreaks: {}"
-                // "  1.2.3:",
-                // "    foo:bar:",
-                // "      - code: blah",
-                // "        oldElement: old",
-                // "        newElement: new",
-                // "        justification: \"I don't care about my users\""
+                "acceptedBreaks:",
+                "  1.2.3:",
+                "    foo:bar:",
+                "      - code: blah",
+                "        oldElement: old",
+                "        newElement: new",
+                "        justification: \"I don't care about my users\""
                         )
                 .getBytes(StandardCharsets.UTF_8));
 
         configManager.modifyConfigFile(revapiConfig -> {
             assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
-            // assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("foo:bar:1.2.3"))).containsExactly(
-            //         AcceptedBreak.builder()
-            //                 .code("blah")
-            //                 .oldElement("old")
-            //                 .newElement("new")
-            //                 .justification("I don't care about my users")
-            //                 .build()
-            // );
+            assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("foo:bar:1.2.3"))).containsExactly(
+                    AcceptedBreak.builder()
+                            .code("blah")
+                            .oldElement("old")
+                            .newElement("new")
+                            .justification("I don't care about my users")
+                            .build()
+            );
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
                     .addAcceptedBreak(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
@@ -96,11 +96,11 @@ class ConfigManagerTest {
                 "  quux:baz:2.0: \"3.6\"",
                 "acceptedBreaks:",
                 "  1.2.3:",
-                // "    foo:bar:",
-                // "      - code: blah",
-                // "        oldElement: old",
-                // "        newElement: new",
-                // "        justification: \"I don't care about my users\"",
+                "    foo:bar:",
+                "    - code: \"blah\"",
+                "      oldElement: \"old\"",
+                "      newElement: \"new\"",
+                "      justification: \"I don't care about my users\"",
                 "    quux:baz:",
                 "    - code: \"something\"",
                 "      oldElement: \"old2\"",

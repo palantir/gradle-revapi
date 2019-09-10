@@ -18,36 +18,33 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import java.util.Map;
+import java.util.Set;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableVersionedAcceptedBreaks.class)
-public interface VersionedAcceptedBreaks {
+@JsonDeserialize(as = ImmutablePerProjectAcceptedBreaks.class)
+interface PerProjectAcceptedBreaks {
     @JsonValue
-    ImmutableSetMultimap<GroupAndName, AcceptedBreak> asMultimap();
+    Map<GroupAndName, Set<AcceptedBreak>> acceptedBreaks();
 
-    // @JsonCreator
-    // static VersionedAcceptedBreaks fromMap(Map<GroupAndName, Set<AcceptedBreak>> map) {
-    //     return builder()
-    //             .putAllAsMultimap(Multimaps.forMap(map))
-    //             .build();
-    // }
-
-    default VersionedAcceptedBreaks merge(GroupAndName groupAndName, Iterable<AcceptedBreak> acceptedBreaks) {
+    default PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
         return builder()
                 .from(this)
-                .putAllAsMultimap(groupAndName, acceptedBreaks)
+                .putAcceptedBreaks(groupAndName, Sets.union(acceptedBreaks,
+                        this.acceptedBreaks().getOrDefault(groupAndName, ImmutableSet.of())))
                 .build();
     }
 
-    class Builder extends ImmutableVersionedAcceptedBreaks.Builder { }
+    class Builder extends ImmutablePerProjectAcceptedBreaks.Builder { }
 
     static Builder builder() {
         return new Builder();
     }
 
-    static VersionedAcceptedBreaks empty() {
+    static PerProjectAcceptedBreaks empty() {
         return builder().build();
     }
 }
