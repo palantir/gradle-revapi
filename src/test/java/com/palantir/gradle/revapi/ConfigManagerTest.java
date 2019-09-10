@@ -22,6 +22,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableSet;
+import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.RevapiConfig;
 import java.io.File;
@@ -56,18 +58,57 @@ class ConfigManagerTest {
 
         Files.write(oldConfigFile.toPath(), String.join("\n",
                 "versionOverrides:",
-                "  foo:bar:3.12: \"1.0\"").getBytes(StandardCharsets.UTF_8));
+                "  foo:bar:3.12: \"1.0\"",
+                "acceptedBreaks: {}"
+                // "  1.2.3:",
+                // "    foo:bar:",
+                // "      - code: blah",
+                // "        oldElement: old",
+                // "        newElement: new",
+                // "        justification: \"I don't care about my users\""
+                        )
+                .getBytes(StandardCharsets.UTF_8));
 
         configManager.modifyConfigFile(revapiConfig -> {
             assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
-            return revapiConfig.addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6");
+            // assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("foo:bar:1.2.3"))).containsExactly(
+            //         AcceptedBreak.builder()
+            //                 .code("blah")
+            //                 .oldElement("old")
+            //                 .newElement("new")
+            //                 .justification("I don't care about my users")
+            //                 .build()
+            // );
+            return revapiConfig
+                    .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
+                    .addAcceptedBreak(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
+                            .builder()
+                            .code("something")
+                            .oldElement("old2")
+                            .newElement("new2")
+                            .justification("j")
+                            .build()));
         });
 
         assertThat(oldConfigFile).hasContent(String.join("\n",
                 "versionOverrides:",
                 "  foo:bar:3.12: \"1.0\"",
                 "  quux:baz:2.0: \"3.6\"",
-                "acceptedBreaks: {}"));
+                "acceptedBreaks:",
+                "  1.2.3:",
+                // "    foo:bar:",
+                // "      - code: blah",
+                // "        oldElement: old",
+                // "        newElement: new",
+                // "        justification: \"I don't care about my users\"",
+                "    quux:baz:",
+                "    - code: \"something\"",
+                "      oldElement: \"old2\"",
+                "      newElement: \"new2\"",
+                "      justification: \"j\""));
+
+        configManager.modifyConfigFile(foo -> foo);
+
     }
 
     private UnaryOperator<RevapiConfig> identityFunction() {

@@ -16,12 +16,23 @@
 
 package com.palantir.gradle.revapi.config;
 
-import com.google.common.collect.SetMultimap;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.ImmutableSetMultimap;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@JsonDeserialize(as = ImmutableVersionedAcceptedBreaks.class)
 public interface VersionedAcceptedBreaks {
-    SetMultimap<GroupAndName, AcceptedBreak> asMultimap();
+    @JsonValue
+    ImmutableSetMultimap<GroupAndName, AcceptedBreak> asMultimap();
+
+    // @JsonCreator
+    // static VersionedAcceptedBreaks fromMap(Map<GroupAndName, Set<AcceptedBreak>> map) {
+    //     return builder()
+    //             .putAllAsMultimap(Multimaps.forMap(map))
+    //             .build();
+    // }
 
     default VersionedAcceptedBreaks merge(GroupAndName groupAndName, Iterable<AcceptedBreak> acceptedBreaks) {
         return builder()
