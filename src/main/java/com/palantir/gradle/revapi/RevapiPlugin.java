@@ -85,7 +85,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                 .collect(Collectors.toSet()));
     }
 
-    static File configFile(Project project) {
+    private static File configFile(Project project) {
         return new File(project.getRootDir(), ".palantir/revapi.yml");
     }
 }

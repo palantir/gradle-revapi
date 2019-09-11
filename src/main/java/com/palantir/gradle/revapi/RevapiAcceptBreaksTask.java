@@ -40,7 +40,7 @@ public class RevapiAcceptBreaksTask extends DefaultTask {
     @TaskAction
     public final void addVersionOverride() {
         if (!justification.isPresent()) {
-            throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param this task");
+            throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param to this task");
         }
 
         configManager.get().modifyConfigFile(config ->
