@@ -78,7 +78,10 @@ public abstract class RevapiJavaTask extends DefaultTask {
 
         String revapiJsonConfig = RevapiJsonConfig.mergeAll(
                 RevapiJsonConfig.defaults(oldApi, newApi),
-                taskSpecificConfigJson).configAsString();
+                taskSpecificConfigJson,
+                RevapiJsonConfig.empty().withIgnoredBreaks(configManager.get().fromFileOrEmptyIfDoesNotExist()
+                        .acceptedBreaksFor(getExtension().oldGroupNameVersion()))
+                ).configAsString();
 
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)
