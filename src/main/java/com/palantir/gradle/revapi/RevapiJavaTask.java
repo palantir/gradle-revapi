@@ -17,18 +17,12 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -36,11 +30,9 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.TaskAction;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
-import org.revapi.Archive;
 import org.revapi.Revapi;
 import org.revapi.java.JavaApiAnalyzer;
 import org.revapi.reporter.text.TextReporter;
@@ -48,7 +40,7 @@ import org.revapi.simple.FileArchive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RevapiJavaTask extends DefaultTask {
+public abstract class RevapiJavaTask extends DefaultTask {
     private static final Logger log = LoggerFactory.getLogger(RevapiJavaTask.class);
 
     private final Property<ConfigManager> configManager =
@@ -72,15 +64,12 @@ public class RevapiJavaTask extends DefaultTask {
         return newApiJars;
     }
 
-    @TaskAction
-    public final void runRevapi() throws Exception {
+    protected final void runRevapi(BiFunction<API, API, String> configJson) throws Exception {
         API oldApi = oldApi();
         API newApi = newApi();
 
         log.info("Old API: {}", oldApi);
         log.info("New API: {}", newApi);
-
-        Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
 
         Revapi revapi = Revapi.builder()
                 .withAllExtensionsFromThreadContextClassLoader()
@@ -92,37 +81,10 @@ public class RevapiJavaTask extends DefaultTask {
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
                 // https://revapi.org/modules/revapi-java/extensions/java.html
-                .withConfigurationFromJSON(templateJsonConfig(oldApi, newApi, textOutputPath))
+                .withConfigurationFromJSON(configJson.apply(oldApi, newApi))
                 .build())) {
             analysisResult.throwIfFailed();
         }
-
-        String textOutput = new String(Files.readAllBytes(textOutputPath), StandardCharsets.UTF_8);
-        if (!textOutput.trim().isEmpty()) {
-            throw new RuntimeException("There were Java public API/ABI breaks reported by revapi:\n\n" + textOutput);
-        }
-    }
-
-    private String templateJsonConfig(API oldApi, API newApi, Path textOutputPath) throws IOException {
-        String template = Resources.toString(Resources.getResource(
-                "revapi-configuration.json"),
-                StandardCharsets.UTF_8);
-
-        return template
-                    .replace("{{JUNIT_OUTPUT}}", junitOutput().getAbsolutePath())
-                    .replace("{{TEXT_OUTPUT}}", textOutputPath.toAbsolutePath().toString())
-                    .replace("{{ARCHIVE_INCLUDE_REGEXES}}", Stream.of(newApi, oldApi)
-                            .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
-                            .map(Archive::getName)
-                            .collect(Collectors.joining("\", \"")));
-    }
-
-    private File junitOutput() {
-        Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
-        File reportsDir = circleReportsDir
-                .map(File::new)
-                .orElseGet(() -> getProject().getBuildDir());
-        return new File(reportsDir, "junit-reports/revapi/revapi-" + getProject().getName() + ".xml");
     }
 
     private API newApi() {
