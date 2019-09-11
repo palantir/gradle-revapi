@@ -3,8 +3,8 @@
 <#list reports as report>
 <#list report.differences as diff>
 - code: ${diff.code}
-  oldElement: ${report.oldElement!"null"}
-  newElement: ${report.newElement!"null"}
+  oldElement: ${report.oldElement!""}
+  newElement: ${report.newElement!""}
   justification: ""
 </#list>
 </#list>

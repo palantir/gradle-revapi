@@ -77,13 +77,13 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withReporters(TextReporter.class)
                 .build();
 
-        RevapiJsonConfig revapiJsonConfig = configJson.apply(RevapiJsonConfig.defaults(oldApi, newApi));
+        String revapiJsonConfig = configJson.apply(RevapiJsonConfig.defaults(oldApi, newApi)).configAsString();
 
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
                 // https://revapi.org/modules/revapi-java/extensions/java.html
-                .withConfigurationFromJSON(revapiJsonConfig.configAsString())
+                .withConfigurationFromJSON(revapiJsonConfig)
                 .build())) {
             analysisResult.throwIfFailed();
         }

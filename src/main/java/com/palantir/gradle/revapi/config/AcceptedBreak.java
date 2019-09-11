@@ -17,14 +17,15 @@
 package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutableAcceptedBreak.class)
 public interface AcceptedBreak {
     String code();
-    String oldElement();
-    String newElement();
+    Optional<String> oldElement();
+    Optional<String> newElement();
     String justification();
 
     class Builder extends ImmutableAcceptedBreak.Builder { }

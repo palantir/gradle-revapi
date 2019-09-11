@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.Streams;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,7 +82,8 @@ public abstract class RevapiConfig {
     public static ObjectMapper newRecommendedObjectMapper() {
         return new ObjectMapper(
                 new YAMLFactory()
-                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-        ).registerModule(new GuavaModule());
+                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
+                .registerModule(new GuavaModule())
+                .registerModule(new Jdk8Module());
     }
 }

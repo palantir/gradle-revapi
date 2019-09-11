@@ -47,22 +47,33 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         ConfigManager configManager = new ConfigManager(configFile(project));
 
-        TaskProvider<RevapiJavaTask> revapiTask = project.getTasks().register("revapi", RevapiJavaTask.class, task -> {
-            task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
-
-            task.configManager().set(configManager);
-
-            task.newApiDependencyJars().set(revapiNewApi);
-
-            Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
-            task.newApiJars().set(jarTask.getOutputs().getFiles());
-        });
+        TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class,
+                task -> configureRevapiJavaTask(project, revapiNewApi, configManager, task));
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
             task.configManager().set(configManager);
         });
 
+        project.getTasks().register("revapiAcceptBreaks", RevapiAcceptBreaksTask.class, task -> {
+            configureRevapiJavaTask(project, revapiNewApi, configManager, task);
+        });
+
         project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+    }
+
+    protected void configureRevapiJavaTask(
+            Project project,
+            Configuration revapiNewApi,
+            ConfigManager configManager,
+            RevapiJavaTask task) {
+        task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
+
+        task.configManager().set(configManager);
+
+        task.newApiDependencyJars().set(revapiNewApi);
+
+        Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
+        task.newApiJars().set(jarTask.getOutputs().getFiles());
     }
 
     @VisibleForTesting

@@ -20,24 +20,6 @@
       { "code" : "java.class.externalClassNoLongerExposedInAPI" },
       { "code" : "java.class.externalClassExposedInAPI" }
     ]
-  },
-  {
-    "extension": "revapi.reporter.text",
-    "configuration": {
-      "minSeverity": "BREAKING",
-      "template": "gradle-revapi-junit-template.ftlx",
-      "output" : "{{JUNIT_OUTPUT}}",
-      "append": false
-    }
-  },
-  {
-    "extension": "revapi.reporter.text",
-    "configuration": {
-      "minSeverity": "BREAKING",
-      "template": "gradle-revapi-text-template.ftl",
-      "output" : "{{TEXT_OUTPUT}}",
-      "append": false
-    }
   }
 ]
 
