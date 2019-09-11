@@ -19,10 +19,13 @@ package com.palantir.gradle.revapi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.io.Resources;
+import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -32,7 +35,8 @@ import org.revapi.Archive;
 
 @Value.Immutable
 abstract class RevapiJsonConfig {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new Jdk8Module());
 
     protected abstract ArrayNode config();
 
@@ -41,16 +45,24 @@ abstract class RevapiJsonConfig {
     }
 
     public RevapiJsonConfig withTextReporter(String templateName, File outputPath) {
-        JsonNode textReporterConfig = OBJECT_MAPPER.createObjectNode()
-                .put("extension", "revapi.reporter.text")
-                .set("configuration", OBJECT_MAPPER.createObjectNode()
-                        .put("minSeverity", "BREAKING")
-                        .put("template", templateName)
-                        .put("output", outputPath.getAbsolutePath())
-                        .put("append", false));
+        return withExtension("revapi.reporter.text", OBJECT_MAPPER.createObjectNode()
+                .put("minSeverity", "BREAKING")
+                .put("template", templateName)
+                .put("output", outputPath.getAbsolutePath())
+                .put("append", false));
+    }
+
+    public RevapiJsonConfig withIgnoredBreaks(Set<AcceptedBreak> acceptedBreaks) {
+        return withExtension("revapi.ignore", OBJECT_MAPPER.convertValue(acceptedBreaks, ArrayNode.class));
+    }
+
+    private RevapiJsonConfig withExtension(String extensionId, JsonNode configuration) {
+        JsonNode extension = OBJECT_MAPPER.createObjectNode()
+                .put("extension", extensionId)
+                .set("configuration", configuration);
 
         return new Builder()
-                .config(config().deepCopy().add(textReporterConfig))
+                .config(config().deepCopy().add(extension))
                 .build();
     }
 
