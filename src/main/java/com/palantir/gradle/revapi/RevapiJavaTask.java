@@ -95,7 +95,10 @@ public abstract class RevapiJavaTask extends DefaultTask {
 
     private API newApi() {
         List<FileArchive> newApiJar = toFileArchives(newApiJars);
-        List<FileArchive> newApiDependencies = toFileArchives(newApiDependencyJars.get().resolve());
+        List<FileArchive> newApiDependencies = toFileArchives(newApiDependencyJars.get().resolve()
+                .stream()
+                .filter(File::isFile)
+                .collect(Collectors.toSet()));
 
         return API.builder()
                 .addArchives(newApiJar)
