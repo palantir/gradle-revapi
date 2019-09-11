@@ -21,7 +21,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
@@ -64,7 +63,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return newApiJars;
     }
 
-    protected final void runRevapi(UnaryOperator<RevapiJsonConfig> configJson) throws Exception {
+    protected final void runRevapi(RevapiJsonConfig taskSpecificConfigJson) throws Exception {
         API oldApi = oldApi();
         API newApi = newApi();
 
@@ -77,7 +76,9 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withReporters(TextReporter.class)
                 .build();
 
-        String revapiJsonConfig = configJson.apply(RevapiJsonConfig.defaults(oldApi, newApi)).configAsString();
+        String revapiJsonConfig = RevapiJsonConfig.mergeAll(
+                RevapiJsonConfig.defaults(oldApi, newApi),
+                taskSpecificConfigJson).configAsString();
 
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)

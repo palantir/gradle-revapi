@@ -25,6 +25,7 @@ import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,13 +62,25 @@ abstract class RevapiJsonConfig {
                 .put("extension", extensionId)
                 .set("configuration", configuration);
 
-        return new Builder()
-                .config(config().deepCopy().add(extension))
-                .build();
+        ArrayNode arrayNode = config().deepCopy().add(extension);
+        return fromArrayNode(arrayNode);
+    }
+
+    public RevapiJsonConfig mergeWith(RevapiJsonConfig other) {
+        return fromArrayNode(config().deepCopy().addAll(other.config()));
+    }
+
+    public static RevapiJsonConfig empty() {
+        return fromString("[]");
     }
 
     public static RevapiJsonConfig defaults(API oldApi, API newApi) {
         return fromString(templateJsonConfig(oldApi, newApi));
+    }
+
+    public static RevapiJsonConfig mergeAll(RevapiJsonConfig... revapiJsonConfigs) {
+        return Arrays.stream(revapiJsonConfigs)
+                .reduce(empty(), RevapiJsonConfig::mergeWith);
     }
 
     private static String templateJsonConfig(API oldApi, API newApi) {
@@ -94,11 +107,15 @@ abstract class RevapiJsonConfig {
 
     private static RevapiJsonConfig fromString(String configJson) {
         try {
-            return new Builder()
-                    .config(OBJECT_MAPPER.readValue(configJson, ArrayNode.class))
-                    .build();
+            return fromArrayNode(OBJECT_MAPPER.readValue(configJson, ArrayNode.class));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static RevapiJsonConfig fromArrayNode(ArrayNode arrayNode) {
+        return new Builder()
+                .config(arrayNode)
+                .build();
     }
 }

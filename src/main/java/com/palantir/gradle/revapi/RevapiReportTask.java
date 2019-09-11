@@ -28,7 +28,7 @@ public class RevapiReportTask extends RevapiJavaTask {
     public final void runRevapi() throws Exception {
         Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
 
-        runRevapi(revapiJsonConfig -> revapiJsonConfig
+        runRevapi(RevapiJsonConfig.empty()
                 .withTextReporter("gradle-revapi-junit-template.ftlx", junitOutput())
                 .withTextReporter("gradle-revapi-text-template.ftl", textOutputPath.toFile()));
 

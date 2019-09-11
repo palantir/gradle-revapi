@@ -49,7 +49,7 @@ public class RevapiAcceptBreaksTask extends RevapiJavaTask {
 
         File breaksPath = Files.createTempFile("reavpi-breaks", ".yml").toFile();
 
-        runRevapi(revapiJsonConfig -> revapiJsonConfig
+        runRevapi(RevapiJsonConfig.empty()
                 .withTextReporter("gradle-revapi-accept-breaks.ftl", breaksPath));
 
         List<AcceptedBreak> rawAcceptedBreaks =
