@@ -81,7 +81,7 @@ class ConfigManagerTest {
             );
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
-                    .addAcceptedBreak(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
+                    .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
                             .builder()
                             .code("something")
                             .oldElement("old2")

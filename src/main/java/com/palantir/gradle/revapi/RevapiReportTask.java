@@ -16,52 +16,25 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.io.Resources;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import org.gradle.api.tasks.TaskAction;
-import org.revapi.API;
-import org.revapi.Archive;
 
 public class RevapiReportTask extends RevapiJavaTask {
     @TaskAction
     public final void runRevapi() throws Exception {
         Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
 
-        runRevapi((oldApi, newApi) -> templateJsonConfig(oldApi, newApi, textOutputPath));
+        runRevapi(revapiJsonConfig -> revapiJsonConfig
+                .withTextReporter("gradle-revapi-junit-template.ftlx", junitOutput())
+                .withTextReporter("gradle-revapi-text-template.ftl", textOutputPath.toFile()));
 
         String textOutput = new String(Files.readAllBytes(textOutputPath), StandardCharsets.UTF_8);
         if (!textOutput.trim().isEmpty()) {
             throw new RuntimeException("There were Java public API/ABI breaks reported by revapi:\n\n" + textOutput);
-        }
-    }
-
-    private String templateJsonConfig(API oldApi, API newApi, Path textOutputPath) {
-        String template = configFromResources();
-
-        return template
-                .replace("{{JUNIT_OUTPUT}}", junitOutput().getAbsolutePath())
-                .replace("{{TEXT_OUTPUT}}", textOutputPath.toAbsolutePath().toString())
-                .replace("{{ARCHIVE_INCLUDE_REGEXES}}", Stream.of(newApi, oldApi)
-                        .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
-                        .map(Archive::getName)
-                        .collect(Collectors.joining("\", \"")));
-    }
-
-    private String configFromResources() {
-        try {
-            return Resources.toString(Resources.getResource(
-                    "revapi-configuration.json"),
-                    StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 

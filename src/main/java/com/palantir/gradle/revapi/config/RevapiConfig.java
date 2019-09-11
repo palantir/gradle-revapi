@@ -54,7 +54,7 @@ public abstract class RevapiConfig {
                 .collect(Collectors.toSet());
     }
 
-    public final RevapiConfig addAcceptedBreak(
+    public final RevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Set<AcceptedBreak> acceptedBreaks) {
 

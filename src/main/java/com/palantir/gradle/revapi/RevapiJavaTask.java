@@ -21,7 +21,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
@@ -64,7 +64,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return newApiJars;
     }
 
-    protected final void runRevapi(BiFunction<API, API, String> configJson) throws Exception {
+    protected final void runRevapi(UnaryOperator<RevapiJsonConfig> configJson) throws Exception {
         API oldApi = oldApi();
         API newApi = newApi();
 
@@ -77,11 +77,13 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withReporters(TextReporter.class)
                 .build();
 
+        RevapiJsonConfig revapiJsonConfig = configJson.apply(RevapiJsonConfig.defaults(oldApi, newApi));
+
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
                 // https://revapi.org/modules/revapi-java/extensions/java.html
-                .withConfigurationFromJSON(configJson.apply(oldApi, newApi))
+                .withConfigurationFromJSON(revapiJsonConfig.configAsString())
                 .build())) {
             analysisResult.throwIfFailed();
         }
