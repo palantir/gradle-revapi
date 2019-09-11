@@ -141,6 +141,37 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingResolutionFailure("root-project")
     }
 
+    def 'handles the output of extra source sets being added to compile configuration'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            sourceSets {
+                extraStuff
+            }
+            
+            dependencies {
+                compile sourceSets.extraStuff.output
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.revapi'
+                oldName = 'revapi'
+                oldVersion = '0.11.1'
+            }
+        """.stripIndent()
+
+        rootProjectNameIs("root-project")
+
+        then:
+        runRevapiExpectingToFindDifferences("root-project")
+    }
+
     private File rootProjectNameIs(String projectName) {
         settingsFile << "rootProject.name = '${projectName}'"
     }
