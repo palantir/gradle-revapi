@@ -9,8 +9,6 @@
         <testcase id="${diff.code}-${report.oldElement!"none"}" name="Revapi Java API/ABI compatibility checker - ${diff.code}">
             <failure message="${report.oldElement!(report.newElement!"<none>")}<#if diff.description??>: ${diff.description}</#if>"><![CDATA[
 <#include "gradle-revapi-difference-template.ftl">
-
-Category: ${diff.code}
             ]]></failure>
         </testcase>
         </#list>
