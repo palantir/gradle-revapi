@@ -192,7 +192,7 @@ class RevapiSpec extends IntegrationSpec {
         rootProjectNameIs("root-project")
 
         and:
-        runTasksSuccessfully("revapiAcceptBreaks", "--justification", "it's all good :)")
+        runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "it's all good :)")
 
         then:
         runTasksSuccessfully("revapi")

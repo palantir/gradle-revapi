@@ -30,7 +30,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
-public class RevapiAcceptBreaksTask extends RevapiJavaTask {
+public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
     private static final ObjectMapper OBJECT_MAPPER = RevapiConfig.newRecommendedObjectMapper();
     public static final String JUSTIFICATION = "justification";
 

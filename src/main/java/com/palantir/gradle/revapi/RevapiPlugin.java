@@ -54,7 +54,7 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.configManager().set(configManager);
         });
 
-        project.getTasks().register("revapiAcceptBreaks", RevapiAcceptBreaksTask.class, task -> {
+        project.getTasks().register("revapiAcceptAllBreaks", RevapiAcceptAllBreaksTask.class, task -> {
             configureRevapiJavaTask(project, revapiNewApi, configManager, task);
         });
 
