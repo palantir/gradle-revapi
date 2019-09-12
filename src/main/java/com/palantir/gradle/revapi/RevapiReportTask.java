@@ -18,6 +18,7 @@ package com.palantir.gradle.revapi;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
+import com.palantir.gradle.revapi.config.Justification;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,8 +33,6 @@ public class RevapiReportTask extends RevapiJavaTask {
     public final void runRevapi() throws Exception {
         Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
 
-        Path renderedJunitTemplate = Files.createTempFile("revapi-junit-template", ".ftlx");
-
         String differenceTemplate = templateResource("gradle-revapi-difference-template.ftl", ImmutableMap.of(
                 "acceptBreakTask", getProject().getTasks()
                         .withType(RevapiAcceptBreakTask.class)
@@ -44,12 +43,15 @@ public class RevapiReportTask extends RevapiJavaTask {
                         .getByName(RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME)
                         .getPath(),
                 "acceptAllBreaksEverywhereTask", RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME,
-                "explainWhy", "no"
+                "explainWhy", Justification.YOU_MUST_ENTER_JUSTIFICATION
         ));
 
+        Path junitTemplate = templateResourceToFile("gradle-revapi-junit-template.ftlx", differenceTemplate);
+        Path textOutputTemplate = templateResourceToFile("gradle-revapi-text-template.ftl", differenceTemplate);
+
         runRevapi(RevapiJsonConfig.empty()
-                .withTextReporter("gradle-revapi-junit-template.ftlx", junitOutput())
-                .withTextReporter("gradle-revapi-text-template.ftl", textOutputPath.toFile()));
+                .withTextReporter(junitTemplate.toString(), junitOutput())
+                .withTextReporter(textOutputTemplate.toString(), textOutputPath.toFile()));
 
         String textOutput = new String(Files.readAllBytes(textOutputPath), StandardCharsets.UTF_8);
         if (!textOutput.trim().isEmpty()) {
@@ -58,10 +60,18 @@ public class RevapiReportTask extends RevapiJavaTask {
     }
 
     private String templateResource(String resourceName, Map<String, String> args) throws IOException {
-        String template = Resources.toString(Resources.getResource(resourceName), StandardCharsets.UTF_8);
+        String template = Resources.toString(Resources.getResource("META-INF/" + resourceName), StandardCharsets.UTF_8);
         return args.entrySet().stream().reduce(template, (partiallyRendered, arg) ->
                 partiallyRendered.replace("{{" + arg.getKey() + "}}", arg.getValue()),
                 (a, b) -> a);
+    }
+
+    private Path templateResourceToFile(String resourceName, String differenceTemplate) throws IOException {
+        Path templateOutput = Files.createTempFile(resourceName, "template");
+        Files.write(templateOutput, templateResource(resourceName, ImmutableMap.of(
+                "differenceTemplate", differenceTemplate
+        )).getBytes(StandardCharsets.UTF_8));
+        return templateOutput.toAbsolutePath();
     }
 
     private File junitOutput() {

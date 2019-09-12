@@ -18,13 +18,23 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.Preconditions;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutableJustification.class)
 public interface Justification {
+    String YOU_MUST_ENTER_JUSTIFICATION = "{why this break is ok}";
+
     @JsonValue
     String asString();
+
+    @Value.Check
+    default void check() {
+        Preconditions.checkArgument(
+                !asString().equals(YOU_MUST_ENTER_JUSTIFICATION),
+                "You must enter a justification other than " + YOU_MUST_ENTER_JUSTIFICATION);
+    }
 
     class Builder extends ImmutableJustification.Builder {}
 

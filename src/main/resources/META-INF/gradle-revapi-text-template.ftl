@@ -3,7 +3,8 @@
 <#list reports as report>
 <#list report.differences as diff>
 ${diff.code}<#if diff.description??>: ${diff.description}</#if>
-<#include "gradle-revapi-difference-template.ftl">
+
+{{differenceTemplate}}
 ----------------------------------------------------------------------------------------------------
 </#list>
 </#list>
