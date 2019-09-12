@@ -50,6 +50,8 @@ public final class RevapiPlugin implements Plugin<Project> {
         TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class,
                 task -> configureRevapiJavaTask(project, revapiNewApi, configManager, task));
 
+        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
             task.configManager().set(configManager);
         });
@@ -58,7 +60,9 @@ public final class RevapiPlugin implements Plugin<Project> {
             configureRevapiJavaTask(project, revapiNewApi, configManager, task);
         });
 
-        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+        project.getTasks().register("revapiAcceptBreak", RevapiAcceptBreakTask.class, task -> {
+            task.configManager().set(configManager);
+        });
     }
 
     protected void configureRevapiJavaTask(
