@@ -1,0 +1,6 @@
+type: feature
+feature:
+  description: Tasks named `revapiAcceptBreak` and `revapiAcceptAllBreaks` are provided
+    so that API authors have an easy way to ignore breaks revealed by gradle-revapi.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/9
