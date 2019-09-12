@@ -16,10 +16,14 @@
 
 package com.palantir.gradle.revapi;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import org.gradle.api.tasks.TaskAction;
 
@@ -27,6 +31,21 @@ public class RevapiReportTask extends RevapiJavaTask {
     @TaskAction
     public final void runRevapi() throws Exception {
         Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
+
+        Path renderedJunitTemplate = Files.createTempFile("revapi-junit-template", ".ftlx");
+
+        String differenceTemplate = templateResource("gradle-revapi-difference-template.ftl", ImmutableMap.of(
+                "acceptBreakTask", getProject().getTasks()
+                        .withType(RevapiAcceptBreakTask.class)
+                        .getByName(RevapiPlugin.ACCEPT_BREAK_TASK_NAME)
+                        .getPath(),
+                "acceptAllBreaksProjectTask", getProject().getTasks()
+                        .withType(RevapiAcceptAllBreaksTask.class)
+                        .getByName(RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME)
+                        .getPath(),
+                "acceptAllBreaksEverywhereTask", RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME,
+                "explainWhy", "no"
+        ));
 
         runRevapi(RevapiJsonConfig.empty()
                 .withTextReporter("gradle-revapi-junit-template.ftlx", junitOutput())
@@ -36,6 +55,13 @@ public class RevapiReportTask extends RevapiJavaTask {
         if (!textOutput.trim().isEmpty()) {
             throw new RuntimeException("There were Java public API/ABI breaks reported by revapi:\n\n" + textOutput);
         }
+    }
+
+    private String templateResource(String resourceName, Map<String, String> args) throws IOException {
+        String template = Resources.toString(Resources.getResource(resourceName), StandardCharsets.UTF_8);
+        return args.entrySet().stream().reduce(template, (partiallyRendered, arg) ->
+                partiallyRendered.replace("{{" + arg.getKey() + "}}", arg.getValue()),
+                (a, b) -> a);
     }
 
     private File junitOutput() {

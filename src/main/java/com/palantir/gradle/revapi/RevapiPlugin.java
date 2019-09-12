@@ -33,6 +33,8 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 public final class RevapiPlugin implements Plugin<Project> {
     public static final String VERSION_OVERRIDE_TASK_NAME = "revapiVersionOverride";
+    public static final String ACCEPT_BREAK_TASK_NAME = "revapiAcceptBreak";
+    public static final String ACCEPT_ALL_BREAKS_TASK_NAME = "revapiAcceptAllBreaks";
 
     @Override
     public void apply(Project project) {
@@ -56,11 +58,11 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.configManager().set(configManager);
         });
 
-        project.getTasks().register("revapiAcceptAllBreaks", RevapiAcceptAllBreaksTask.class, task -> {
+        project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
             configureRevapiJavaTask(project, revapiNewApi, configManager, task);
         });
 
-        project.getTasks().register("revapiAcceptBreak", RevapiAcceptBreakTask.class, task -> {
+        project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
             task.configManager().set(configManager);
         });
     }

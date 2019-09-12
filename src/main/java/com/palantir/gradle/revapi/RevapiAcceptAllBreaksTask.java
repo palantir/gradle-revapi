@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.RevapiConfig;
 import java.io.File;
 import java.nio.file.Files;
@@ -34,11 +35,11 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
     private static final ObjectMapper OBJECT_MAPPER = RevapiConfig.newRecommendedObjectMapper();
     public static final String JUSTIFICATION = "justification";
 
-    private final Property<String> justification = getProject().getObjects().property(String.class);
+    private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
     @Option(option = JUSTIFICATION, description = "Justification for why these breaks are ok")
     public final void setJustification(String justificationString) {
-        this.justification.set(justificationString);
+        this.justification.set(Justification.fromString(justificationString));
     }
 
     @TaskAction

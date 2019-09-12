@@ -18,6 +18,7 @@ package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Justification;
 import java.util.Collections;
 import java.util.Optional;
 import org.gradle.api.DefaultTask;
@@ -35,7 +36,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
     private final Property<String> code = getProject().getObjects().property(String.class);
     private final Property<String> oldElement = getProject().getObjects().property(String.class);
     private final Property<String> newElement = getProject().getObjects().property(String.class);
-    private final Property<String> justification = getProject().getObjects().property(String.class);
+    private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
     public final Property<ConfigManager> configManager() {
         return configManager;
@@ -58,7 +59,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
 
     @Option(option = JUSTIFICATION_OPTION, description = "Justification for why these breaks are ok")
     public final void setJustification(String justificationString) {
-        this.justification.set(justificationString);
+        this.justification.set(Justification.fromString(justificationString));
     }
 
     @TaskAction
@@ -76,7 +77,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
         )));
     }
 
-    private void ensurePresent(Property<String> prop, String option) {
+    private void ensurePresent(Property<?> prop, String option) {
         if (!prop.isPresent()) {
             throw new IllegalArgumentException("Please supply the --" + option + " param to this task");
         }

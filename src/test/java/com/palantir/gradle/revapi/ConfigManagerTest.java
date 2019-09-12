@@ -63,8 +63,8 @@ class ConfigManagerTest {
                 "  1.2.3:",
                 "    foo:bar:",
                 "      - code: blah",
-                "        oldElement: old",
-                "        newElement: new",
+                "        old: old",
+                "        new: new",
                 "        justification: \"I don't care about my users\""
                         )
                 .getBytes(StandardCharsets.UTF_8));
@@ -98,13 +98,13 @@ class ConfigManagerTest {
                 "  1.2.3:",
                 "    foo:bar:",
                 "    - code: \"blah\"",
-                "      oldElement: \"old\"",
-                "      newElement: \"new\"",
+                "      old: \"old\"",
+                "      new: \"new\"",
                 "      justification: \"I don't care about my users\"",
                 "    quux:baz:",
                 "    - code: \"something\"",
-                "      oldElement: \"old2\"",
-                "      newElement: \"new2\"",
+                "      old: \"old2\"",
+                "      new: \"new2\"",
                 "      justification: \"j\""));
 
     }

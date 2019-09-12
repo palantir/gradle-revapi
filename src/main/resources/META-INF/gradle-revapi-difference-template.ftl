@@ -12,11 +12,11 @@ If this is an acceptable break that will not harm your users, you can ignore it 
 like so for:
 
   * Just this break:
-      ./gradlew :projectname:revapiAcceptBreak --justification "{why this break is ok}" \
+      ./gradlew {{acceptBreakTask}} --justification "{{explainWhy}}" \
         --code "${diff.code}"<#if report.oldElement??> \
         --old "${report.oldElement}"</#if><#if report.newElement??> \
         --new "${report.newElement}"</#if>
   * All breaks in this project:
-      ./gradlew :projectname:revapiAcceptAllBreaks --justification "{why this break is ok}"
+      ./gradlew {{acceptAllBreaksProjectTask}} --justification "{{explainWhy}}"
   * All breaks in all projects:
-      ./gradlew revapiAcceptAllBreaks --justification "{why this break is ok}"
+      ./gradlew {{acceptAllBreaksEverywhereTask}} --justification "{{explainWhy}}"
