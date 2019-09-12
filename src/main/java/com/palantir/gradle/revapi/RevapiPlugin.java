@@ -65,7 +65,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         });
     }
 
-    protected void configureRevapiJavaTask(
+    private void configureRevapiJavaTask(
             Project project,
             Configuration revapiNewApi,
             ConfigManager configManager,
