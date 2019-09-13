@@ -17,6 +17,7 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.collect.Sets;
+import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -79,9 +80,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
         String revapiJsonConfig = RevapiJsonConfig.mergeAll(
                 RevapiJsonConfig.defaults(oldApi, newApi),
                 taskSpecificConfigJson,
-                RevapiJsonConfig.empty().withIgnoredBreaks(configManager.get().fromFileOrEmptyIfDoesNotExist()
-                        .acceptedBreaksFor(getExtension().oldGroupNameVersion()))
-                ).configAsString();
+                revapiIgnores()).configAsString();
 
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)
@@ -91,6 +90,15 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .build())) {
             analysisResult.throwIfFailed();
         }
+    }
+
+    private RevapiJsonConfig revapiIgnores() {
+        Set<AcceptedBreak> acceptedBreaks = configManager.get()
+                .fromFileOrEmptyIfDoesNotExist()
+                .acceptedBreaksFor(getExtension().oldGroupNameVersion());
+
+        return RevapiJsonConfig.empty()
+                .withIgnoredBreaks(acceptedBreaks);
     }
 
     private API newApi() {
