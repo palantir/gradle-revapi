@@ -38,7 +38,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
     private final Property<String> newElement = getProject().getObjects().property(String.class);
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
-    public final Property<ConfigManager> configManager() {
+    final Property<ConfigManager> configManager() {
         return configManager;
     }
 

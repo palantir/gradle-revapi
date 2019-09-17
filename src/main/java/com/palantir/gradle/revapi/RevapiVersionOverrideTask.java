@@ -28,7 +28,7 @@ public class RevapiVersionOverrideTask extends DefaultTask {
     private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
     private final Property<String> replacementVersion = getProject().getObjects().property(String.class);
 
-    public final Property<ConfigManager> configManager() {
+    final Property<ConfigManager> configManager() {
         return configManager;
     }
 

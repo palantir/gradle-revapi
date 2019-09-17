@@ -52,7 +52,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private final Property<FileCollection> newApiJars =
             getProject().getObjects().property(FileCollection.class);
 
-    public final Property<ConfigManager> configManager() {
+    final Property<ConfigManager> configManager() {
         return configManager;
     }
 
