@@ -35,7 +35,14 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
     private static final ObjectMapper OBJECT_MAPPER = RevapiConfig.newRecommendedObjectMapper();
     public static final String JUSTIFICATION = "justification";
 
+    private final Property<GroupNameVersion> oldGroupNameVersion =
+            getProject().getObjects().property(GroupNameVersion.class);
+
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
+
+    final Property<GroupNameVersion> getOldGroupNameVersion() {
+        return oldGroupNameVersion;
+    }
 
     @Option(option = JUSTIFICATION, description = "Justification for why these breaks are ok")
     public final void setJustification(String justificationString) {
@@ -64,10 +71,6 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
                 .collect(Collectors.toSet());
 
         configManager().get().modifyConfigFile(config ->
-                config.addAcceptedBreaks(oldGroupNameVersion(), acceptedBreaks));
-    }
-
-    private GroupNameVersion oldGroupNameVersion() {
-        return getProject().getExtensions().getByType(RevapiExtension.class).oldGroupNameVersion();
+                config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
     }
 }
