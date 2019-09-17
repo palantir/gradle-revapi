@@ -109,6 +109,21 @@ class ConfigManagerTest {
 
     }
 
+    @Test
+    void read_config_correctly_when_there_are_version_overrides_but_not_accepted_breaks() throws IOException {
+        File oldConfigFile = new File(tempDir, "revapi.yml");
+        ConfigManager configManager = new ConfigManager(oldConfigFile);
+
+        Files.write(oldConfigFile.toPath(), String.join("\n",
+                "versionOverrides:",
+                "  foo:bar:3.12: \"1.0\"")
+                .getBytes(StandardCharsets.UTF_8));
+
+        RevapiConfig revapiConfig = configManager.fromFileOrEmptyIfDoesNotExist();
+
+        assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
+    }
+
     private UnaryOperator<RevapiConfig> identityFunction() {
         UnaryOperator<RevapiConfig> transformer = mock(UnaryOperator.class);
         when(transformer.apply(any())).thenAnswer(invocation -> invocation.getArgument(0));
