@@ -47,7 +47,7 @@ public class RevapiReportTask extends RevapiJavaTask {
         ));
 
         Path junitTemplate = templateWithDifferenceTemplateAndWriteToFile(
-                "gradle-revapi-junit-template.ftlx", differenceTemplate);
+                "gradle-revapi-junit-template.ftl", differenceTemplate);
 
         Path textOutputTemplate = templateWithDifferenceTemplateAndWriteToFile(
                 "gradle-revapi-text-template.ftl", differenceTemplate);
