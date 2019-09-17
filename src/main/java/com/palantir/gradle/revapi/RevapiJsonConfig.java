@@ -16,16 +16,20 @@
 
 package com.palantir.gradle.revapi;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,7 +43,7 @@ abstract class RevapiJsonConfig {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new Jdk8Module());
 
-    protected abstract ArrayNode config();
+    protected abstract List<JsonNode> config();
 
     public String configAsString() {
         return config().toString();
@@ -62,16 +66,17 @@ abstract class RevapiJsonConfig {
                 .put("extension", extensionId)
                 .set("configuration", configuration);
 
-        ArrayNode arrayNode = config().deepCopy().add(extension);
-        return fromArrayNode(arrayNode);
+        return fromJsonNodes(ImmutableList.<JsonNode>builder()
+                .addAll(config())
+                .add(extension)
+                .build());
     }
 
     public RevapiJsonConfig mergeWith(RevapiJsonConfig other) {
-        return fromArrayNode(config().deepCopy().addAll(other.config()));
-    }
-
-    public static RevapiJsonConfig empty() {
-        return fromString("[]");
+        return new Builder()
+                .from(this)
+                .addAllConfig(other.config())
+                .build();
     }
 
     public static RevapiJsonConfig defaults(API oldApi, API newApi) {
@@ -98,17 +103,21 @@ abstract class RevapiJsonConfig {
 
     static final class Builder extends ImmutableRevapiJsonConfig.Builder { }
 
+    public static RevapiJsonConfig empty() {
+        return fromJsonNodes(Collections.emptyList());
+    }
+
     private static RevapiJsonConfig fromString(String configJson) {
         try {
-            return fromArrayNode(OBJECT_MAPPER.readValue(configJson, ArrayNode.class));
+            return fromJsonNodes(OBJECT_MAPPER.readValue(configJson, new TypeReference<List<JsonNode>>() {}));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static RevapiJsonConfig fromArrayNode(ArrayNode arrayNode) {
+    private static RevapiJsonConfig fromJsonNodes(List<JsonNode> jsonNodes) {
         return new Builder()
-                .config(arrayNode)
+                .config(jsonNodes)
                 .build();
     }
 }
