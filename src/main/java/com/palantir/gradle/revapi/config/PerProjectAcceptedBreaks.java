@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.immutables.value.Value;
@@ -31,10 +32,13 @@ interface PerProjectAcceptedBreaks {
     Map<GroupAndName, Set<AcceptedBreak>> acceptedBreaks();
 
     default PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
+        Map<GroupAndName, Set<AcceptedBreak>> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
+        newAcceptedBreaks.put(groupAndName, Sets.union(
+                acceptedBreaks,
+                this.acceptedBreaks().getOrDefault(groupAndName, ImmutableSet.of())));
+
         return builder()
-                .from(this)
-                .putAcceptedBreaks(groupAndName, Sets.union(acceptedBreaks,
-                        this.acceptedBreaks().getOrDefault(groupAndName, ImmutableSet.of())))
+                .putAllAcceptedBreaks(newAcceptedBreaks)
                 .build();
     }
 

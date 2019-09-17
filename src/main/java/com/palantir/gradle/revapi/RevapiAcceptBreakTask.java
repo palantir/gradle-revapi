@@ -71,7 +71,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
                 revapiConfig.addAcceptedBreaks(oldGroupNameVersion(), Collections.singleton(AcceptedBreak.builder()
                         .code(code.get())
                         .oldElement(Optional.ofNullable(oldElement.getOrNull()))
-                        .newElement(Optional.ofNullable(oldElement.getOrNull()))
+                        .newElement(Optional.ofNullable(newElement.getOrNull()))
                         .justification(justification.get())
                         .build()
         )));
