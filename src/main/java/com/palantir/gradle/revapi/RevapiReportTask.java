@@ -46,8 +46,11 @@ public class RevapiReportTask extends RevapiJavaTask {
                 "explainWhy", Justification.YOU_MUST_ENTER_JUSTIFICATION
         ));
 
-        Path junitTemplate = templateResourceToFile("gradle-revapi-junit-template.ftlx", differenceTemplate);
-        Path textOutputTemplate = templateResourceToFile("gradle-revapi-text-template.ftl", differenceTemplate);
+        Path junitTemplate = templateWithDifferenceTemplateAndWriteToFile(
+                "gradle-revapi-junit-template.ftlx", differenceTemplate);
+
+        Path textOutputTemplate = templateWithDifferenceTemplateAndWriteToFile(
+                "gradle-revapi-text-template.ftl", differenceTemplate);
 
         runRevapi(RevapiJsonConfig.empty()
                 .withTextReporter(junitTemplate.toString(), junitOutput())
@@ -66,7 +69,7 @@ public class RevapiReportTask extends RevapiJavaTask {
                 (a, b) -> a);
     }
 
-    private Path templateResourceToFile(String resourceName, String differenceTemplate) throws IOException {
+    private Path templateWithDifferenceTemplateAndWriteToFile(String resourceName, String differenceTemplate) throws IOException {
         Path templateOutput = Files.createTempFile(resourceName, "template");
         Files.write(templateOutput, templateResource(resourceName, ImmutableMap.of(
                 "differenceTemplate", differenceTemplate
