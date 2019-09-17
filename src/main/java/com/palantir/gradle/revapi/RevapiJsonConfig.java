@@ -75,32 +75,25 @@ abstract class RevapiJsonConfig {
     }
 
     public static RevapiJsonConfig defaults(API oldApi, API newApi) {
-        return fromString(templateJsonConfig(oldApi, newApi));
+        try {
+            String template = Resources.toString(
+                    Resources.getResource(
+                            "revapi-configuration.json"),
+                    StandardCharsets.UTF_8);
+
+            return fromString(template
+                    .replace("{{ARCHIVE_INCLUDE_REGEXES}}", Stream.of(newApi, oldApi)
+                            .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
+                            .map(Archive::getName)
+                            .collect(Collectors.joining("\", \""))));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static RevapiJsonConfig mergeAll(RevapiJsonConfig... revapiJsonConfigs) {
         return Arrays.stream(revapiJsonConfigs)
                 .reduce(empty(), RevapiJsonConfig::mergeWith);
-    }
-
-    private static String templateJsonConfig(API oldApi, API newApi) {
-        String template = configFromResources();
-
-        return template
-                .replace("{{ARCHIVE_INCLUDE_REGEXES}}", Stream.of(newApi, oldApi)
-                        .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
-                        .map(Archive::getName)
-                        .collect(Collectors.joining("\", \"")));
-    }
-
-    private static String configFromResources() {
-        try {
-            return Resources.toString(Resources.getResource(
-                    "revapi-configuration.json"),
-                    StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     static final class Builder extends ImmutableRevapiJsonConfig.Builder { }
