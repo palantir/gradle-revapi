@@ -46,6 +46,11 @@ public class RevapiReportTask extends RevapiJavaTask {
                 "explainWhy", Justification.YOU_MUST_ENTER_JUSTIFICATION
         ));
 
+
+        // Here, we are templating the templates to add the common `differenceTemplate` information. This is because
+        // revapi does not allow us to specify our own template variables, so we must manually template out the
+        // variables we care about (like the task paths etc above) before Revapi does it's own templating with the
+        // api breaks.
         Path junitTemplate = templateWithDifferenceTemplateAndWriteToFile(
                 "gradle-revapi-junit-template.ftl", differenceTemplate);
 
