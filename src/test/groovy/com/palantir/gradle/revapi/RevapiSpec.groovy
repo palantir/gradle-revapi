@@ -172,6 +172,79 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
+    def 'errors out when the there are breaks but then is fine when breaks are accepted'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.revapi'
+                oldName = 'revapi'
+                oldVersion = '0.11.1'
+            }
+        """.stripIndent()
+
+        rootProjectNameIs("root-project")
+
+        and:
+        runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "it's all good :)")
+
+        then:
+        runTasksSuccessfully("revapi")
+    }
+
+    def 'accepting breaks individually should work'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+        """.stripIndent()
+
+        rootProjectNameIs("root-project")
+
+        and:
+        runTasksSuccessfully("revapiAcceptBreak",
+                "--code", "code1",
+                "--old", "old1",
+                "--new", "new1",
+                "--justification", "j1")
+
+        runTasksSuccessfully("revapiAcceptBreak",
+                "--code", "code2",
+                "--old", "old2",
+                "--justification", "j2")
+
+        runTasksSuccessfully("revapiAcceptBreak",
+                "--code", "code3",
+                "--new", "new3",
+                "--justification", "j3")
+
+        then:
+        def revapiYml = file('.palantir/revapi.yml').text
+        assert revapiYml.contains('code: "code1"')
+        assert revapiYml.contains('old: "old1"')
+        assert revapiYml.contains('new: "new1"')
+        assert revapiYml.contains('justification: "j1"')
+
+        assert revapiYml.contains('code: "code2"')
+        assert revapiYml.contains('old: "old2"')
+        assert revapiYml.contains('justification: "j2"')
+
+        assert revapiYml.contains('code: "code3"')
+        assert revapiYml.contains('new: "new3"')
+        assert revapiYml.contains('justification: "j3"')
+
+    }
+
     private File rootProjectNameIs(String projectName) {
         settingsFile << "rootProject.name = '${projectName}'"
     }

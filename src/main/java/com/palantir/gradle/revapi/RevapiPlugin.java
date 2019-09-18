@@ -33,13 +33,15 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 public final class RevapiPlugin implements Plugin<Project> {
     public static final String VERSION_OVERRIDE_TASK_NAME = "revapiVersionOverride";
+    public static final String ACCEPT_BREAK_TASK_NAME = "revapiAcceptBreak";
+    public static final String ACCEPT_ALL_BREAKS_TASK_NAME = "revapiAcceptAllBreaks";
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        project.getExtensions().create("revapi", RevapiExtension.class, project);
+        RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
             conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
@@ -47,7 +49,15 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         ConfigManager configManager = new ConfigManager(configFile(project));
 
-        TaskProvider<RevapiJavaTask> revapiTask = project.getTasks().register("revapi", RevapiJavaTask.class, task -> {
+        TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class);
+
+        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+
+        project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
+            task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
+        });
+
+        project.getTasks().withType(RevapiJavaTask.class).forEach(task -> {
             task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
 
             task.configManager().set(configManager);
@@ -62,7 +72,9 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.configManager().set(configManager);
         });
 
-        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+        project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
+            task.configManager().set(configManager);
+        });
     }
 
     @VisibleForTesting
@@ -85,7 +97,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                 .collect(Collectors.toSet()));
     }
 
-    static File configFile(Project project) {
+    private static File configFile(Project project) {
         return new File(project.getRootDir(), ".palantir/revapi.yml");
     }
 }

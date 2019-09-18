@@ -21,14 +21,19 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutableRevapiConfig.class)
 public abstract class RevapiConfig {
     protected abstract Map<GroupNameVersion, String> versionOverrides();
+    protected abstract Map<Version, PerProjectAcceptedBreaks> acceptedBreaks();
 
     public final Optional<String> versionOverrideFor(GroupNameVersion groupNameVersion) {
         return Optional.ofNullable(versionOverrides().get(groupNameVersion));
@@ -41,6 +46,32 @@ public abstract class RevapiConfig {
                 .build();
     }
 
+    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
+        return Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version()))
+                .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
+                .orElseGet(Collections::emptySet);
+    }
+
+    public final RevapiConfig addAcceptedBreaks(
+            GroupNameVersion groupNameVersion,
+            Set<AcceptedBreak> acceptedBreaks) {
+
+        PerProjectAcceptedBreaks existingAcceptedBreaks =
+                acceptedBreaks().getOrDefault(groupNameVersion.version(), PerProjectAcceptedBreaks.empty());
+
+        PerProjectAcceptedBreaks newPerProjectAcceptedBreaks = existingAcceptedBreaks.merge(
+                groupNameVersion.groupAndName(),
+                acceptedBreaks);
+
+        Map<Version, PerProjectAcceptedBreaks> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
+        newAcceptedBreaks.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
+
+        return ImmutableRevapiConfig.builder()
+                .from(this)
+                .acceptedBreaks(newAcceptedBreaks)
+                .build();
+    }
+
     public static RevapiConfig empty() {
         return ImmutableRevapiConfig.builder().build();
     }
@@ -48,7 +79,8 @@ public abstract class RevapiConfig {
     public static ObjectMapper newRecommendedObjectMapper() {
         return new ObjectMapper(
                 new YAMLFactory()
-                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-        ).registerModule(new GuavaModule());
+                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
+                .registerModule(new GuavaModule())
+                .registerModule(new Jdk8Module());
     }
 }
