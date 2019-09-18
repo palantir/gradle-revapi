@@ -54,7 +54,7 @@ dependencies {
 
     testCompile platform('org.junit:junit-bom')
     testImplementation 'com.netflix.nebula:nebula-test'
-    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.assertj:assertj-core'
 

@@ -79,6 +79,7 @@ class ConfigManagerTest {
                             .justification("I don't care about my users")
                             .build()
             );
+            assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("doesnt:exist:1.2.3"))).isEmpty();
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
                     .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
