@@ -20,7 +20,7 @@ import java.io.File;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
-public final class RevapiGlobalConfigPlugin implements Plugin<Project> {
+final class RevapiGlobalConfigPlugin implements Plugin<Project> {
     private ConfigManager configManager;
 
     @Override
@@ -34,7 +34,7 @@ public final class RevapiGlobalConfigPlugin implements Plugin<Project> {
         configManager = new ConfigManager(new File(project.getRootDir(), ".palantir/revapi.yml"));
     }
 
-    public ConfigManager configManager() {
+    ConfigManager configManager() {
         return configManager;
     }
 }
