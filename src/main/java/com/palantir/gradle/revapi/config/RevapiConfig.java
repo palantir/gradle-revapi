@@ -70,8 +70,8 @@ public abstract class RevapiConfig {
         newAcceptedBreaks.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
 
         return ImmutableRevapiConfig.builder()
-                .putAllVersionOverrides(versionOverrides())
-                .putAllAcceptedBreaks(newAcceptedBreaks)
+                .from(this)
+                .acceptedBreaks(newAcceptedBreaks)
                 .build();
     }
 
