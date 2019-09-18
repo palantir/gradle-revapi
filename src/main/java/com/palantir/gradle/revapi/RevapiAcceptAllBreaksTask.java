@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
@@ -40,6 +41,7 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
 
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
+    @Input
     final Property<GroupNameVersion> getOldGroupNameVersion() {
         return oldGroupNameVersion;
     }
