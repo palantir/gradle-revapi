@@ -69,7 +69,9 @@ public class RevapiReportTask extends RevapiJavaTask {
                 (a, b) -> a);
     }
 
-    private Path templateWithDifferenceTemplateAndWriteToFile(String resourceName, String differenceTemplate) throws IOException {
+    private Path templateWithDifferenceTemplateAndWriteToFile(String resourceName, String differenceTemplate)
+            throws IOException {
+
         Path templateOutput = Files.createTempFile(resourceName, "template");
         Files.write(templateOutput, templateResource(resourceName, ImmutableMap.of(
                 "differenceTemplate", differenceTemplate
