@@ -64,7 +64,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return newApiJars;
     }
 
-    protected final void runRevapi(RevapiJsonConfig taskSpecificConfigJson) throws Exception {
+    protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
         API oldApi = oldApi();
         API newApi = newApi();
 
@@ -77,8 +77,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withReporters(TextReporter.class)
                 .build();
 
-        String revapiJsonConfig = RevapiJsonConfig.mergeAll(
-                RevapiJsonConfig.defaults(oldApi, newApi),
+        String revapiJsonConfig = RevapiConfig.mergeAll(
+                RevapiConfig.defaults(oldApi, newApi),
                 taskSpecificConfigJson,
                 revapiIgnores()).configAsString();
 
@@ -92,12 +92,12 @@ public abstract class RevapiJavaTask extends DefaultTask {
         }
     }
 
-    private RevapiJsonConfig revapiIgnores() {
+    private RevapiConfig revapiIgnores() {
         Set<AcceptedBreak> acceptedBreaks = configManager.get()
                 .fromFileOrEmptyIfDoesNotExist()
                 .acceptedBreaksFor(getExtension().oldGroupNameVersion());
 
-        return RevapiJsonConfig.empty()
+        return RevapiConfig.empty()
                 .withIgnoredBreaks(acceptedBreaks);
     }
 
