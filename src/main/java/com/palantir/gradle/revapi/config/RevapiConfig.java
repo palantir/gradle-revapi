@@ -49,7 +49,7 @@ public abstract class RevapiConfig {
     public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version()))
                 .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
-                .orElse(Collections.emptySet());
+                .orElseGet(Collections::emptySet);
     }
 
     public final RevapiConfig addAcceptedBreaks(
