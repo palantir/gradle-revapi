@@ -17,7 +17,6 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Plugin;
@@ -41,13 +40,16 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
+        ConfigManager configManager = project.getRootProject()
+                .getPlugins()
+                .apply(RevapiGlobalConfigPlugin.class)
+                .configManager();
+
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
             conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
         });
-
-        ConfigManager configManager = new ConfigManager(configFile(project));
 
         TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class);
 
@@ -95,9 +97,5 @@ public final class RevapiPlugin implements Plugin<Project> {
                         .matching(jar -> jar.getName().equals(JavaPlugin.JAR_TASK_NAME))
                         .stream())
                 .collect(Collectors.toSet()));
-    }
-
-    private static File configFile(Project project) {
-        return new File(project.getRootDir(), ".palantir/revapi.yml");
     }
 }

@@ -25,10 +25,7 @@ import java.util.function.UnaryOperator;
 final class ConfigManager {
     private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newRecommendedObjectMapper();
 
-    // This lock is overly broad, but it is very hard to share the lock between tasks without having a root project
-    // application managing everything.
-    private static final Object CONFIG_FILE_LOCK = new Object();
-
+    private final Object configFileLock = new Object();
     private final File configFile;
 
     ConfigManager(File configFile) {
@@ -36,7 +33,7 @@ final class ConfigManager {
     }
 
     public void modifyConfigFile(UnaryOperator<GradleRevapiConfig> transformer) {
-        synchronized (CONFIG_FILE_LOCK) {
+        synchronized (configFileLock) {
             GradleRevapiConfig oldGradleRevapiConfig = fromFileOrEmptyIfDoesNotExist();
             GradleRevapiConfig newGradleRevapiConfig = transformer.apply(oldGradleRevapiConfig);
 
@@ -56,7 +53,7 @@ final class ConfigManager {
         }
 
         try {
-            synchronized (CONFIG_FILE_LOCK) {
+            synchronized (configFileLock) {
                 return OBJECT_MAPPER.readValue(configFile, GradleRevapiConfig.class);
             }
         } catch (IOException e) {
