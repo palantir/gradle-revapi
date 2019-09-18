@@ -266,7 +266,8 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     private void andJunitXmlToHaveBeenProduced(String projectName) {
-        String junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml").text
-        assert junitOutput.contains("java.class.removed")
+        File junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml")
+        new XmlSlurper().parse(junitOutput)
+        assert junitOutput.text.contains("java.class.removed")
     }
 }
