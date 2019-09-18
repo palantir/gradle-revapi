@@ -22,12 +22,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.google.common.collect.Streams;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -48,11 +47,9 @@ public abstract class RevapiConfig {
     }
 
     public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return Streams.stream(Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version())))
-                .flatMap(versionedAcceptedBreaks -> versionedAcceptedBreaks.acceptedBreaks()
-                        .get(groupNameVersion.groupAndName())
-                        .stream())
-                .collect(Collectors.toSet());
+        return Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version()))
+                .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
+                .orElse(Collections.emptySet());
     }
 
     public final RevapiConfig addAcceptedBreaks(

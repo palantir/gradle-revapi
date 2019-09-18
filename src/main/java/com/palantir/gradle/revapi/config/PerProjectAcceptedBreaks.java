@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,11 +28,15 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutablePerProjectAcceptedBreaks.class)
-interface PerProjectAcceptedBreaks {
+abstract class PerProjectAcceptedBreaks {
     @JsonValue
-    Map<GroupAndName, Set<AcceptedBreak>> acceptedBreaks();
+    protected abstract Map<GroupAndName, Set<AcceptedBreak>> acceptedBreaks();
 
-    default PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
+    public Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupAndName) {
+        return acceptedBreaks().getOrDefault(groupAndName, Collections.emptySet());
+    }
+
+    public PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
         Map<GroupAndName, Set<AcceptedBreak>> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
         newAcceptedBreaks.put(groupAndName, Sets.union(
                 acceptedBreaks,
@@ -42,13 +47,13 @@ interface PerProjectAcceptedBreaks {
                 .build();
     }
 
-    class Builder extends ImmutablePerProjectAcceptedBreaks.Builder { }
+    static final class Builder extends ImmutablePerProjectAcceptedBreaks.Builder { }
 
-    static Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
-    static PerProjectAcceptedBreaks empty() {
+    public static PerProjectAcceptedBreaks empty() {
         return builder().build();
     }
 }
