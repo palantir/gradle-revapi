@@ -17,13 +17,13 @@
 package com.palantir.gradle.revapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palantir.gradle.revapi.config.RevapiConfig;
+import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.UnaryOperator;
 
 final class ConfigManager {
-    private static final ObjectMapper OBJECT_MAPPER = RevapiConfig.newRecommendedObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newRecommendedObjectMapper();
 
     // This lock is overly broad, but it is very hard to share the lock between tasks without having a root project
     // application managing everything.
@@ -35,29 +35,29 @@ final class ConfigManager {
         this.configFile = configFile;
     }
 
-    public void modifyConfigFile(UnaryOperator<RevapiConfig> transformer) {
+    public void modifyConfigFile(UnaryOperator<GradleRevapiConfig> transformer) {
         synchronized (CONFIG_FILE_LOCK) {
-            RevapiConfig oldRevapiConfig = fromFileOrEmptyIfDoesNotExist();
-            RevapiConfig newRevapiConfig = transformer.apply(oldRevapiConfig);
+            GradleRevapiConfig oldGradleRevapiConfig = fromFileOrEmptyIfDoesNotExist();
+            GradleRevapiConfig newGradleRevapiConfig = transformer.apply(oldGradleRevapiConfig);
 
             configFile.getParentFile().mkdirs();
 
             try {
-                OBJECT_MAPPER.writeValue(configFile, newRevapiConfig);
+                OBJECT_MAPPER.writeValue(configFile, newGradleRevapiConfig);
             } catch (IOException e) {
                 throw new RuntimeException("Failed to modify revapi config file: " + configFile, e);
             }
         }
     }
 
-    public RevapiConfig fromFileOrEmptyIfDoesNotExist() {
+    public GradleRevapiConfig fromFileOrEmptyIfDoesNotExist() {
         if (!configFile.exists()) {
-            return RevapiConfig.empty();
+            return GradleRevapiConfig.empty();
         }
 
         try {
             synchronized (CONFIG_FILE_LOCK) {
-                return OBJECT_MAPPER.readValue(configFile, RevapiConfig.class);
+                return OBJECT_MAPPER.readValue(configFile, GradleRevapiConfig.class);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read revapi config file: " + configFile, e);

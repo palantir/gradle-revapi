@@ -30,8 +30,8 @@ import java.util.Set;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableRevapiConfig.class)
-public abstract class RevapiConfig {
+@JsonDeserialize(as = ImmutableGradleRevapiConfig.class)
+public abstract class GradleRevapiConfig {
     protected abstract Map<GroupNameVersion, String> versionOverrides();
     protected abstract Map<Version, PerProjectAcceptedBreaks> acceptedBreaks();
 
@@ -39,8 +39,8 @@ public abstract class RevapiConfig {
         return Optional.ofNullable(versionOverrides().get(groupNameVersion));
     }
 
-    public final RevapiConfig addVersionOverride(GroupNameVersion groupNameVersion, String versionOverride) {
-        return ImmutableRevapiConfig.builder()
+    public final GradleRevapiConfig addVersionOverride(GroupNameVersion groupNameVersion, String versionOverride) {
+        return ImmutableGradleRevapiConfig.builder()
                 .from(this)
                 .putVersionOverrides(groupNameVersion, versionOverride)
                 .build();
@@ -52,7 +52,7 @@ public abstract class RevapiConfig {
                 .orElseGet(Collections::emptySet);
     }
 
-    public final RevapiConfig addAcceptedBreaks(
+    public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Set<AcceptedBreak> acceptedBreaks) {
 
@@ -66,14 +66,14 @@ public abstract class RevapiConfig {
         Map<Version, PerProjectAcceptedBreaks> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
         newAcceptedBreaks.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
 
-        return ImmutableRevapiConfig.builder()
+        return ImmutableGradleRevapiConfig.builder()
                 .from(this)
                 .acceptedBreaks(newAcceptedBreaks)
                 .build();
     }
 
-    public static RevapiConfig empty() {
-        return ImmutableRevapiConfig.builder().build();
+    public static GradleRevapiConfig empty() {
+        return ImmutableGradleRevapiConfig.builder().build();
     }
 
     public static ObjectMapper newRecommendedObjectMapper() {

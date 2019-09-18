@@ -39,7 +39,7 @@ import org.revapi.API;
 import org.revapi.Archive;
 
 @Value.Immutable
-abstract class RevapiJsonConfig {
+abstract class RevapiConfig {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new Jdk8Module());
 
@@ -49,7 +49,7 @@ abstract class RevapiJsonConfig {
         return config().toString();
     }
 
-    public RevapiJsonConfig withTextReporter(String templateName, File outputPath) {
+    public RevapiConfig withTextReporter(String templateName, File outputPath) {
         return withExtension("revapi.reporter.text", OBJECT_MAPPER.createObjectNode()
                 .put("minSeverity", "BREAKING")
                 .put("template", templateName)
@@ -57,11 +57,11 @@ abstract class RevapiJsonConfig {
                 .put("append", false));
     }
 
-    public RevapiJsonConfig withIgnoredBreaks(Set<AcceptedBreak> acceptedBreaks) {
+    public RevapiConfig withIgnoredBreaks(Set<AcceptedBreak> acceptedBreaks) {
         return withExtension("revapi.ignore", OBJECT_MAPPER.convertValue(acceptedBreaks, ArrayNode.class));
     }
 
-    private RevapiJsonConfig withExtension(String extensionId, JsonNode configuration) {
+    private RevapiConfig withExtension(String extensionId, JsonNode configuration) {
         JsonNode extension = OBJECT_MAPPER.createObjectNode()
                 .put("extension", extensionId)
                 .set("configuration", configuration);
@@ -72,14 +72,14 @@ abstract class RevapiJsonConfig {
                 .build());
     }
 
-    public RevapiJsonConfig mergeWith(RevapiJsonConfig other) {
+    public RevapiConfig mergeWith(RevapiConfig other) {
         return new Builder()
                 .from(this)
                 .addAllConfig(other.config())
                 .build();
     }
 
-    public static RevapiJsonConfig defaults(API oldApi, API newApi) {
+    public static RevapiConfig defaults(API oldApi, API newApi) {
         try {
             String template = Resources.toString(
                     Resources.getResource(
@@ -96,18 +96,18 @@ abstract class RevapiJsonConfig {
         }
     }
 
-    public static RevapiJsonConfig mergeAll(RevapiJsonConfig... revapiJsonConfigs) {
-        return Arrays.stream(revapiJsonConfigs)
-                .reduce(empty(), RevapiJsonConfig::mergeWith);
+    public static RevapiConfig mergeAll(RevapiConfig... revapiConfigs) {
+        return Arrays.stream(revapiConfigs)
+                .reduce(empty(), RevapiConfig::mergeWith);
     }
 
-    static final class Builder extends ImmutableRevapiJsonConfig.Builder { }
+    static final class Builder extends ImmutableRevapiConfig.Builder { }
 
-    public static RevapiJsonConfig empty() {
+    public static RevapiConfig empty() {
         return fromJsonNodes(Collections.emptyList());
     }
 
-    private static RevapiJsonConfig fromString(String configJson) {
+    private static RevapiConfig fromString(String configJson) {
         try {
             return fromJsonNodes(OBJECT_MAPPER.readValue(configJson, new TypeReference<List<JsonNode>>() {}));
         } catch (IOException e) {
@@ -115,7 +115,7 @@ abstract class RevapiJsonConfig {
         }
     }
 
-    private static RevapiJsonConfig fromJsonNodes(List<JsonNode> jsonNodes) {
+    private static RevapiConfig fromJsonNodes(List<JsonNode> jsonNodes) {
         return new Builder()
                 .config(jsonNodes)
                 .build();

@@ -19,9 +19,9 @@ package com.palantir.gradle.revapi;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
-import com.palantir.gradle.revapi.config.RevapiConfig;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -33,7 +33,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
 public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
-    private static final ObjectMapper OBJECT_MAPPER = RevapiConfig.newRecommendedObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newRecommendedObjectMapper();
     public static final String JUSTIFICATION = "justification";
 
     private final Property<GroupNameVersion> oldGroupNameVersion =
@@ -59,7 +59,7 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
 
         File breaksPath = Files.createTempFile("reavpi-breaks", ".yml").toFile();
 
-        runRevapi(RevapiJsonConfig.empty()
+        runRevapi(RevapiConfig.empty()
                 .withTextReporter("gradle-revapi-accept-breaks.ftl", breaksPath));
 
         List<AcceptedBreak> rawAcceptedBreaks =

@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
-import com.palantir.gradle.revapi.config.RevapiConfig;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,11 +42,11 @@ class ConfigManagerTest {
     void withConfigFile_returns_empty_config_if_there_is_no_file() {
         File nonExistentFile1 = new File(tempDir, "does-not-exist");
         ConfigManager configManager = new ConfigManager(nonExistentFile1);
-        UnaryOperator<RevapiConfig> transformer = identityFunction();
+        UnaryOperator<GradleRevapiConfig> transformer = identityFunction();
 
         configManager.modifyConfigFile(transformer);
 
-        verify(transformer).apply(RevapiConfig.empty());
+        verify(transformer).apply(GradleRevapiConfig.empty());
     }
 
     @Test
@@ -120,13 +120,13 @@ class ConfigManagerTest {
                 "  foo:bar:3.12: \"1.0\"")
                 .getBytes(StandardCharsets.UTF_8));
 
-        RevapiConfig revapiConfig = configManager.fromFileOrEmptyIfDoesNotExist();
+        GradleRevapiConfig gradleRevapiConfig = configManager.fromFileOrEmptyIfDoesNotExist();
 
-        assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
+        assertThat(gradleRevapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
     }
 
-    private UnaryOperator<RevapiConfig> identityFunction() {
-        UnaryOperator<RevapiConfig> transformer = mock(UnaryOperator.class);
+    private UnaryOperator<GradleRevapiConfig> identityFunction() {
+        UnaryOperator<GradleRevapiConfig> transformer = mock(UnaryOperator.class);
         when(transformer.apply(any())).thenAnswer(invocation -> invocation.getArgument(0));
         return transformer;
     }
