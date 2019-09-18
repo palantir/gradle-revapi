@@ -90,7 +90,7 @@ acceptedBreaks:
     group:name:
     - code: "class"
       old: "class OldClass"
-      new: ""
+      new: null
       justification: "No one was using this"
 ```
 
