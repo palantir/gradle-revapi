@@ -58,6 +58,27 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
+    def 'succeeds when there are no breaking changes'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.codehaus.cargo'
+                oldName = 'empty-jar'
+                oldVersion = '1.7.7'
+            }
+        """.stripIndent()
+
+        then:
+        runTasksSuccessfully("revapi")
+    }
+
     def 'does not error out when project has a version greater than the "old version"'() {
         def revapi = 'revapi'
 
@@ -266,7 +287,8 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     private void andJunitXmlToHaveBeenProduced(String projectName) {
-        String junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml").text
-        assert junitOutput.contains("java.class.removed")
+        File junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml")
+        new XmlParser().parse(junitOutput)
+        assert junitOutput.text.contains("java.class.removed")
     }
 }
