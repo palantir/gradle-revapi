@@ -58,6 +58,42 @@ revapi {
 }
 ```
 
+### Accepting breaks
+
+Sometimes you may wish to break your API, or feel that the particular API break identified by revapi is acceptable to
+release. In these cases, there is an escape hatch you can use which should be automatically recommended to you in the
+error message `gradle-revapi` produces.
+
+* To accept a single break, run:
+  ```
+  ./gradlew revapiAcceptBreak --justification "{why this is ok}" \
+          --code "{reavpi check code}" \
+          --old "{optional revapi description of old element}" \
+          --new "{optional revapi description of new element}"
+  ``` 
+  
+* To accept all the breaks in a gradle project run:
+  ```
+  ./gradlew :project:revapiAcceptAllBreaks
+  ```
+  
+* To accept all the breaks in all gradle projects run:
+  ```
+  ./gradlew revapiAcceptAllBreaks
+  ```
+  
+Running any of these tasks will add the breaks to the `.palantir/revapi.yml` file in the format"
+
+```yml
+acceptedBreaks:
+  version:
+    group:name:
+    - code: "class"
+      old: "class OldClass"
+      new: ""
+      justification: "No one was using this"
+```
+
 ### Version overrides
 
 Sometimes the previous release will have a successfully applied a git tag but a failed publish build. In this
