@@ -24,6 +24,7 @@ import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,7 +58,9 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
             throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param to this task");
         }
 
-        File breaksPath = Files.createTempFile("reavpi-breaks", ".yml").toFile();
+        Path tempDir = getProject().getLayout().getBuildDirectory().dir("tmp").get().getAsFile().toPath();
+
+        File breaksPath = Files.createTempFile(tempDir, "revapi-breaks", ".yml").toFile();
 
         runRevapi(RevapiConfig.empty()
                 .withTextReporter("gradle-revapi-accept-breaks.ftl", breaksPath));

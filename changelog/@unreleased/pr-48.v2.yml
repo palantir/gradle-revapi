@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: revapiAcceptAllBreaks now works when there are multiple breaks
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/48

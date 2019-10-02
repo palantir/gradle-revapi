@@ -214,7 +214,7 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
-    def 'errors out when the there are breaks but then is fine when breaks are accepted'() {
+    def 'errors out when there are breaks but then is fine when breaks are accepted'() {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
@@ -232,9 +232,12 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
 
         rootProjectNameIs("root-project")
+        File revapiYml = new File(getProjectDir(), ".palantir/revapi.yml")
 
         and:
+        !revapiYml.exists()
         runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "it's all good :)")
+        revapiYml.text.contains('java.class.removed')
 
         then:
         runTasksSuccessfully("revapi")
