@@ -4,9 +4,9 @@
 <#list reports as report>
 <#list report.differences as diff>
  {
-  "code": "${diff.code}",
-  "old": "${report.oldElement!""}",
-  "new": "${report.newElement!""}",
+  "code": ${diff.code},
+  "old": ${report.oldElement!""},
+  "new": ${report.newElement!""},
   "justification": "",
  },
 </#list>
