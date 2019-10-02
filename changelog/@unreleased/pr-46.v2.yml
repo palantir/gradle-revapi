@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: revapiAcceptAllBreaks succeeds when there are no breaking changes
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/46
