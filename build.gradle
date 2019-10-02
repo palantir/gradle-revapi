@@ -57,6 +57,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.assertj:assertj-core'
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 
     annotationProcessor "org.immutables:value"
     compileOnly "org.immutables:value::annotations"
