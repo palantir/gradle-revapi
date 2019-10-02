@@ -232,11 +232,12 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
 
         rootProjectNameIs("root-project")
+        File revapiYml = new File(getProjectDir(), ".palantir/revapi.yml")
 
         and:
-//        !file(".palantir/revapi.yml").exists()
+        !revapiYml.exists()
         runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "it's all good :)")
-//        file( ".palantir/revapi.yml").text.contains('java.class.removed')
+        revapiYml.text.contains('java.class.removed')
 
         then:
         runTasksSuccessfully("revapi")
