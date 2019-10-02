@@ -5,8 +5,8 @@
 <#list report.differences as diff>
  {
   "code": "${diff.code}",
-  "old": ${("\"" + report.oldElement + "\"")!"null"},
-  "new": ${("\"" + report.newElement + "\"")!"null"},
+  "old": ${("\"" + report.oldElement.toString()?json_string + "\"")!"null"},
+  "new": ${("\"" + report.newElement.toString()?json_string + "\"")!"null"},
   "justification": "needs justification"
  },
 </#list>
