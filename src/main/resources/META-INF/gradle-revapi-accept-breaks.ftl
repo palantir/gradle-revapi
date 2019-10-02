@@ -8,7 +8,7 @@
   "old": "${report.oldElement!""}",
   "new": "${report.newElement!""}",
   "justification": "",
- }
+ },
 </#list>
 </#list>
 ]

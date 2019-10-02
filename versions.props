@@ -9,4 +9,3 @@ org.immutables:value = 2.7.5
 com.fasterxml.jackson.*:jackson-* = 2.9.9
 org.mockito:mockito-core = 3.1.0
 org.assertj:assertj-core = 3.13.2
-junit:junit = 4.12
