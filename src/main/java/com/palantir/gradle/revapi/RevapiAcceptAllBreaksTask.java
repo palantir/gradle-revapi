@@ -34,7 +34,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
 public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
-    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newRecommendedObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newJsonObjectMapper();
     public static final String JUSTIFICATION = "justification";
 
     private final Property<GroupNameVersion> oldGroupNameVersion =
@@ -60,7 +60,7 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
 
         Path tempDir = getProject().getLayout().getBuildDirectory().dir("tmp").get().getAsFile().toPath();
 
-        File breaksPath = Files.createTempFile(tempDir, "revapi-breaks", ".yml").toFile();
+        File breaksPath = Files.createTempFile(tempDir, "revapi-breaks", ".json").toFile();
 
         runRevapi(RevapiConfig.empty()
                 .withTextReporter("gradle-revapi-accept-breaks.ftl", breaksPath));
