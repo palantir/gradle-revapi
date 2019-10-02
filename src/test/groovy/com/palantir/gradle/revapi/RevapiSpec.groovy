@@ -225,9 +225,9 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             revapi {
-                oldGroup = 'org.revapi'
-                oldName = 'revapi'
-                oldVersion = '0.11.1'
+                oldGroup = 'org.assertj'
+                oldName = 'assertj-core'
+                oldVersion = '3.13.2'
             }
         """.stripIndent()
 
