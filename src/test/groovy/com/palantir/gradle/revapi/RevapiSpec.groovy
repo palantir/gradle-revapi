@@ -58,7 +58,7 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
-    def 'succeeds when there are no breaking changes'() {
+    def 'revapi task succeeds when there are no breaking changes'() {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
@@ -77,6 +77,27 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runTasksSuccessfully("revapi")
+    }
+
+    def 'revapiAcceptAllBreaks succeeds when there are no breaking changes'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+
+            repositories {
+                mavenCentral()
+            }
+
+            revapi {
+                oldGroup = 'org.codehaus.cargo'
+                oldName = 'empty-jar'
+                oldVersion = '1.7.7'
+            }
+        """.stripIndent()
+
+        then:
+        runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "fight me")
     }
 
     def 'does not error out when project has a version greater than the "old version"'() {
