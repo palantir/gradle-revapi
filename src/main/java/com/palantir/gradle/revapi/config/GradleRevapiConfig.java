@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.revapi.config;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -76,10 +77,18 @@ public abstract class GradleRevapiConfig {
         return ImmutableGradleRevapiConfig.builder().build();
     }
 
-    public static ObjectMapper newRecommendedObjectMapper() {
-        return new ObjectMapper(
-                new YAMLFactory()
-                        .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
+    public static ObjectMapper newYamlObjectMapper() {
+        return configureObjectMapper(new ObjectMapper(new YAMLFactory()
+                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)));
+    }
+
+    public static ObjectMapper newJsonObjectMapper() {
+        return configureObjectMapper(new ObjectMapper())
+                .enable(JsonParser.Feature.ALLOW_TRAILING_COMMA);
+    }
+
+    private static ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
+        return objectMapper
                 .registerModule(new GuavaModule())
                 .registerModule(new Jdk8Module());
     }

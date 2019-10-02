@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.function.UnaryOperator;
 
 final class ConfigManager {
-    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newRecommendedObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newYamlObjectMapper();
 
     // This lock is overly broad, but it is very hard to share the lock between tasks without having a root project
     // application managing everything.

@@ -225,9 +225,9 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             revapi {
-                oldGroup = 'org.revapi'
-                oldName = 'revapi'
-                oldVersion = '0.11.1'
+                oldGroup = 'junit'
+                oldName = 'junit'
+                oldVersion = '4.12'
             }
         """.stripIndent()
 
