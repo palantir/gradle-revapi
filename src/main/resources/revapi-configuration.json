@@ -2,7 +2,13 @@
   {
     "extension": "revapi.java",
     "configuration": {
-      "reportUsesFor": []
+      "reportUsesFor": [],
+      "filter": {
+        "classes": {
+          "regex": true,
+          "exclude": [".*\\$$"]
+        }
+      }
     }
   },
   {
@@ -11,6 +17,13 @@
       "archives" : {
         "include" : ["{{ARCHIVE_INCLUDE_REGEXES}}"]
       }
+    }
+  },
+  {
+    "extension": "revapi.java.filter.annotated",
+    "configuration": {
+      "regex": true,
+      "exclude": ["(?s)@scala\\.reflect\\.ScalaSignature.*"]
     }
   },
   {

@@ -290,6 +290,27 @@ class RevapiSpec extends IntegrationSpec {
 
     }
 
+    def 'ignores scala classes'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'com.twitter'
+                oldName = 'chill-avro_2.12'
+                oldVersion = '0.9.3'
+            }
+        """.stripIndent()
+
+        then:
+        runTasksSuccessfully("revapi")
+    }
+
     private File rootProjectNameIs(String projectName) {
         settingsFile << "rootProject.name = '${projectName}'"
     }

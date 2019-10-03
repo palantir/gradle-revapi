@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Scala classes are ignored by default by `gradle-revapi`.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/42
