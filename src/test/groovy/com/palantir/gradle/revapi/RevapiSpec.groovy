@@ -176,7 +176,7 @@ class RevapiSpec extends IntegrationSpec {
         rootProjectNameIs("root-project")
 
         then:
-        runRevapiExpectingResolutionFailure("root-project")
+        runRevapiExpectingResolutionFailure()
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
@@ -334,6 +334,44 @@ class RevapiSpec extends IntegrationSpec {
 
         writeToFile 'src/main/groovy/foo/Foo.groovy', '''
             package foo
+            class Foo {}
+        '''.stripIndent()
+
+        println runTasksSuccessfully("publish").standardOutput
+
+        then:
+        println runTasksSuccessfully("revapi").standardOutput
+    }
+
+    def 'detects breaks in groovy code'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'groovy'
+            apply plugin: 'maven-publish'
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            version = '1.0.0'
+            
+            dependencies {
+                 compile localGroovy()
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        def groovyFile = 'src/main/groovy/foo/Foo.groovy'
+
+        writeToFile groovyFile, '''
+            package foo
             class Foo {
                 String someProperty
             }
@@ -341,8 +379,18 @@ class RevapiSpec extends IntegrationSpec {
 
         println runTasksSuccessfully("publish").standardOutput
 
+        and:
+        writeToFile groovyFile, '''
+            package foo
+            class Foo { }
+        '''.stripIndent()
+
         then:
-        println runTasksSuccessfully("revapi").standardOutput
+        def stderr = runRevapiExpectingFailure()
+
+        assert stderr.contains('java.method.removed')
+        assert stderr.contains('method java.lang.String foo.Foo::getSomeProperty()')
+        assert stderr.contains('method void foo.Foo::setSomeProperty(java.lang.String)')
     }
 
     private String testMavenPublication() {
@@ -375,7 +423,7 @@ class RevapiSpec extends IntegrationSpec {
     private void writeToFile(String filename, String content) {
         def file = new File(projectDir, filename)
         file.getParentFile().mkdirs()
-        file << content
+        file.write(content)
     }
 
     private File rootProjectNameIs(String projectName) {
@@ -383,19 +431,19 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     private void runRevapiExpectingToFindDifferences(String projectName) {
-        runRevapiExpectingStderrToContain("java.class.removed")
+        assert runRevapiExpectingFailure().contains("java.class.removed")
         andJunitXmlToHaveBeenProduced(projectName)
     }
 
-    private void runRevapiExpectingResolutionFailure(String projectName) {
-        runRevapiExpectingStderrToContain("Failed to resolve old API")
+    private void runRevapiExpectingResolutionFailure() {
+        runRevapiExpectingFailure().contains("Failed to resolve old API")
     }
 
-    private void runRevapiExpectingStderrToContain(String stderrContains) {
+    private String runRevapiExpectingFailure() {
         ExecutionResult executionResult = runTasksWithFailure("revapi")
         println executionResult.standardOutput
         println executionResult.standardError
-        assert executionResult.standardError.contains(stderrContains)
+        return executionResult.standardError
     }
 
     private void andJunitXmlToHaveBeenProduced(String projectName) {
