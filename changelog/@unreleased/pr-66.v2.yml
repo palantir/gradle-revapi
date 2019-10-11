@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: '`gradle-revapi` will not spuriously identify the addition of abstract
+    methods from `groovy.lang.GroovyObject` as breaks.'
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/66
