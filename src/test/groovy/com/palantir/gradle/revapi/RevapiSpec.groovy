@@ -311,6 +311,82 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapi")
     }
 
+    def 'ignores magic methods added by groovy when comparing the same groovy class'() {
+        when:
+        String subprojectVersion = UUID.randomUUID().toString()
+
+        File subprojectDir = addSubproject 'subproject', """
+            apply plugin: 'groovy'
+            apply plugin: 'maven-publish'
+            
+            version = '${subprojectVersion}'
+            
+            dependencies {
+                 compile localGroovy()
+            }
+            
+            apply plugin: 'maven-publish'
+               
+            publishing {
+              publications {
+                publication(MavenPublication) {
+                    from components.java
+                }
+              }
+              repositories {
+                  mavenLocal()
+              }
+            }
+        """
+
+        buildFile << """
+            plugins {
+              id 'nebula.maven-publish' version '14.0.0' apply false
+            }
+
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'groovy'
+            
+            allprojects {
+                group = 'revapi.test'
+                repositories {
+                    mavenLocal()
+                }
+            }
+            
+            dependencies {
+                 compile localGroovy()
+            }
+            
+            revapi {
+                oldName = 'subproject'
+                oldVersion = '${subprojectVersion}'
+            }
+        """.stripIndent()
+
+        def groovyClassPath = 'src/main/groovy/foo/Foo.groovy'
+        def groovyClassSource = '''
+            package foo
+            class Foo {
+                String someProperty
+            }
+        '''.stripIndent()
+
+        writeToFile projectDir, groovyClassPath, groovyClassSource
+        writeToFile subprojectDir, groovyClassPath, groovyClassSource
+
+        println runTasksSuccessfully(":subproject:publishToMavenLocal").standardOutput
+
+        then:
+        println runTasksSuccessfully("revapi").standardOutput
+    }
+
+    public void writeToFile(File dir, String filename, String content) {
+        def file = new File(dir, filename)
+        file.getParentFile().mkdirs()
+        file << content
+    }
+
     private File rootProjectNameIs(String projectName) {
         settingsFile << "rootProject.name = '${projectName}'"
     }
