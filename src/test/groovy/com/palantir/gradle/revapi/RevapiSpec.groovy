@@ -313,20 +313,30 @@ class RevapiSpec extends IntegrationSpec {
 
     def 'ignores magic methods added by groovy when comparing the same groovy class'() {
         when:
-        String subprojectVersion = UUID.randomUUID().toString()
+        String version = UUID.randomUUID().toString()
 
-        File subprojectDir = addSubproject 'subproject', """
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'groovy'
             apply plugin: 'maven-publish'
             
-            version = '${subprojectVersion}'
+            allprojects {
+                group = 'revapi.test'
+                repositories {
+                    mavenLocal()
+                }
+            }
+            
+            version = '${version}'
             
             dependencies {
                  compile localGroovy()
             }
             
-            apply plugin: 'maven-publish'
-               
+            revapi {
+                oldVersion = '${version}'
+            }
+            
             publishing {
               publications {
                 publication(MavenPublication) {
@@ -336,31 +346,6 @@ class RevapiSpec extends IntegrationSpec {
               repositories {
                   mavenLocal()
               }
-            }
-        """
-
-        buildFile << """
-            plugins {
-              id 'nebula.maven-publish' version '14.0.0' apply false
-            }
-
-            apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'groovy'
-            
-            allprojects {
-                group = 'revapi.test'
-                repositories {
-                    mavenLocal()
-                }
-            }
-            
-            dependencies {
-                 compile localGroovy()
-            }
-            
-            revapi {
-                oldName = 'subproject'
-                oldVersion = '${subprojectVersion}'
             }
         """.stripIndent()
 
@@ -373,9 +358,8 @@ class RevapiSpec extends IntegrationSpec {
         '''.stripIndent()
 
         writeToFile projectDir, groovyClassPath, groovyClassSource
-        writeToFile subprojectDir, groovyClassPath, groovyClassSource
 
-        println runTasksSuccessfully(":subproject:publishToMavenLocal").standardOutput
+        println runTasksSuccessfully("publishToMavenLocal").standardOutput
 
         then:
         println runTasksSuccessfully("revapi").standardOutput
