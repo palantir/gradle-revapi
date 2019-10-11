@@ -20,7 +20,6 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class RevapiSpec extends IntegrationSpec {
-
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """
@@ -310,8 +309,6 @@ class RevapiSpec extends IntegrationSpec {
 
     def 'ignores magic methods added by groovy when comparing the same groovy class'() {
         when:
-        String version = UUID.randomUUID().toString()
-
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'groovy'
@@ -319,31 +316,20 @@ class RevapiSpec extends IntegrationSpec {
             
             allprojects {
                 group = 'revapi.test'
-                repositories {
-                    mavenLocal()
-                }
+                ${mavenRepoGradle()}
             }
             
-            version = '${version}'
+            version = '1.0.0'
             
             dependencies {
                  compile localGroovy()
             }
             
             revapi {
-                oldVersion = '${version}'
+                oldVersion = project.version
             }
             
-            publishing {
-              publications {
-                publication(MavenPublication) {
-                    from components.java
-                }
-              }
-              repositories {
-                  mavenLocal()
-              }
-            }
+            ${testMavenPublication()}
         """.stripIndent()
 
         writeToFile 'src/main/groovy/foo/Foo.groovy', '''
@@ -353,10 +339,37 @@ class RevapiSpec extends IntegrationSpec {
             }
         '''.stripIndent()
 
-        println runTasksSuccessfully("publishToMavenLocal").standardOutput
+        println runTasksSuccessfully("publish").standardOutput
 
         then:
         println runTasksSuccessfully("revapi").standardOutput
+    }
+
+    private String testMavenPublication() {
+        return """
+            publishing {
+                publications {
+                    publication(MavenPublication) {
+                        from components.java
+                    }
+                }
+                ${mavenRepoGradle()}
+            }
+        """
+    }
+
+    private String mavenRepoGradle() {
+        def mavenRepoDir = new File(projectDir, "mavenRepo")
+        mavenRepoDir.mkdirs()
+
+        return """
+            repositories {
+                maven {
+                    name "testRepo"
+                    url "${mavenRepoDir}"
+                }
+            }
+        """
     }
 
     private void writeToFile(String filename, String content) {
