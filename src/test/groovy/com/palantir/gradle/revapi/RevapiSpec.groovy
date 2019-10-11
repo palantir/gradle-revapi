@@ -346,15 +346,12 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
-        def groovyClassPath = 'src/main/groovy/foo/Foo.groovy'
-        def groovyClassSource = '''
+        writeToFile 'src/main/groovy/foo/Foo.groovy', '''
             package foo
             class Foo {
                 String someProperty
             }
         '''.stripIndent()
-
-        writeToFile groovyClassPath, groovyClassSource
 
         println runTasksSuccessfully("publishToMavenLocal").standardOutput
 
