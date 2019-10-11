@@ -44,9 +44,7 @@ class RevapiSpec extends IntegrationSpec {
 
         rootProjectNameIs("root-project")
 
-        def file = new File(projectDir, "src/main/java/foo/Foo.java")
-        file.getParentFile().mkdirs()
-        file << '''
+        writeToFile 'src/main/java/foo/Foo.java', '''
             import one.util.streamex.StreamEx;
 
             public interface Foo {
@@ -122,9 +120,8 @@ class RevapiSpec extends IntegrationSpec {
 
         rootProjectNameIs(revapi)
 
-        def file = new File(projectDir, "src/main/java/foo/Foo.java")
-        file.getParentFile().mkdirs()
-        file << '''
+
+        writeToFile 'src/main/java/foo/Foo.java', '''
             public interface Foo {
                 String lol();
             }
@@ -357,7 +354,7 @@ class RevapiSpec extends IntegrationSpec {
             }
         '''.stripIndent()
 
-        writeToFile projectDir, groovyClassPath, groovyClassSource
+        writeToFile groovyClassPath, groovyClassSource
 
         println runTasksSuccessfully("publishToMavenLocal").standardOutput
 
@@ -365,8 +362,8 @@ class RevapiSpec extends IntegrationSpec {
         println runTasksSuccessfully("revapi").standardOutput
     }
 
-    public void writeToFile(File dir, String filename, String content) {
-        def file = new File(dir, filename)
+    private void writeToFile(String filename, String content) {
+        def file = new File(projectDir, filename)
         file.getParentFile().mkdirs()
         file << content
     }
