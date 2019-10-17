@@ -393,6 +393,31 @@ class RevapiSpec extends IntegrationSpec {
         assert stderr.contains('method void foo.Foo::setSomeProperty(java.lang.String)')
     }
 
+    def 'does not throw exception when baseline-circleci is applied before this plugin'() {
+        when:
+        buildFile << """
+            buildscript {
+                repositories {
+                    maven { url "https://palantir.bintray.com/releases" }
+                    jcenter()
+                    gradlePluginPortal()
+                }
+            
+                dependencies {
+                    classpath 'com.palantir.baseline:gradle-baseline-java:2.21.0'
+                }
+            }
+
+            // baseline-circleci is the bad plugin, but might as well test against all of baseline
+            apply plugin: 'com.palantir.baseline'
+            apply plugin: 'com.palantir.baseline-circleci'
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+        """
+
+        then:
+        runTasksSuccessfully("tasks")
+    }
+
     private String testMavenPublication() {
         return """
             publishing {
