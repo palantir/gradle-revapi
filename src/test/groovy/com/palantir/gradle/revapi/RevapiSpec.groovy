@@ -395,6 +395,10 @@ class RevapiSpec extends IntegrationSpec {
 
     def 'does not throw exception when baseline-circleci is applied before this plugin'() {
         when:
+        addSubproject 'subproject',  """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+        """
+
         buildFile << """
             buildscript {
                 repositories {
@@ -411,7 +415,6 @@ class RevapiSpec extends IntegrationSpec {
             // baseline-circleci is the bad plugin, but might as well test against all of baseline
             apply plugin: 'com.palantir.baseline'
             apply plugin: 'com.palantir.baseline-circleci'
-            apply plugin: '${TestConstants.PLUGIN_NAME}'
         """
 
         then:
