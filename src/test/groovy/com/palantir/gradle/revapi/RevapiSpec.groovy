@@ -121,6 +121,10 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
+        settingsFile << """
+            rootProject.name = 'revapi'
+        """
+
         writeToFile 'src/main/java/foo/Foo.java', '''
             public interface Foo {
                 String lol();
