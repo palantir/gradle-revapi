@@ -19,6 +19,8 @@ package com.palantir.gradle.revapi;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
+import java.io.File;
+import java.util.Optional;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
 
@@ -27,6 +29,7 @@ public class RevapiExtension {
     private final Property<String> oldGroup;
     private final Property<String> oldName;
     private final Property<String> oldVersion;
+    private final Property<File> junitReportXmlOutputFile;
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
@@ -38,6 +41,15 @@ public class RevapiExtension {
         this.oldVersion = project.getObjects().property(String.class);
         this.oldVersion.set(project.getProviders().provider(
                 () -> GitVersionUtils.previousGitTag(project)));
+
+        this.junitReportXmlOutputFile = project.getObjects().property(File.class);
+        this.junitReportXmlOutputFile.set(project.getProviders().provider(() -> {
+            Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
+            File reportsDir = circleReportsDir
+                    .map(File::new)
+                    .orElseGet(project::getBuildDir);
+            return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
+        }));
     }
 
     public Property<String> getOldGroup() {
@@ -50,6 +62,10 @@ public class RevapiExtension {
 
     public Property<String> getOldVersion() {
         return oldVersion;
+    }
+
+    public Property<File> getJunitReportXmlOutputFile() {
+        return junitReportXmlOutputFile;
     }
 
     GroupNameVersion oldGroupNameVersion() {
