@@ -57,12 +57,12 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
         });
 
-        Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
-
-        project.getTasks().withType(RevapiJavaTask.class).forEach(task -> {
+        project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
             task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
             task.configManager().set(configManager);
             task.newApiDependencyJars().set(revapiNewApi);
+
+            Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
             task.newApiJars().set(jarTask.getOutputs().getFiles());
         });
 
