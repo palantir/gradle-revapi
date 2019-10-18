@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Fixes `ConcurrentModificationException` thrown when `com.palantir.baseline`
+    (or more specifically `com.palantir.baseline-circleci`) is applied before `gradle-revapi`.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/79
