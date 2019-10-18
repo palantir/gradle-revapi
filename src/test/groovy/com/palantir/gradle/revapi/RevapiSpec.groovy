@@ -20,21 +20,10 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class RevapiSpec extends IntegrationSpec {
-    private final String junitXmlRelativePath = 'build/revapi-junit-output.xml'
-
-    def setup() {
-        buildFile << """
-            apply plugin: '${TestConstants.PLUGIN_NAME}'
-
-            revapi {
-                junitReportXmlOutputFile = file('${junitXmlRelativePath}')
-            }            
-        """
-    }
-
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -52,6 +41,8 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
+        rootProjectNameIs("root-project")
+
         writeToFile 'src/main/java/foo/Foo.java', '''
             import one.util.streamex.StreamEx;
 
@@ -61,12 +52,13 @@ class RevapiSpec extends IntegrationSpec {
         '''.stripIndent()
 
         then:
-        runRevapiExpectingToFindDifferences()
+        runRevapiExpectingToFindDifferences("root-project")
     }
 
     def 'revapi task succeeds when there are no breaking changes'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -87,6 +79,7 @@ class RevapiSpec extends IntegrationSpec {
     def 'revapiAcceptAllBreaks succeeds when there are no breaking changes'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
 
             repositories {
@@ -105,8 +98,11 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     def 'does not error out when project has a version greater than the "old version"'() {
+        def revapi = 'revapi'
+
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -121,6 +117,9 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
+        rootProjectNameIs(revapi)
+
+
         writeToFile 'src/main/java/foo/Foo.java', '''
             public interface Foo {
                 String lol();
@@ -128,12 +127,13 @@ class RevapiSpec extends IntegrationSpec {
         '''.stripIndent()
 
         then:
-        runRevapiExpectingToFindDifferences()
+        runRevapiExpectingToFindDifferences(revapi)
     }
 
     def 'errors out when the old api dependency does not exist but then works once you run the version override task'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -146,17 +146,20 @@ class RevapiSpec extends IntegrationSpec {
                 oldVersion = 'does-not-exist'
             }
         """.stripIndent()
+
+        rootProjectNameIs("root-project")
 
         and:
         runTasksSuccessfully("revapiVersionOverride", "--replacement-version", "0.11.1")
 
         then:
-        runRevapiExpectingToFindDifferences()
+        runRevapiExpectingToFindDifferences("root-project")
     }
 
     def 'errors out when the target dependency does not exist and we do not give an version override'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -169,6 +172,8 @@ class RevapiSpec extends IntegrationSpec {
                 oldVersion = 'does-not-exist'
             }
         """.stripIndent()
+
+        rootProjectNameIs("root-project")
 
         then:
         runRevapiExpectingResolutionFailure()
@@ -177,6 +182,7 @@ class RevapiSpec extends IntegrationSpec {
     def 'handles the output of extra source sets being added to compile configuration'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             sourceSets {
@@ -198,13 +204,16 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
+        rootProjectNameIs("root-project")
+
         then:
-        runRevapiExpectingToFindDifferences()
+        runRevapiExpectingToFindDifferences("root-project")
     }
 
     def 'errors out when there are breaks but then is fine when breaks are accepted'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -218,6 +227,7 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
+        rootProjectNameIs("root-project")
         File revapiYml = new File(getProjectDir(), ".palantir/revapi.yml")
 
         and:
@@ -232,12 +242,15 @@ class RevapiSpec extends IntegrationSpec {
     def 'accepting breaks individually should work'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
                 mavenCentral()
             }
         """.stripIndent()
+
+        rootProjectNameIs("root-project")
 
         and:
         runTasksSuccessfully("revapiAcceptBreak",
@@ -276,6 +289,7 @@ class RevapiSpec extends IntegrationSpec {
     def 'ignores scala classes'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java'
             
             repositories {
@@ -296,6 +310,7 @@ class RevapiSpec extends IntegrationSpec {
     def 'ignores magic methods added by groovy when comparing the same groovy class'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'groovy'
             apply plugin: 'maven-publish'
             
@@ -331,6 +346,7 @@ class RevapiSpec extends IntegrationSpec {
     def 'detects breaks in groovy code'() {
         when:
         buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'groovy'
             apply plugin: 'maven-publish'
             
@@ -379,8 +395,6 @@ class RevapiSpec extends IntegrationSpec {
 
     def 'does not throw exception when baseline-circleci is applied before this plugin'() {
         when:
-        clearBuildFile()
-
         addSubproject 'subproject',  """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
         """
@@ -405,10 +419,6 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runTasksSuccessfully("tasks")
-    }
-
-    private void clearBuildFile() {
-        buildFile.write('')
     }
 
     private String testMavenPublication() {
@@ -444,9 +454,13 @@ class RevapiSpec extends IntegrationSpec {
         file.write(content)
     }
 
-    private void runRevapiExpectingToFindDifferences() {
+    private File rootProjectNameIs(String projectName) {
+        settingsFile << "rootProject.name = '${projectName}'"
+    }
+
+    private void runRevapiExpectingToFindDifferences(String projectName) {
         assert runRevapiExpectingFailure().contains("java.class.removed")
-        andJunitXmlToHaveBeenProduced()
+        andJunitXmlToHaveBeenProduced(projectName)
     }
 
     private void runRevapiExpectingResolutionFailure() {
@@ -460,8 +474,8 @@ class RevapiSpec extends IntegrationSpec {
         return executionResult.standardError
     }
 
-    private void andJunitXmlToHaveBeenProduced() {
-        File junitOutput = new File(projectDir, junitXmlRelativePath)
+    private void andJunitXmlToHaveBeenProduced(String projectName) {
+        File junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml")
         new XmlParser().parse(junitOutput)
         assert junitOutput.text.contains("java.class.removed")
     }

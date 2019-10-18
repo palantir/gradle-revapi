@@ -25,16 +25,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import org.gradle.api.provider.Property;
+import java.util.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 public class RevapiReportTask extends RevapiJavaTask {
-    private final Property<File> junitReportXmlOutputFile = getProject().getObjects().property(File.class);
-
-    public final Property<File> getJunitReportXmlOutputFile() {
-        return junitReportXmlOutputFile;
-    }
-
     @TaskAction
     public final void runRevapi() throws Exception {
         Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
@@ -64,7 +58,7 @@ public class RevapiReportTask extends RevapiJavaTask {
                 "gradle-revapi-text-template.ftl", differenceTemplate);
 
         runRevapi(RevapiConfig.empty()
-                .withTextReporter(junitTemplate.toString(), junitReportXmlOutputFile.get())
+                .withTextReporter(junitTemplate.toString(), junitOutput())
                 .withTextReporter(textOutputTemplate.toString(), textOutputPath.toFile()));
 
         String textOutput = new String(Files.readAllBytes(textOutputPath), StandardCharsets.UTF_8);
@@ -88,5 +82,13 @@ public class RevapiReportTask extends RevapiJavaTask {
                 "differenceTemplate", differenceTemplate
         )).getBytes(StandardCharsets.UTF_8));
         return templateOutput.toAbsolutePath();
+    }
+
+    private File junitOutput() {
+        Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
+        File reportsDir = circleReportsDir
+                .map(File::new)
+                .orElseGet(() -> getProject().getBuildDir());
+        return new File(reportsDir, "junit-reports/revapi/revapi-" + getProject().getName() + ".xml");
     }
 }
