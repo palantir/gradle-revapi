@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: The `CIRCLE_TEST_REPORTS` environment variable will no longer be used
+    to discover what directory to place the junit xml report into.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/82
