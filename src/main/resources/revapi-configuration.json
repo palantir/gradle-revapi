@@ -29,9 +29,15 @@
   {
     "extension": "revapi.ignore",
     "configuration": [
-      { "code" : "java.class.nonPublicPartOfAPI" },
-      { "code" : "java.class.externalClassNoLongerExposedInAPI" },
-      { "code" : "java.class.externalClassExposedInAPI" }
+      { "code": "java.class.nonPublicPartOfAPI" },
+      { "code": "java.class.externalClassNoLongerExposedInAPI" },
+      { "code": "java.class.externalClassExposedInAPI" },
+      {
+        "regex": true,
+        "code": "java.method.abstractMethodAdded",
+        "new": ".*groovy.lang.GroovyObject::.*"
+      }
+
     ]
   }
 ]

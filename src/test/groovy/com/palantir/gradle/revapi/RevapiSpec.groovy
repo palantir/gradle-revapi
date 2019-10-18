@@ -20,7 +20,6 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class RevapiSpec extends IntegrationSpec {
-
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """
@@ -44,9 +43,7 @@ class RevapiSpec extends IntegrationSpec {
 
         rootProjectNameIs("root-project")
 
-        def file = new File(projectDir, "src/main/java/foo/Foo.java")
-        file.getParentFile().mkdirs()
-        file << '''
+        writeToFile 'src/main/java/foo/Foo.java', '''
             import one.util.streamex.StreamEx;
 
             public interface Foo {
@@ -122,9 +119,8 @@ class RevapiSpec extends IntegrationSpec {
 
         rootProjectNameIs(revapi)
 
-        def file = new File(projectDir, "src/main/java/foo/Foo.java")
-        file.getParentFile().mkdirs()
-        file << '''
+
+        writeToFile 'src/main/java/foo/Foo.java', '''
             public interface Foo {
                 String lol();
             }
@@ -180,7 +176,7 @@ class RevapiSpec extends IntegrationSpec {
         rootProjectNameIs("root-project")
 
         then:
-        runRevapiExpectingResolutionFailure("root-project")
+        runRevapiExpectingResolutionFailure()
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
@@ -311,24 +307,171 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapi")
     }
 
+    def 'ignores magic methods added by groovy when comparing the same groovy class'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'groovy'
+            apply plugin: 'maven-publish'
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            version = '1.0.0'
+            
+            dependencies {
+                 compile localGroovy()
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        writeToFile 'src/main/groovy/foo/Foo.groovy', '''
+            package foo
+            class Foo {}
+        '''.stripIndent()
+
+        println runTasksSuccessfully("publish").standardOutput
+
+        then:
+        println runTasksSuccessfully("revapi").standardOutput
+    }
+
+    def 'detects breaks in groovy code'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'groovy'
+            apply plugin: 'maven-publish'
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            version = '1.0.0'
+            
+            dependencies {
+                 compile localGroovy()
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        def groovyFile = 'src/main/groovy/foo/Foo.groovy'
+
+        writeToFile groovyFile, '''
+            package foo
+            class Foo {
+                String someProperty
+            }
+        '''.stripIndent()
+
+        println runTasksSuccessfully("publish").standardOutput
+
+        and:
+        writeToFile groovyFile, '''
+            package foo
+            class Foo { }
+        '''.stripIndent()
+
+        then:
+        def stderr = runRevapiExpectingFailure()
+
+        assert stderr.contains('java.method.removed')
+        assert stderr.contains('method java.lang.String foo.Foo::getSomeProperty()')
+        assert stderr.contains('method void foo.Foo::setSomeProperty(java.lang.String)')
+    }
+
+    def 'does not throw exception when baseline-circleci is applied before this plugin'() {
+        when:
+        addSubproject 'subproject',  """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+        """
+
+        buildFile << """
+            buildscript {
+                repositories {
+                    maven { url "https://palantir.bintray.com/releases" }
+                    jcenter()
+                    gradlePluginPortal()
+                }
+            
+                dependencies {
+                    classpath 'com.palantir.baseline:gradle-baseline-java:2.21.0'
+                }
+            }
+
+            // baseline-circleci is the bad plugin, but might as well test against all of baseline
+            apply plugin: 'com.palantir.baseline'
+            apply plugin: 'com.palantir.baseline-circleci'
+        """
+
+        then:
+        runTasksSuccessfully("tasks")
+    }
+
+    private String testMavenPublication() {
+        return """
+            publishing {
+                publications {
+                    publication(MavenPublication) {
+                        from components.java
+                    }
+                }
+                ${mavenRepoGradle()}
+            }
+        """
+    }
+
+    private String mavenRepoGradle() {
+        def mavenRepoDir = new File(projectDir, "mavenRepo")
+        mavenRepoDir.mkdirs()
+
+        return """
+            repositories {
+                maven {
+                    name "testRepo"
+                    url "${mavenRepoDir}"
+                }
+            }
+        """
+    }
+
+    private void writeToFile(String filename, String content) {
+        def file = new File(projectDir, filename)
+        file.getParentFile().mkdirs()
+        file.write(content)
+    }
+
     private File rootProjectNameIs(String projectName) {
         settingsFile << "rootProject.name = '${projectName}'"
     }
 
     private void runRevapiExpectingToFindDifferences(String projectName) {
-        runRevapiExpectingStderrToContain("java.class.removed")
+        assert runRevapiExpectingFailure().contains("java.class.removed")
         andJunitXmlToHaveBeenProduced(projectName)
     }
 
-    private void runRevapiExpectingResolutionFailure(String projectName) {
-        runRevapiExpectingStderrToContain("Failed to resolve old API")
+    private void runRevapiExpectingResolutionFailure() {
+        runRevapiExpectingFailure().contains("Failed to resolve old API")
     }
 
-    private void runRevapiExpectingStderrToContain(String stderrContains) {
+    private String runRevapiExpectingFailure() {
         ExecutionResult executionResult = runTasksWithFailure("revapi")
         println executionResult.standardOutput
         println executionResult.standardError
-        assert executionResult.standardError.contains(stderrContains)
+        return executionResult.standardError
     }
 
     private void andJunitXmlToHaveBeenProduced(String projectName) {
