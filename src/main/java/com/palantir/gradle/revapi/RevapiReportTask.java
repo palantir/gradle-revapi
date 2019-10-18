@@ -25,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 import org.gradle.api.tasks.TaskAction;
 
 public class RevapiReportTask extends RevapiJavaTask {
@@ -85,10 +84,6 @@ public class RevapiReportTask extends RevapiJavaTask {
     }
 
     private File junitOutput() {
-        Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
-        File reportsDir = circleReportsDir
-                .map(File::new)
-                .orElseGet(() -> getProject().getBuildDir());
-        return new File(reportsDir, "junit-reports/revapi/revapi-" + getProject().getName() + ".xml");
+        return new File(getProject().getBuildDir(), "junit-reports/revapi/revapi-" + getProject().getName() + ".xml");
     }
 }
