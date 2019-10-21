@@ -403,7 +403,7 @@ class RevapiSpec extends IntegrationSpec {
             buildscript {
                 repositories {
                     maven { url "https://palantir.bintray.com/releases" }
-                    jcenter()
+                    mavenCentral()
                     gradlePluginPortal()
                 }
             
@@ -419,6 +419,61 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runTasksSuccessfully("tasks")
+    }
+
+    def 'adding a conjure endpoint should not cause a revapi failure'() {
+        when:
+        buildFile << """
+            buildscript {
+                repositories {
+                    maven { url 'https://dl.bintray.com/palantir/releases/' }
+                    mavenCentral()
+                }
+            
+                dependencies {
+                    classpath 'com.palantir.gradle.conjure:gradle-conjure:4.13.3'
+                }
+            }
+            
+            allprojects {
+                repositories {
+                    repositories {
+                    maven { url 'https://dl.bintray.com/palantir/releases/' }
+                    mavenCentral()
+                }
+            }
+        """
+
+        def apiDir = addSubproject 'api', """
+            apply plugin: 'com.palantir.conjure'
+            
+            dependencies {
+                
+            }
+        """
+
+        writeToFile apiDir, 'src/main/conjure.yml', """
+            services:
+              MyService:
+                name: TestService
+                package: com.palantir.test.services
+                base-path: /builds
+                default-auth: header
+                endpoints: []
+        """.stripIndent()
+
+        new File(apiDir, 'api-objects').mkdirs()
+        new File(apiDir, 'api-jersey').mkdirs()
+        settingsFile << """
+            include 'api:api-objects'
+            include 'api:api-jersey'
+        """
+
+        and:
+        println runTasksSuccessfully(':api:compileConjure').standardOutput
+
+        then:
+        1 == 1
     }
 
     private String testMavenPublication() {
@@ -449,7 +504,11 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     private void writeToFile(String filename, String content) {
-        def file = new File(projectDir, filename)
+        writeToFile(projectDir, filename, content)
+    }
+
+    private void writeToFile(File dir, String filename, String content) {
+        def file = new File(dir, filename)
         file.getParentFile().mkdirs()
         file.write(content)
     }
