@@ -1,3 +1,5 @@
+import java.util.stream.Collectors
+
 buildscript {
     repositories {
         jcenter()
@@ -61,6 +63,12 @@ dependencies {
 
     annotationProcessor "org.immutables:value"
     compileOnly "org.immutables:value::annotations"
+}
+
+test {
+    environment = System.getenv().entrySet().stream()
+            .filter { entry -> entry.key != 'CIRCLE_TEST_REPORTS' }
+            .collect(Collectors.toMap({ it.key }, { it.value }))
 }
 
 gradlePlugin {
