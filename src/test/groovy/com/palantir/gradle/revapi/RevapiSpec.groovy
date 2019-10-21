@@ -437,7 +437,6 @@ class RevapiSpec extends IntegrationSpec {
             
             allprojects {
                 repositories {
-                    repositories {
                     maven { url 'https://dl.bintray.com/palantir/releases/' }
                     mavenCentral()
                 }
@@ -448,18 +447,25 @@ class RevapiSpec extends IntegrationSpec {
             apply plugin: 'com.palantir.conjure'
             
             dependencies {
-                
+                conjureCompiler 'com.palantir.conjure:conjure:4.6.2'
+                conjureJava 'com.palantir.conjure.java:conjure-java:4.5.0'
+            }
+            
+            subprojects {
+                dependencies {
+                    compile 'com.palantir.conjure.java:conjure-lib:4.5.0'
+                }
             }
         """
 
-        writeToFile apiDir, 'src/main/conjure.yml', """
+        writeToFile apiDir, 'src/main/conjure/conjure.yml', """
             services:
               MyService:
                 name: TestService
                 package: com.palantir.test.services
                 base-path: /builds
                 default-auth: header
-                endpoints: []
+                endpoints: {}
         """.stripIndent()
 
         new File(apiDir, 'api-objects').mkdirs()
@@ -470,7 +476,9 @@ class RevapiSpec extends IntegrationSpec {
         """
 
         and:
-        println runTasksSuccessfully(':api:compileConjure').standardOutput
+        def executionResult = runTasks(':api:compileConjure')
+        println executionResult.standardOutput
+        println executionResult.standardError
 
         then:
         1 == 1
