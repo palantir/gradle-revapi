@@ -83,7 +83,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 revapiIgnores(),
                 ConjureProjectFilters.forProject(getProject()));
 
-        System.out.println("revapiConfig.configAsString() = " + revapiConfig.configAsString());
+        log.info("revapi config:\n" + revapiConfig.configAsString());
 
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)
