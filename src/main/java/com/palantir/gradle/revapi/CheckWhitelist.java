@@ -30,13 +30,13 @@ import org.revapi.DifferenceTransform;
 import org.revapi.java.spi.JavaElement;
 
 @AutoService(DifferenceTransform.class)
-public final class DifferenceCodeWhitelist implements DifferenceTransform<JavaElement> {
-    public static final String EXTENSION_ID = "gradle-revapi.difference.code.whitelist";
+public final class CheckWhitelist implements DifferenceTransform<JavaElement> {
+    public static final String EXTENSION_ID = "gradle-revapi.check.whitelist";
 
     private static final Pattern[] EVERYTHING = {Pattern.compile(".*") };
 
     private boolean enabled = false;
-    private Set<String> allowedCodes;
+    private Set<String> whitelistedChecks;
 
     @Override
     public void initialize(@Nonnull AnalysisContext analysisContext) {
@@ -46,7 +46,7 @@ public final class DifferenceCodeWhitelist implements DifferenceTransform<JavaEl
             return;
         }
 
-        this.allowedCodes = analysisContext.getConfiguration().asList().stream()
+        this.whitelistedChecks = analysisContext.getConfiguration().asList().stream()
                 .map(ModelNode::asString)
                 .collect(Collectors.toSet());
     }
@@ -73,7 +73,7 @@ public final class DifferenceCodeWhitelist implements DifferenceTransform<JavaEl
             return difference;
         }
 
-        if (allowedCodes.contains(difference.code)) {
+        if (whitelistedChecks.contains(difference.code)) {
             return difference;
         }
 

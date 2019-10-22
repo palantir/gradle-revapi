@@ -39,7 +39,7 @@ final class ConjureProjectFilters {
         }
 
         return checksForProjectName(project.getName())
-                .map(checks -> RevapiConfig.empty().withExtension(DifferenceCodeWhitelist.EXTENSION_ID, checks))
+                .map(checks -> RevapiConfig.empty().withExtension(CheckWhitelist.EXTENSION_ID, checks))
                 .orElseGet(RevapiConfig::empty);
     }
 
