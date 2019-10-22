@@ -6,7 +6,7 @@
     <testsuite failures="1" id="<#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>" name="<#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>" tests="1" time="0.000">
         <#list reports as report>
         <#list report.differences as diff>
-        <testcase id="${diff.code}-${report.oldElement!"none"}" name="Revapi Java API/ABI compatibility checker - ${diff.code}">
+        <testcase id="${diff.code}-${report.oldElement!(report.newElement!"<none>")}" name="Revapi Java API/ABI compatibility checker - ${diff.code}">
             <failure message="${report.oldElement!(report.newElement!"<none>")}<#if diff.description??>: ${diff.description}</#if>"><![CDATA[
 {{differenceTemplate}}
             ]]></failure>

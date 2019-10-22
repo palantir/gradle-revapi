@@ -463,6 +463,7 @@ class RevapiSpec extends IntegrationSpec {
 
                 dependencies {
                     compile 'com.palantir.conjure.java:conjure-lib:4.5.0'
+                    compile 'com.squareup.retrofit2:retrofit:2.6.2'
                 }
                 
                 apply plugin: 'maven-publish'
@@ -475,36 +476,94 @@ class RevapiSpec extends IntegrationSpec {
 
         new File(apiDir, 'api-objects').mkdirs()
         new File(apiDir, 'api-jersey').mkdirs()
+        new File(apiDir, 'api-retrofit').mkdirs()
+//        new File(apiDir, 'api-undertow').mkdirs()
         settingsFile << """
             include 'api:api-objects'
             include 'api:api-jersey'
+            include 'api:api-retrofit'
+//            include 'api:api-undertow'
         """
 
-        def conjureYml = writeToFile apiDir, 'src/main/conjure/conjure.yml', """
+        def conjureYml = 'src/main/conjure/conjure.yml'
+        writeToFile apiDir, conjureYml, """
             services:
-              MyService:
+              RenamedService:
+                name: RenamedService
+                package: services
+              TestService:
                 name: TestService
-                package: com.palantir.test.services
-                base-path: /builds
-                default-auth: header
+                package: services
                 endpoints:
+                  renamed:
+                    http: GET /renamed
+                  swappedArgs:
+                    http: GET /swappedArgs/{one}/{two}
+                    args:
+                      one: string
+                      two: boolean
         """.stripIndent()
 
         and:
-        runTasksSuccessfully(':api:compileConjure')
-        runTasksSuccessfully('publish')
+        def e = runTasks('compileConjure', 'publish')
+        if (!e.success) {
+            println e.standardOutput
+            println e.standardError
+            throw e.failure
+        }
 
         and:
-        conjureYml << """
-                  someEndpoint:
-                    http: POST /
-                    returns: boolean
-        """.stripIndent(12)
+        writeToFile apiDir, conjureYml, """
+            services:
+              RenamedToSomethingElseService:
+                name: RenamedToSomethingElseService
+                package: services
+              TestService:
+                name: TestService
+                package: services
+                endpoints:
+                  added:
+                    http: GET /added
+                  renamedToSomethingElse:
+                    http: GET /existing
+                  swappedArgs:
+                    http: GET /swappedArgs/{one}/{two}
+                    args:
+                      two: boolean
+                      one: string
+        """.stripIndent()
 
-        runTasks(':api:compileConjure')
+        e = runTasks('compileConjure')
+        if (!e.success) {
+            println e.standardOutput
+            println e.standardError
+            throw e.failure
+        }
 
         then:
-        runTasksSuccessfully('revapi')
+        runTasksWithFailure(':api:api-jersey:revapi')
+        def jerseyJunit = new File(projectDir, 'api/api-jersey/build/junit-reports/revapi/revapi-api-jersey.xml').text
+
+        assert jerseyJunit.contains('java.class.removed-interface services.RenamedService')
+        assert jerseyJunit.contains('java.method.removed-method void services.TestService::renamed()')
+        assert jerseyJunit.contains('java.method.parameterTypeChanged-parameter void services.TestService::swappedArgs(===java.lang.String===, boolean)')
+        assert jerseyJunit.contains('java.method.parameterTypeChanged-parameter void services.TestService::swappedArgs(java.lang.String, ===boolean===)')
+        assert !jerseyJunit.contains('services.TestService::added()')
+        assert !jerseyJunit.contains('services.TestService::renamedToSomethingElse()')
+        assert !jerseyJunit.contains('java.annotation.attributeValueChanged')
+
+        runTasksWithFailure(':api:api-retrofit:revapi')
+        def retrofitJunit = new File(projectDir, 'api/api-retrofit/build/junit-reports/revapi/revapi-api-retrofit.xml').text
+
+        assert retrofitJunit.contains('java.class.removed-interface services.RenamedService')
+        assert retrofitJunit.contains('java.method.removed-method void services.TestService::renamed()')
+        assert retrofitJunit.contains('java.method.parameterTypeChanged-parameter void services.TestService::swappedArgs(===java.lang.String===, boolean)')
+        assert retrofitJunit.contains('java.method.parameterTypeChanged-parameter void services.TestService::swappedArgs(java.lang.String, ===boolean===)')
+        assert !retrofitJunit.contains('services.TestService::added()')
+        assert !retrofitJunit.contains('services.TestService::renamedToSomethingElse()')
+        assert !retrofitJunit.contains('java.annotation.attributeValueChanged')
+
+        runTasksSuccessfully(':api:api-undertow:revapi')
     }
 
     private String testMavenPublication() {
