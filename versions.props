@@ -9,3 +9,4 @@ org.immutables:value = 2.8.1
 com.fasterxml.jackson.*:jackson-* = 2.9.9
 org.mockito:mockito-core = 3.1.0
 org.assertj:assertj-core = 3.13.2
+com.google.auto.service:auto-service = 1.0-rc6

@@ -40,7 +40,7 @@ final class ConjureProjectFilters {
 
         return checksForProjectName(project.getName())
                 .map(checks -> RevapiConfig.empty().withExtension(DifferenceCodeWhitelist.EXTENSION_ID, checks))
-                .orElse(RevapiConfig.empty());
+                .orElseGet(RevapiConfig::empty);
     }
 
     private static Optional<ArrayNode> checksForProjectName(String projectName) {
