@@ -434,8 +434,11 @@ class RevapiSpec extends IntegrationSpec {
                     classpath 'com.palantir.gradle.conjure:gradle-conjure:4.13.3'
                 }
             }
-            
+                        
             allprojects {
+                group = 'revapi.test'
+                version = '1.0.0'
+                
                 repositories {
                     maven { url 'https://dl.bintray.com/palantir/releases/' }
                     mavenCentral()
@@ -452,21 +455,23 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             subprojects {
+                apply plugin: '${TestConstants.PLUGIN_NAME}'
+
+                revapi {
+                    oldVersion = project.version
+                }
+
                 dependencies {
                     compile 'com.palantir.conjure.java:conjure-lib:4.5.0'
                 }
+                
+                apply plugin: 'maven-publish'
+
+                ${mavenRepoGradle()}
+                ${testMavenPublication()}
             }
         """
 
-        writeToFile apiDir, 'src/main/conjure/conjure.yml', """
-            services:
-              MyService:
-                name: TestService
-                package: com.palantir.test.services
-                base-path: /builds
-                default-auth: header
-                endpoints: {}
-        """.stripIndent()
 
         new File(apiDir, 'api-objects').mkdirs()
         new File(apiDir, 'api-jersey').mkdirs()
@@ -475,13 +480,31 @@ class RevapiSpec extends IntegrationSpec {
             include 'api:api-jersey'
         """
 
+        def conjureYml = writeToFile apiDir, 'src/main/conjure/conjure.yml', """
+            services:
+              MyService:
+                name: TestService
+                package: com.palantir.test.services
+                base-path: /builds
+                default-auth: header
+                endpoints:
+        """.stripIndent()
+
         and:
-        def executionResult = runTasks(':api:compileConjure')
-        println executionResult.standardOutput
-        println executionResult.standardError
+        runTasksSuccessfully(':api:compileConjure')
+        runTasksSuccessfully('publish')
+
+        and:
+        conjureYml << """
+                  someEndpoint:
+                    http: POST /
+                    returns: boolean
+        """.stripIndent(12)
+
+        runTasks(':api:compileConjure')
 
         then:
-        1 == 1
+        runTasksSuccessfully('revapi')
     }
 
     private String testMavenPublication() {
@@ -515,10 +538,11 @@ class RevapiSpec extends IntegrationSpec {
         writeToFile(projectDir, filename, content)
     }
 
-    private void writeToFile(File dir, String filename, String content) {
+    private File writeToFile(File dir, String filename, String content) {
         def file = new File(dir, filename)
         file.getParentFile().mkdirs()
         file.write(content)
+        return file
     }
 
     private File rootProjectNameIs(String projectName) {
