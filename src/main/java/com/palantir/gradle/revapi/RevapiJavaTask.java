@@ -75,6 +75,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withAllExtensionsFromThreadContextClassLoader()
                 .withAnalyzers(JavaApiAnalyzer.class)
                 .withReporters(TextReporter.class)
+                .withTransforms(CheckWhitelist.class)
                 .build();
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(

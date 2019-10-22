@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.auto.service.AutoService;
 import java.io.Reader;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -29,7 +28,6 @@ import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.java.spi.JavaElement;
 
-@AutoService(DifferenceTransform.class)
 public final class CheckWhitelist implements DifferenceTransform<JavaElement> {
     public static final String EXTENSION_ID = "gradle-revapi.check.whitelist";
 
