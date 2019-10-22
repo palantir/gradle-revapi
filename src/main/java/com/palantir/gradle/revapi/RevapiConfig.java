@@ -120,4 +120,8 @@ abstract class RevapiConfig {
                 .config(jsonNodes)
                 .build();
     }
+
+    public static ArrayNode createArrayNode() {
+        return OBJECT_MAPPER.createArrayNode();
+    }
 }

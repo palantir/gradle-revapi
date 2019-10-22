@@ -75,14 +75,14 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withAllExtensionsFromThreadContextClassLoader()
                 .withAnalyzers(JavaApiAnalyzer.class)
                 .withReporters(TextReporter.class)
-                .withTransforms(ConjureClientProjectFilter.class)
+                .withTransforms(DifferenceCodeWhitelist.class)
                 .build();
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(oldApi, newApi),
                 taskSpecificConfigJson,
-                revapiIgnores())
-                .mergeWith(ConjureClientProjectFilter.forProject(getProject()));
+                revapiIgnores(),
+                ConjureProjectFilters.forProject(getProject()));
 
         System.out.println("revapiConfig.configAsString() = " + revapiConfig.configAsString());
 

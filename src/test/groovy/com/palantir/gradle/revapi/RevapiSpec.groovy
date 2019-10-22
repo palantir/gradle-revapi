@@ -463,6 +463,7 @@ class RevapiSpec extends IntegrationSpec {
 
                 dependencies {
                     compile 'com.palantir.conjure.java:conjure-lib:4.5.0'
+                    compile 'com.palantir.conjure.java:conjure-undertow-lib:4.5.0'
                     compile 'com.squareup.retrofit2:retrofit:2.6.2'
                 }
                 
@@ -477,12 +478,12 @@ class RevapiSpec extends IntegrationSpec {
         new File(apiDir, 'api-objects').mkdirs()
         new File(apiDir, 'api-jersey').mkdirs()
         new File(apiDir, 'api-retrofit').mkdirs()
-//        new File(apiDir, 'api-undertow').mkdirs()
+        new File(apiDir, 'api-undertow').mkdirs()
         settingsFile << """
             include 'api:api-objects'
             include 'api:api-jersey'
             include 'api:api-retrofit'
-//            include 'api:api-undertow'
+            include 'api:api-undertow'
         """
 
         def conjureYml = 'src/main/conjure/conjure.yml'
@@ -553,7 +554,7 @@ class RevapiSpec extends IntegrationSpec {
         assert !retrofitJunit.contains('services.TestServiceRetrofit::renamedToSomethingElse()')
         assert !retrofitJunit.contains('java.annotation.attributeValueChanged')
 
-//        runTasksSuccessfully(':api:api-undertow:revapi')
+        runTasksSuccessfully(':api:api-undertow:revapi')
     }
 
     private String testMavenPublication() {

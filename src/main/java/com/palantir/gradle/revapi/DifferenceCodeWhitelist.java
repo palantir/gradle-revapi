@@ -16,28 +16,31 @@
 
 package com.palantir.gradle.revapi;
 
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.google.common.collect.ImmutableSet;
 import java.io.Reader;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.gradle.api.Project;
+import org.jboss.dmr.ModelNode;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.java.spi.JavaElement;
 
-public final class ConjureClientProjectFilter implements DifferenceTransform<JavaElement> {
-    private static final String EXTENSION_ID = "gradle-revapi.conjure.filter";
+public final class DifferenceCodeWhitelist implements DifferenceTransform<JavaElement> {
+    public static final String EXTENSION_ID = "gradle-revapi.difference.code.whitelist";
 
     private static final Pattern[] EVERYTHING = {Pattern.compile(".*") };
-    private static final Set<String> ALLOWED_CODES = ImmutableSet.of(
-            "java.class.removed",
-            "java.method.removed",
-            "java.method.parameterTypeChanged");
+
+    private Set<String> allowedCodes;
+
+    @Override
+    public void initialize(@Nonnull AnalysisContext analysisContext) {
+        this.allowedCodes = analysisContext.getConfiguration().asList().stream()
+                .map(ModelNode::asString)
+                .collect(Collectors.toSet());
+    }
 
     @Override
     public String getExtensionId() {
@@ -57,25 +60,11 @@ public final class ConjureClientProjectFilter implements DifferenceTransform<Jav
             @Nullable JavaElement newElement,
             @Nonnull Difference difference) {
 
-        if (ALLOWED_CODES.contains(difference.code)) {
+        if (allowedCodes.contains(difference.code)) {
             return difference;
         }
 
         return null;
-    }
-
-    public static RevapiConfig forProject(Project project) {
-        boolean isConjure = Optional.ofNullable(project.getParent())
-                .map(parentProject -> parentProject.getPluginManager().hasPlugin("com.palantir.conjure"))
-                .orElse(false);
-
-        boolean isClientProject = project.getName().endsWith("-jersey") || project.getName().endsWith("-retrofit");
-
-        if (isConjure && isClientProject) {
-            return RevapiConfig.empty().withExtension(EXTENSION_ID, NullNode.getInstance());
-        }
-
-        return RevapiConfig.empty();
     }
 
     @Nullable
@@ -83,9 +72,6 @@ public final class ConjureClientProjectFilter implements DifferenceTransform<Jav
     public Reader getJSONSchema() {
         return null;
     }
-
-    @Override
-    public void initialize(@Nonnull AnalysisContext analysisContext) { }
 
     @Override
     public void close() { }
