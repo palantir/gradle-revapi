@@ -30,10 +30,15 @@ final class ConjureProjectFilters {
     private ConjureProjectFilters() { }
 
     public static RevapiConfig forProject(Project project) {
-        return Optional.ofNullable(project.getParent())
+        boolean isConjure = Optional.ofNullable(project.getParent())
                 .map(parentProject -> parentProject.getPluginManager().hasPlugin("com.palantir.conjure"))
-                .filter(isConjure -> isConjure)
-                .flatMap(_ignored -> checksForProjectName(project.getName()))
+                .orElse(false);
+
+        if (!isConjure) {
+            return RevapiConfig.empty();
+        }
+
+        return checksForProjectName(project.getName())
                 .map(checks -> RevapiConfig.empty().withExtension(DifferenceCodeWhitelist.EXTENSION_ID, checks))
                 .orElse(RevapiConfig.empty());
     }
