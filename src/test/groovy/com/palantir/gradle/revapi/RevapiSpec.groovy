@@ -421,7 +421,7 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("tasks")
     }
 
-    def 'adding a conjure endpoint should not cause a revapi failure'() {
+    def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
         buildFile << """
             buildscript {
