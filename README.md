@@ -31,9 +31,8 @@ Using the plugin should be as simple as:
 ## Motivation
 
 Accidentally releasing API or ABI breaks in java libraries has bad consequences for library consumers.
-In the case of API breaks, consumers have to perform some kind of manual action upgrade to newer library
-versions, which may be difficult for them  are difficult as they will
-require manual action to move past the breaks.
+In the case of API breaks, consumers have to perform some kind of manual action to upgrade to newer library
+versions, which may be difficult.
 
 With ABI breaks, the situation can be even worse, as uses of the library compile but uses in jars of the old API fail at
 runtime. An example from [Tritium](https://github.com/palantir/tritium) is where a
