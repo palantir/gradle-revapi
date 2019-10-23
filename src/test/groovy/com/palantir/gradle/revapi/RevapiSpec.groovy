@@ -421,6 +421,41 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("tasks")
     }
 
+    def 'blah'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                implementation 'one.util:streamex:0.7.0'
+            }
+            
+            revapi {
+                oldGroup = 'org.codehaus.cargo'
+                oldName = 'empty-jar'
+                oldVersion = '1.7.7'
+            }
+        """.stripIndent()
+
+        writeToFile 'src/main/java/foo/Foo.java', """
+            package foo;
+
+            import one.util.streamex.StreamEx;
+
+            interface Foo {
+                StreamEx<String> doIt();
+            }
+        """.stripIndent()
+
+        then:
+        println runTasksWithFailure('revapi').standardError
+    }
+
     private String testMavenPublication() {
         return """
             publishing {

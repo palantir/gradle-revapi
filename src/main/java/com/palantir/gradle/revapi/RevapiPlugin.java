@@ -44,7 +44,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
-            conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
+            conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
         });
 
         ConfigManager configManager = new ConfigManager(configFile(project));

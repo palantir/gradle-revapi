@@ -51,7 +51,7 @@ abstract class RevapiConfig {
 
     public RevapiConfig withTextReporter(String templateName, File outputPath) {
         return withExtension("revapi.reporter.text", OBJECT_MAPPER.createObjectNode()
-                .put("minSeverity", "BREAKING")
+                // .put("minSeverity", "BREAKING")
                 .put("template", templateName)
                 .put("output", outputPath.getAbsolutePath())
                 .put("append", false));
