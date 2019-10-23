@@ -423,6 +423,8 @@ class RevapiSpec extends IntegrationSpec {
 
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
+        rootProjectNameIs('api')
+
         buildFile << """
             buildscript {
                 repositories {
@@ -444,9 +446,7 @@ class RevapiSpec extends IntegrationSpec {
                     mavenCentral()
                 }
             }
-        """
 
-        def apiDir = addSubproject 'api', """
             apply plugin: 'com.palantir.conjure'
             
             dependencies {
@@ -474,20 +474,13 @@ class RevapiSpec extends IntegrationSpec {
             }
         """
 
-
-        new File(apiDir, 'api-objects').mkdirs()
-        new File(apiDir, 'api-jersey').mkdirs()
-        new File(apiDir, 'api-retrofit').mkdirs()
-        new File(apiDir, 'api-undertow').mkdirs()
-        settingsFile << """
-            include 'api:api-objects'
-            include 'api:api-jersey'
-            include 'api:api-retrofit'
-            include 'api:api-undertow'
-        """
+        addSubproject('api-objects')
+        addSubproject('api-jersey')
+        addSubproject('api-retrofit')
+        addSubproject('api-undertow')
 
         def conjureYml = 'src/main/conjure/conjure.yml'
-        writeToFile apiDir, conjureYml, """
+        writeToFile conjureYml, """
             services:
               RenamedService:
                 name: RenamedService
@@ -509,7 +502,7 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('compileConjure', 'publish')
 
         and:
-        writeToFile apiDir, conjureYml, """
+        writeToFile conjureYml, """
             services:
               RenamedToSomethingElseService:
                 name: RenamedToSomethingElseService
@@ -532,8 +525,8 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('compileConjure')
 
         then:
-        runTasksWithFailure(':api:api-jersey:revapi')
-        def jerseyJunit = new File(projectDir, 'api/api-jersey/build/junit-reports/revapi/revapi-api-jersey.xml').text
+        runTasksWithFailure(':api-jersey:revapi')
+        def jerseyJunit = new File(projectDir, 'api-jersey/build/junit-reports/revapi/revapi-api-jersey.xml').text
 
         assert jerseyJunit.contains('java.class.removed-interface services.RenamedService')
         assert jerseyJunit.contains('java.method.removed-method void services.TestService::renamed()')
@@ -543,8 +536,8 @@ class RevapiSpec extends IntegrationSpec {
         assert !jerseyJunit.contains('services.TestService::renamedToSomethingElse()')
         assert !jerseyJunit.contains('java.annotation.attributeValueChanged')
 
-        runTasksWithFailure(':api:api-retrofit:revapi')
-        def retrofitJunit = new File(projectDir, 'api/api-retrofit/build/junit-reports/revapi/revapi-api-retrofit.xml').text
+        runTasksWithFailure(':api-retrofit:revapi')
+        def retrofitJunit = new File(projectDir, 'api-retrofit/build/junit-reports/revapi/revapi-api-retrofit.xml').text
 
         assert retrofitJunit.contains('java.class.removed-interface services.RenamedServiceRetrofit')
         assert retrofitJunit.contains('java.method.removed-method retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::renamed()')
@@ -554,7 +547,7 @@ class RevapiSpec extends IntegrationSpec {
         assert !retrofitJunit.contains('services.TestServiceRetrofit::renamedToSomethingElse()')
         assert !retrofitJunit.contains('java.annotation.attributeValueChanged')
 
-        runTasksSuccessfully(':api:api-undertow:revapi')
+        runTasksSuccessfully(':api-undertow:revapi')
     }
 
     private String testMavenPublication() {
@@ -596,7 +589,7 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     private File rootProjectNameIs(String projectName) {
-        settingsFile << "rootProject.name = '${projectName}'"
+        settingsFile << "rootProject.name = '${projectName}'\n"
     }
 
     private void runRevapiExpectingToFindDifferences(String projectName) {
