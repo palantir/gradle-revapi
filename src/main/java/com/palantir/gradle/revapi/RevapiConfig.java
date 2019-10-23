@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.revapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +47,11 @@ abstract class RevapiConfig {
     protected abstract List<JsonNode> config();
 
     public String configAsString() {
-        return config().toString();
+        try {
+            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(config());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public RevapiConfig withTextReporter(String templateName, File outputPath) {
@@ -61,7 +66,7 @@ abstract class RevapiConfig {
         return withExtension("revapi.ignore", OBJECT_MAPPER.convertValue(acceptedBreaks, ArrayNode.class));
     }
 
-    private RevapiConfig withExtension(String extensionId, JsonNode configuration) {
+    public RevapiConfig withExtension(String extensionId, JsonNode configuration) {
         JsonNode extension = OBJECT_MAPPER.createObjectNode()
                 .put("extension", extensionId)
                 .set("configuration", configuration);
@@ -119,5 +124,9 @@ abstract class RevapiConfig {
         return new Builder()
                 .config(jsonNodes)
                 .build();
+    }
+
+    public static ArrayNode createArrayNode() {
+        return OBJECT_MAPPER.createArrayNode();
     }
 }

@@ -75,18 +75,22 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .withAllExtensionsFromThreadContextClassLoader()
                 .withAnalyzers(JavaApiAnalyzer.class)
                 .withReporters(TextReporter.class)
+                .withTransforms(CheckWhitelist.class)
                 .build();
 
-        String revapiJsonConfig = RevapiConfig.mergeAll(
+        RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(oldApi, newApi),
                 taskSpecificConfigJson,
-                revapiIgnores()).configAsString();
+                revapiIgnores(),
+                ConjureProjectFilters.forProject(getProject()));
+
+        log.info("revapi config:\n{}", revapiConfig.configAsString());
 
         try (AnalysisResult analysisResult = revapi.analyze(AnalysisContext.builder()
                 .withOldAPI(oldApi)
                 .withNewAPI(newApi)
                 // https://revapi.org/modules/revapi-java/extensions/java.html
-                .withConfigurationFromJSON(revapiJsonConfig)
+                .withConfigurationFromJSON(revapiConfig.configAsString())
                 .build())) {
             analysisResult.throwIfFailed();
         }

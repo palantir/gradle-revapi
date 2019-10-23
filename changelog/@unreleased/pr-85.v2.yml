@@ -1,0 +1,8 @@
+type: fix
+fix:
+  description: '`gradle-revapi` will now not fail with errors when adding conjure
+    endpoints or making any other conjure changes (except those that are java breaks
+    but did not trigger conjure-backcompat warning, such as renaming a service or
+    endpoint).'
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/85

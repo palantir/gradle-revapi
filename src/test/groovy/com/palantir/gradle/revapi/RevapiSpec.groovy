@@ -403,7 +403,7 @@ class RevapiSpec extends IntegrationSpec {
             buildscript {
                 repositories {
                     maven { url "https://palantir.bintray.com/releases" }
-                    jcenter()
+                    mavenCentral()
                     gradlePluginPortal()
                 }
             
@@ -419,6 +419,135 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runTasksSuccessfully("tasks")
+    }
+
+    def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
+        when:
+        rootProjectNameIs('api')
+
+        buildFile << """
+            buildscript {
+                repositories {
+                    maven { url 'https://dl.bintray.com/palantir/releases/' }
+                    mavenCentral()
+                }
+            
+                dependencies {
+                    classpath 'com.palantir.gradle.conjure:gradle-conjure:4.13.3'
+                }
+            }
+                        
+            allprojects {
+                group = 'revapi.test'
+                version = '1.0.0'
+                
+                repositories {
+                    maven { url 'https://dl.bintray.com/palantir/releases/' }
+                    mavenCentral()
+                }
+            }
+
+            apply plugin: 'com.palantir.conjure'
+            
+            dependencies {
+                conjureCompiler 'com.palantir.conjure:conjure:4.6.2'
+                conjureJava 'com.palantir.conjure.java:conjure-java:4.5.0'
+            }
+            
+            subprojects {
+                apply plugin: '${TestConstants.PLUGIN_NAME}'
+
+                revapi {
+                    oldVersion = project.version
+                }
+
+                dependencies {
+                    compile 'com.palantir.conjure.java:conjure-lib:4.5.0'
+                    compile 'com.palantir.conjure.java:conjure-undertow-lib:4.5.0'
+                    compile 'com.squareup.retrofit2:retrofit:2.6.2'
+                }
+                
+                apply plugin: 'maven-publish'
+
+                ${mavenRepoGradle()}
+                ${testMavenPublication()}
+            }
+        """
+
+        addSubproject('api-objects')
+        addSubproject('api-jersey')
+        addSubproject('api-retrofit')
+        addSubproject('api-undertow')
+
+        def conjureYml = 'src/main/conjure/conjure.yml'
+        writeToFile conjureYml, """
+            services:
+              RenamedService:
+                name: RenamedService
+                package: services
+              TestService:
+                name: TestService
+                package: services
+                endpoints:
+                  renamed:
+                    http: GET /renamed
+                  swappedArgs:
+                    http: GET /swappedArgs/{one}/{two}
+                    args:
+                      one: string
+                      two: boolean
+        """.stripIndent()
+
+        and:
+        runTasksSuccessfully('compileConjure', 'publish')
+
+        and:
+        writeToFile conjureYml, """
+            services:
+              RenamedToSomethingElseService:
+                name: RenamedToSomethingElseService
+                package: services
+              TestService:
+                name: TestService
+                package: services
+                endpoints:
+                  added:
+                    http: GET /added
+                  renamedToSomethingElse:
+                    http: GET /existing
+                  swappedArgs:
+                    http: GET /swappedArgs/{one}/{two}
+                    args:
+                      two: boolean
+                      one: string
+        """.stripIndent()
+
+        runTasksSuccessfully('compileConjure')
+
+        then:
+        runTasksWithFailure(':api-jersey:revapi')
+        def jerseyJunit = new File(projectDir, 'api-jersey/build/junit-reports/revapi/revapi-api-jersey.xml').text
+
+        assert jerseyJunit.contains('java.class.removed-interface services.RenamedService')
+        assert jerseyJunit.contains('java.method.removed-method void services.TestService::renamed()')
+        assert jerseyJunit.contains('java.method.parameterTypeChanged-parameter void services.TestService::swappedArgs(===java.lang.String===, boolean)')
+        assert jerseyJunit.contains('java.method.parameterTypeChanged-parameter void services.TestService::swappedArgs(java.lang.String, ===boolean===)')
+        assert !jerseyJunit.contains('services.TestService::added()')
+        assert !jerseyJunit.contains('services.TestService::renamedToSomethingElse()')
+        assert !jerseyJunit.contains('java.annotation.attributeValueChanged')
+
+        runTasksWithFailure(':api-retrofit:revapi')
+        def retrofitJunit = new File(projectDir, 'api-retrofit/build/junit-reports/revapi/revapi-api-retrofit.xml').text
+
+        assert retrofitJunit.contains('java.class.removed-interface services.RenamedServiceRetrofit')
+        assert retrofitJunit.contains('java.method.removed-method retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::renamed()')
+        assert retrofitJunit.contains('java.method.parameterTypeChanged-parameter retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::swappedArgs(===java.lang.String===, boolean)')
+        assert retrofitJunit.contains('java.method.parameterTypeChanged-parameter retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::swappedArgs(java.lang.String, ===boolean===)')
+        assert !retrofitJunit.contains('services.TestServiceRetrofit::added()')
+        assert !retrofitJunit.contains('services.TestServiceRetrofit::renamedToSomethingElse()')
+        assert !retrofitJunit.contains('java.annotation.attributeValueChanged')
+
+        runTasksSuccessfully(':api-undertow:revapi')
     }
 
     private String testMavenPublication() {
@@ -449,13 +578,18 @@ class RevapiSpec extends IntegrationSpec {
     }
 
     private void writeToFile(String filename, String content) {
-        def file = new File(projectDir, filename)
+        writeToFile(projectDir, filename, content)
+    }
+
+    private File writeToFile(File dir, String filename, String content) {
+        def file = new File(dir, filename)
         file.getParentFile().mkdirs()
         file.write(content)
+        return file
     }
 
     private File rootProjectNameIs(String projectName) {
-        settingsFile << "rootProject.name = '${projectName}'"
+        settingsFile << "rootProject.name = '${projectName}'\n"
     }
 
     private void runRevapiExpectingToFindDifferences(String projectName) {
