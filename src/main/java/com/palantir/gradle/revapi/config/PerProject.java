@@ -30,17 +30,17 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutablePerProject.class)
 abstract class PerProject<T> {
     @JsonValue
-    protected abstract Map<GroupAndName, Set<T>> acceptedBreaks();
+    protected abstract Map<GroupAndName, Set<T>> items();
 
-    public Set<T> acceptedBreaksFor(GroupAndName groupAndName) {
-        return acceptedBreaks().getOrDefault(groupAndName, Collections.emptySet());
+    public Set<T> forGroupAndName(GroupAndName groupAndName) {
+        return items().getOrDefault(groupAndName, Collections.emptySet());
     }
 
     public PerProject<T> merge(GroupAndName groupAndName, Set<T> acceptedBreaks) {
-        Map<GroupAndName, Set<T>> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
+        Map<GroupAndName, Set<T>> newAcceptedBreaks = new HashMap<>(items());
         newAcceptedBreaks.put(groupAndName, Sets.union(
                 acceptedBreaks,
-                this.acceptedBreaks().getOrDefault(groupAndName, ImmutableSet.of())));
+                this.items().getOrDefault(groupAndName, ImmutableSet.of())));
 
         return PerProject.<T>builder()
                 .putAllAcceptedBreaks(newAcceptedBreaks)
