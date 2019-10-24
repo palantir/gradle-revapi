@@ -73,17 +73,13 @@ public abstract class GradleRevapiConfig {
                 .flatMapKeyValue((version, perProjectAcceptedBreaks) ->
                         EntryStream.of(perProjectAcceptedBreaks.acceptedBreaks())
                                 .flatMapKeyValue((groupAndName, acceptedBreaks) ->
-                                        acceptedBreaks.stream().map(acceptedBreak -> ImmutableFlattenedBreak.builder()
+                                        acceptedBreaks.stream().map(acceptedBreakV1 -> ImmutableFlattenedBreak.builder()
                                                 .groupAndName(groupAndName)
                                                 .justificationAndVersion(ImmutableJustificationAndVersion.builder()
-                                                        .justification(acceptedBreak.justification())
+                                                        .justification(acceptedBreakV1.justification())
                                                         .version(version)
                                                         .build())
-                                                .acceptedBreak(AcceptedBreakV2.builder()
-                                                        .code(acceptedBreak.code())
-                                                        .newElement(acceptedBreak.newElement())
-                                                        .oldElement(acceptedBreak.oldElement())
-                                                        .build())
+                                                .acceptedBreak(acceptedBreakV1.upgrade())
                                                 .build())))
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
 
