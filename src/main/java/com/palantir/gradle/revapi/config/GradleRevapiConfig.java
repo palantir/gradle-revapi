@@ -57,16 +57,14 @@ public abstract class GradleRevapiConfig {
     protected Set<BreakCollection> acceptedBreaksV2() {
         Map<JustificationAndVersion, List<FlattenedBreak>> collect = EntryStream.of(acceptedBreaksDeserOnly().orElseGet(Collections::emptyMap))
                 .flatMapKeyValue((version, perProjectAcceptedBreaks) ->
-                        EntryStream.of(perProjectAcceptedBreaks.items())
-                                .flatMapKeyValue((groupAndName, acceptedBreaks) ->
-                                        acceptedBreaks.stream().map(acceptedBreakV1 -> FlattenedBreak.builder()
-                                                .groupAndName(groupAndName)
-                                                .justificationAndVersion(JustificationAndVersion.builder()
-                                                        .justification(acceptedBreakV1.justification())
-                                                        .version(version)
-                                                        .build())
-                                                .acceptedBreak(acceptedBreakV1.upgrade())
-                                                .build())))
+                        perProjectAcceptedBreaks.flatten((groupAndName, acceptedBreakV1) -> FlattenedBreak.builder()
+                                .groupAndName(groupAndName)
+                                .justificationAndVersion(JustificationAndVersion.builder()
+                                        .justification(acceptedBreakV1.justification())
+                                        .version(version)
+                                        .build())
+                                .acceptedBreak(acceptedBreakV1.upgrade())
+                                .build()))
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
 
         Set<BreakCollection> upgraded = EntryStream.of(collect)

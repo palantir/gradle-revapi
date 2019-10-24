@@ -24,6 +24,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
+import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -45,6 +48,12 @@ abstract class PerProject<T> {
         return PerProject.<T>builder()
                 .putAllAcceptedBreaks(newAcceptedBreaks)
                 .build();
+    }
+
+    public <R> Stream<R> flatten(BiFunction<GroupAndName, T, R> flattener) {
+        return EntryStream.of(items())
+                .flatMapKeyValue((groupAndName, items) -> items.stream()
+                        .map(item -> flattener.apply(groupAndName, item)));
     }
 
     static final class Builder<T> extends ImmutablePerProject.Builder<T> { }
