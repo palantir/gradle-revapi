@@ -27,6 +27,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
+import com.palantir.gradle.revapi.config.v1.BreakCollectionV1;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public abstract class GradleRevapiConfig {
     protected abstract Map<GroupNameVersion, String> versionOverrides();
 
     @JsonProperty(value = "acceptedBreaks", access = Access.WRITE_ONLY)
-    protected abstract Optional<Map<Version, PerProject<AcceptedBreakV1>>> acceptedBreaksDeserOnly();
+    protected abstract Optional<BreakCollectionV1> acceptedBreaksDeserOnly();
 
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
     protected abstract Optional<Set<BreakCollection>> acceptedBreaksV2DeserOnly();
@@ -55,39 +56,12 @@ public abstract class GradleRevapiConfig {
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
     protected Set<BreakCollection> acceptedBreaksV2() {
-        Map<JustificationAndVersion, List<FlattenedBreak>> collect = EntryStream.of(acceptedBreaksDeserOnly().orElseGet(Collections::emptyMap))
-                .flatMapKeyValue((version, perProjectAcceptedBreaks) ->
-                        perProjectAcceptedBreaks.flatten((groupAndName, acceptedBreakV1) -> FlattenedBreak.builder()
-                                .groupAndName(groupAndName)
-                                .justificationAndVersion(JustificationAndVersion.builder()
-                                        .justification(acceptedBreakV1.justification())
-                                        .version(version)
-                                        .build())
-                                .acceptedBreak(acceptedBreakV1.upgrade())
-                                .build()))
-                .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
-
-        Set<BreakCollection> upgraded = EntryStream.of(collect)
-                .mapKeyValue((justificationAndVersion, flattenedBreaks) -> {
-                    Map<GroupAndName, Set<AcceptedBreakV2>> collect1 = EntryStream.of(flattenedBreaks.stream()
-                            .collect(Collectors.groupingBy(FlattenedBreak::groupAndName)))
-                            .mapValues(perProjectFlattenedBreaks -> perProjectFlattenedBreaks.stream()
-                                    .map(FlattenedBreak::acceptedBreak)
-                                    .collect(Collectors.toSet()))
-                            .toMap();
-
-                    return BreakCollection.builder()
-                            .justification(justificationAndVersion.justification())
-                            .afterVersion(justificationAndVersion.version())
-                            .breaks(PerProject.<AcceptedBreakV2>builder()
-                                    .acceptedBreaks(collect1)
-                                    .build())
-                            .build();
-                })
-                .collect(Collectors.toSet());
+        Set<BreakCollection> upgradedBreaks = acceptedBreaksDeserOnly()
+                .orElseGet(BreakCollectionV1::empty)
+                .upgrade();
 
         return ImmutableSet.<BreakCollection>builder()
-                .addAll(upgraded)
+                .addAll(upgradedBreaks)
                 .addAll(acceptedBreaksV2DeserOnly().orElseGet(Collections::emptySet))
                 .build();
     }

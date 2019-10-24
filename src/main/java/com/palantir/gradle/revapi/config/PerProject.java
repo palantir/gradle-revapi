@@ -20,43 +20,47 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutablePerProject.class)
-abstract class PerProject<T> {
+public abstract class PerProject<T> {
     @JsonValue
     protected abstract Map<GroupAndName, Set<T>> items();
 
-    public Set<T> forGroupAndName(GroupAndName groupAndName) {
+    public final Set<T> forGroupAndName(GroupAndName groupAndName) {
         return items().getOrDefault(groupAndName, Collections.emptySet());
     }
 
-    public PerProject<T> merge(GroupAndName groupAndName, Set<T> acceptedBreaks) {
-        Map<GroupAndName, Set<T>> newAcceptedBreaks = new HashMap<>(items());
-        newAcceptedBreaks.put(groupAndName, Sets.union(
-                acceptedBreaks,
+    public final PerProject<T> merge(GroupAndName groupAndName, Set<T> items) {
+        Map<GroupAndName, Set<T>> newItems = new HashMap<>(items());
+        newItems.put(groupAndName, Sets.union(
+                items,
                 this.items().getOrDefault(groupAndName, ImmutableSet.of())));
 
         return PerProject.<T>builder()
-                .putAllAcceptedBreaks(newAcceptedBreaks)
+                .putAllItems(newItems)
                 .build();
     }
 
-    public <R> Stream<R> flatten(BiFunction<GroupAndName, T, R> flattener) {
+    public final <R> Stream<R> flatten(BiFunction<GroupAndName, T, R> flattener) {
         return EntryStream.of(items())
                 .flatMapKeyValue((groupAndName, items) -> items.stream()
                         .map(item -> flattener.apply(groupAndName, item)));
     }
 
-    static final class Builder<T> extends ImmutablePerProject.Builder<T> { }
+    public static final class Builder<T> extends ImmutablePerProject.Builder<T> { }
 
     public static <T> Builder<T> builder() {
         return new Builder<>();
@@ -64,5 +68,16 @@ abstract class PerProject<T> {
 
     public static <T> PerProject<T> empty() {
         return PerProject.<T>builder().build();
+    }
+
+    public static <T> PerProject<T> groupingBy(Collection<T> items, Function<T, GroupAndName> keyFunction) {
+        Map<GroupAndName, List<T>> groupedByName = items.stream()
+                .collect(Collectors.groupingBy(keyFunction));
+
+        return PerProject.<T>builder()
+                .putAllItems(EntryStream.of(groupedByName)
+                        .mapValues(perProjectItems -> (Set<T>) ImmutableSet.copyOf(perProjectItems))
+                        .toMap())
+                .build();
     }
 }

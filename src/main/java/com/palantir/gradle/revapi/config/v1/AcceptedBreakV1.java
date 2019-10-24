@@ -18,7 +18,11 @@ package com.palantir.gradle.revapi.config.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.palantir.gradle.revapi.config.FlattenedBreak;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.JustificationAndVersion;
+import com.palantir.gradle.revapi.config.Version;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
 import java.util.Optional;
 import org.immutables.value.Value;
@@ -35,6 +39,17 @@ public interface AcceptedBreakV1 {
     Optional<String> newElement();
 
     Justification justification();
+
+    default FlattenedBreak flatten(Version version, GroupAndName groupAndName) {
+        return FlattenedBreak.builder()
+                .groupAndName(groupAndName)
+                .justificationAndVersion(JustificationAndVersion.builder()
+                        .justification(justification())
+                        .version(version)
+                        .build())
+                .acceptedBreak(upgrade())
+                .build();
+    }
 
     default AcceptedBreakV2 upgrade() {
         return AcceptedBreakV2.builder()
