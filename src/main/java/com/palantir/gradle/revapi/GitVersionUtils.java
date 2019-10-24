@@ -18,20 +18,36 @@ package com.palantir.gradle.revapi;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import org.gradle.api.Project;
 
 final class GitVersionUtils {
     private GitVersionUtils() { }
 
     public static String previousGitTag(Project project) {
+        return previousGitTagFromRef(project, "HEAD");
+    }
+
+    private static String previousGitTagFromRef(Project project, String ref) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         project.exec(spec -> {
             // this matches how gradle-git-version works, just with 'HEAD^' to avoid getting the current tag
-            spec.setCommandLine("git", "describe", "--tags", "--always", "--abbrev=0", "HEAD^");
+            spec.setCommandLine("git", "describe", "--tags", "--always", "--abbrev=0", ref + "^");
             spec.setStandardOutput(baos);
         }).assertNormalExitValue();
 
         return new String(baos.toByteArray(), StandardCharsets.UTF_8).trim();
+    }
+
+    public static Stream<String> previousGitTags(Project project) {
+        final AtomicReference<String> lastSeenRef = new AtomicReference<>("HEAD");
+
+        return Stream.generate(() -> {
+            String tag = previousGitTagFromRef(project, lastSeenRef.get());
+            lastSeenRef.set(tag);
+            return tag;
+        });
     }
 }
