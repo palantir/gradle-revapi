@@ -16,23 +16,21 @@
 
 package com.palantir.gradle.revapi.config.v2;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.Optional;
+import com.palantir.gradle.revapi.config.ImmutableBreakCollection;
+import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.PerProject;
+import com.palantir.gradle.revapi.config.Version;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableAcceptedBreakV2.class)
-public interface AcceptedBreakV2 {
-    String code();
+@JsonDeserialize(as = ImmutableBreakCollection.class)
+public interface BreakCollection {
+    Justification justification();
+    Version afterVersion();
+    PerProject<AcceptedBreak> breaks();
 
-    @JsonProperty("old")
-    Optional<String> oldElement();
-
-    @JsonProperty("new")
-    Optional<String> newElement();
-
-    class Builder extends ImmutableAcceptedBreakV2.Builder {}
+    class Builder extends ImmutableBreakCollection.Builder { }
 
     static Builder builder() {
         return new Builder();

@@ -17,13 +17,12 @@
 package com.palantir.gradle.revapi.config.v1;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.BreakCollection;
+import com.palantir.gradle.revapi.config.v2.BreakCollection;
 import com.palantir.gradle.revapi.config.FlattenedBreak;
-import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
-import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
+import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,24 +43,16 @@ public abstract class BreakCollectionV1 {
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
     }
 
-    @SuppressWarnings("Duplicates")
-    public Set<BreakCollection> upgrade() {
+    public final Set<BreakCollection> upgrade() {
         return EntryStream.of(flattenedBreaks()).mapKeyValue((justificationAndVersion, flattenedBreaks) -> {
-            Map<GroupAndName, List<FlattenedBreak>> perProjectFlattenedBreaks = flattenedBreaks.stream()
-                    .collect(Collectors.groupingBy(FlattenedBreak::groupAndName));
-
-            Map<GroupAndName, Set<AcceptedBreakV2>> perProjectAcceptedBreaks = EntryStream.of(perProjectFlattenedBreaks)
-                    .mapValues(flattenedBreaksForThisProject -> flattenedBreaksForThisProject.stream()
-                            .map(FlattenedBreak::acceptedBreak)
-                            .collect(Collectors.toSet()))
-                    .toMap();
+            PerProject<AcceptedBreak> perProjectAcceptedBreaks = PerProject
+                    .groupingBy(flattenedBreaks, FlattenedBreak::groupAndName)
+                    .map(FlattenedBreak::acceptedBreak);
 
             return BreakCollection.builder()
                     .justification(justificationAndVersion.justification())
                     .afterVersion(justificationAndVersion.version())
-                    .breaks(PerProject.<AcceptedBreakV2>builder()
-                            .items(perProjectAcceptedBreaks)
-                            .build())
+                    .breaks(perProjectAcceptedBreaks)
                     .build();
         }).collect(Collectors.toSet());
     }
