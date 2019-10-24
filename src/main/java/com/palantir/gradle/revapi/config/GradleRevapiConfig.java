@@ -49,7 +49,7 @@ public abstract class GradleRevapiConfig {
     protected abstract Optional<Map<Version, PerProject<AcceptedBreakV1>>> acceptedBreaksDeserOnly();
 
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
-    protected abstract Optional<Set<BreakCollection>> acceptedBrakesV2DeserOnly();
+    protected abstract Optional<Set<BreakCollection>> acceptedBreaksV2DeserOnly();
 
     /** Overridden by immutables. */
     @Value.Default
@@ -90,7 +90,7 @@ public abstract class GradleRevapiConfig {
 
         return ImmutableSet.<BreakCollection>builder()
                 .addAll(upgraded)
-                .addAll(acceptedBrakesV2DeserOnly().orElseGet(Collections::emptySet))
+                .addAll(acceptedBreaksV2DeserOnly().orElseGet(Collections::emptySet))
                 .build();
     }
 
