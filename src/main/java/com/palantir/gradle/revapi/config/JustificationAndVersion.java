@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.revapi.config.v2;
+package com.palantir.gradle.revapi.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableAcceptedBreakV2.class)
-public interface AcceptedBreakV2 {
-    String code();
+public interface JustificationAndVersion {
+    Justification justification();
+    Version version();
 
-    @JsonProperty("old")
-    Optional<String> oldElement();
-
-    @JsonProperty("new")
-    Optional<String> newElement();
-
-    class Builder extends ImmutableAcceptedBreakV2.Builder {}
+    class Builder extends ImmutableJustificationAndVersion.Builder { }
 
     static Builder builder() {
         return new Builder();

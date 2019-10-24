@@ -18,7 +18,6 @@ package com.palantir.gradle.revapi.config.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.ImmutableAcceptedBreakV1;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
 import java.util.Optional;

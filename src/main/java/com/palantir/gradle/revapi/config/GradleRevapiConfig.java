@@ -45,37 +45,23 @@ public abstract class GradleRevapiConfig {
 
     protected abstract Map<GroupNameVersion, String> versionOverrides();
 
-    @Value.Auxiliary
-    @JsonProperty(value = "acceptedBreaks", access = Access.READ_ONLY)
-    protected abstract Optional<Map<Version, PerProject<AcceptedBreakV1>>> acceptedBreaks();
+    @JsonProperty(value = "acceptedBreaks", access = Access.WRITE_ONLY)
+    protected abstract Optional<Map<Version, PerProject<AcceptedBreakV1>>> acceptedBreaksDeserOnly();
 
-    @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
-    protected abstract Optional<Set<BreakCollection>> acceptedBrakesV2Read();
-
-    @Value.Immutable
-    interface JustificationAndVersion {
-        Justification justification();
-        Version version();
-    }
-
-    @Value.Immutable
-    interface FlattenedBreak {
-        JustificationAndVersion justificationAndVersion();
-        GroupAndName groupAndName();
-        AcceptedBreakV2 acceptedBreak();
-    }
+    @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
+    protected abstract Optional<Set<BreakCollection>> acceptedBrakesV2DeserOnly();
 
     /** Overridden by immutables. */
     @Value.Default
-    @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
+    @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
     protected Set<BreakCollection> acceptedBreaksV2() {
-        Map<JustificationAndVersion, List<FlattenedBreak>> collect = EntryStream.of(acceptedBreaks().orElseGet(Collections::emptyMap))
+        Map<JustificationAndVersion, List<FlattenedBreak>> collect = EntryStream.of(acceptedBreaksDeserOnly().orElseGet(Collections::emptyMap))
                 .flatMapKeyValue((version, perProjectAcceptedBreaks) ->
                         EntryStream.of(perProjectAcceptedBreaks.acceptedBreaks())
                                 .flatMapKeyValue((groupAndName, acceptedBreaks) ->
-                                        acceptedBreaks.stream().map(acceptedBreakV1 -> ImmutableFlattenedBreak.builder()
+                                        acceptedBreaks.stream().map(acceptedBreakV1 -> FlattenedBreak.builder()
                                                 .groupAndName(groupAndName)
-                                                .justificationAndVersion(ImmutableJustificationAndVersion.builder()
+                                                .justificationAndVersion(JustificationAndVersion.builder()
                                                         .justification(acceptedBreakV1.justification())
                                                         .version(version)
                                                         .build())
@@ -104,7 +90,7 @@ public abstract class GradleRevapiConfig {
 
         return ImmutableSet.<BreakCollection>builder()
                 .addAll(upgraded)
-                .addAll(acceptedBrakesV2Read().orElseGet(Collections::emptySet))
+                .addAll(acceptedBrakesV2DeserOnly().orElseGet(Collections::emptySet))
                 .build();
     }
 
@@ -120,7 +106,7 @@ public abstract class GradleRevapiConfig {
     }
 
     public final Set<AcceptedBreakV1> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return Optional.ofNullable(acceptedBreaks().get().get(groupNameVersion.version()))
+        return Optional.ofNullable(acceptedBreaksDeserOnly().get().get(groupNameVersion.version()))
                 .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
                 .orElseGet(Collections::emptySet);
     }
@@ -130,18 +116,18 @@ public abstract class GradleRevapiConfig {
             Set<AcceptedBreakV1> acceptedBreakV1s) {
 
         PerProject<AcceptedBreakV1> existingAcceptedBreaks =
-                acceptedBreaks().get().getOrDefault(groupNameVersion.version(), PerProject.empty());
+                acceptedBreaksDeserOnly().get().getOrDefault(groupNameVersion.version(), PerProject.empty());
 
         PerProject<AcceptedBreakV1> newPerProject = existingAcceptedBreaks.merge(
                 groupNameVersion.groupAndName(),
                 acceptedBreakV1s);
 
-        Map<Version, PerProject<AcceptedBreakV1>> newAcceptedBreaks = new HashMap<>(acceptedBreaks().get());
+        Map<Version, PerProject<AcceptedBreakV1>> newAcceptedBreaks = new HashMap<>(acceptedBreaksDeserOnly().get());
         newAcceptedBreaks.put(groupNameVersion.version(), newPerProject);
 
         return ImmutableGradleRevapiConfig.builder()
                 .from(this)
-                .acceptedBreaks(newAcceptedBreaks)
+                .acceptedBreaksDeserOnly(newAcceptedBreaks)
                 .build();
     }
 

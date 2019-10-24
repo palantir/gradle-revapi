@@ -23,10 +23,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.CharStreams;
 import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -90,6 +92,8 @@ class ConfigManagerTest {
                             .justification("j")
                             .build()));
         });
+
+        System.out.println(CharStreams.toString(new FileReader(oldConfigFile)));
 
         assertThat(oldConfigFile).hasContent(String.join("\n",
                 "versionOverrides:",

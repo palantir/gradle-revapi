@@ -16,10 +16,12 @@
 
 package com.palantir.gradle.revapi.config;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@JsonDeserialize(as = ImmutableBreakCollection.class)
 public interface BreakCollection {
     Justification justification();
     Version afterVersion();
