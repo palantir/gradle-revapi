@@ -53,6 +53,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    implementation 'one.util:streamex'
 
     testCompile platform('org.junit:junit-bom')
     testImplementation 'com.netflix.nebula:nebula-test'

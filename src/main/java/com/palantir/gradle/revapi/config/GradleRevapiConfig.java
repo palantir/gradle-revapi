@@ -25,6 +25,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.google.common.collect.ImmutableSet;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -47,7 +49,7 @@ public abstract class GradleRevapiConfig {
     protected abstract Optional<Map<Version, PerProject<AcceptedBreak>>> acceptedBreaks();
 
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
-    protected abstract Optional<Set<BreakCollection>> acceptedBreakesV2Read();
+    protected abstract Optional<Set<BreakCollection>> acceptedBrakesV2Read();
 
     @Value.Immutable
     interface JustificationAndVersion {
@@ -65,38 +67,48 @@ public abstract class GradleRevapiConfig {
     /** Overridden by immutables. */
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
-    protected Set<BreakCollection> acceptedBreaksV2Write() {
-        Map<JustificationAndVersion, List<FlattenedBreak>> collect = acceptedBreaks()
-                .orElseGet(Collections::emptyMap)
-                .entrySet()
-                .stream()
-                .flatMap(entry -> {
-                    Version version = entry.getKey();
-                    return entry.getValue().acceptedBreaks().entrySet().stream()
-                            .flatMap(entry1 -> entry1.getValue().stream().map(acceptedBreakV1 ->
-                                    ImmutableFlattenedBreak.builder()
-                                            .groupAndName(entry1.getKey())
-                                            .justificationAndVersion(ImmutableJustificationAndVersion.builder()
-                                                    .justification(acceptedBreakV1.justification())
-                                                    .version(version)
-                                                    .build())
-                                            .acceptedBreak(AcceptedBreakV2.builder()
-                                                    .code(acceptedBreakV1.code())
-                                                    .newElement(acceptedBreakV1.newElement())
-                                                    .oldElement(acceptedBreakV1.oldElement())
-                                                    .build())
-                                            .build()));
-                })
+    protected Set<BreakCollection> acceptedBreaksV2() {
+        Map<JustificationAndVersion, List<FlattenedBreak>> collect = EntryStream.of(acceptedBreaks().orElseGet(Collections::emptyMap))
+                .flatMapKeyValue((version, perProjectAcceptedBreaks) ->
+                        EntryStream.of(perProjectAcceptedBreaks.acceptedBreaks())
+                                .flatMapKeyValue((groupAndName, acceptedBreaks) ->
+                                        acceptedBreaks.stream().map(acceptedBreak -> ImmutableFlattenedBreak.builder()
+                                                .groupAndName(groupAndName)
+                                                .justificationAndVersion(ImmutableJustificationAndVersion.builder()
+                                                        .justification(acceptedBreak.justification())
+                                                        .version(version)
+                                                        .build())
+                                                .acceptedBreak(AcceptedBreakV2.builder()
+                                                        .code(acceptedBreak.code())
+                                                        .newElement(acceptedBreak.newElement())
+                                                        .oldElement(acceptedBreak.oldElement())
+                                                        .build())
+                                                .build())))
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
 
-        // collect.entrySet().stream().map(entry -> {
-        //     return BreakCollection.builder()
-        //             .justification(entry.getKey().justification())
-        //             .afterVersion(entry.getKey().version())
-        //             .breaks()
-        //             .build();
-        // })
-        return null;
+        Set<BreakCollection> upgraded = EntryStream.of(collect)
+                .mapKeyValue((justificationAndVersion, flattenedBreaks) -> {
+                    Map<GroupAndName, Set<AcceptedBreakV2>> collect1 = EntryStream.of(flattenedBreaks.stream()
+                            .collect(Collectors.groupingBy(FlattenedBreak::groupAndName)))
+                            .mapValues(perProjectFlattenedBreaks -> perProjectFlattenedBreaks.stream()
+                                    .map(FlattenedBreak::acceptedBreak)
+                                    .collect(Collectors.toSet()))
+                            .toMap();
+
+                    return BreakCollection.builder()
+                            .justification(justificationAndVersion.justification())
+                            .afterVersion(justificationAndVersion.version())
+                            .breaks(PerProject.<AcceptedBreakV2>builder()
+                                    .acceptedBreaks(collect1)
+                                    .build())
+                            .build();
+                })
+                .collect(Collectors.toSet());
+
+        return ImmutableSet.<BreakCollection>builder()
+                .addAll(upgraded)
+                .addAll(acceptedBrakesV2Read().orElseGet(Collections::emptySet))
+                .build();
     }
 
     public final Optional<String> versionOverrideFor(GroupNameVersion groupNameVersion) {
