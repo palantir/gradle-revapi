@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.revapi;
 
-import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
 import java.util.Collections;
@@ -68,7 +68,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
         ensurePresent(justification, JUSTIFICATION_OPTION);
 
         configManager.get().modifyConfigFile(revapiConfig ->
-                revapiConfig.addAcceptedBreaks(oldGroupNameVersion(), Collections.singleton(AcceptedBreak.builder()
+                revapiConfig.addAcceptedBreaks(oldGroupNameVersion(), Collections.singleton(AcceptedBreakV1.builder()
                         .code(code.get())
                         .oldElement(Optional.ofNullable(oldElement.getOrNull()))
                         .newElement(Optional.ofNullable(newElement.getOrNull()))

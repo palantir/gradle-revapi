@@ -18,12 +18,12 @@ package com.palantir.gradle.revapi.config.v2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.ImmutableAcceptedBreak;
+import com.palantir.gradle.revapi.config.ImmutableAcceptedBreakV1;
 import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableAcceptedBreak.class)
+@JsonDeserialize(as = ImmutableAcceptedBreakV1.class)
 public interface AcceptedBreakV2 {
     String code();
 

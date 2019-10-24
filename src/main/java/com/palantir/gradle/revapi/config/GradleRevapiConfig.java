@@ -26,6 +26,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public abstract class GradleRevapiConfig {
 
     @Value.Auxiliary
     @JsonProperty(value = "acceptedBreaks", access = Access.READ_ONLY)
-    protected abstract Optional<Map<Version, PerProject<AcceptedBreak>>> acceptedBreaks();
+    protected abstract Optional<Map<Version, PerProject<AcceptedBreakV1>>> acceptedBreaks();
 
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
     protected abstract Optional<Set<BreakCollection>> acceptedBrakesV2Read();
@@ -122,7 +123,7 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
-    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
+    public final Set<AcceptedBreakV1> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return Optional.ofNullable(acceptedBreaks().get().get(groupNameVersion.version()))
                 .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
                 .orElseGet(Collections::emptySet);
@@ -130,16 +131,16 @@ public abstract class GradleRevapiConfig {
 
     public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
-            Set<AcceptedBreak> acceptedBreaks) {
+            Set<AcceptedBreakV1> acceptedBreakV1s) {
 
-        PerProject<AcceptedBreak> existingAcceptedBreaks =
+        PerProject<AcceptedBreakV1> existingAcceptedBreaks =
                 acceptedBreaks().get().getOrDefault(groupNameVersion.version(), PerProject.empty());
 
-        PerProject<AcceptedBreak> newPerProject = existingAcceptedBreaks.merge(
+        PerProject<AcceptedBreakV1> newPerProject = existingAcceptedBreaks.merge(
                 groupNameVersion.groupAndName(),
-                acceptedBreaks);
+                acceptedBreakV1s);
 
-        Map<Version, PerProject<AcceptedBreak>> newAcceptedBreaks = new HashMap<>(acceptedBreaks().get());
+        Map<Version, PerProject<AcceptedBreakV1>> newAcceptedBreaks = new HashMap<>(acceptedBreaks().get());
         newAcceptedBreaks.put(groupNameVersion.version(), newPerProject);
 
         return ImmutableGradleRevapiConfig.builder()

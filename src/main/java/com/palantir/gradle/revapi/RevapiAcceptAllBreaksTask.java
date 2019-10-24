@@ -18,7 +18,7 @@ package com.palantir.gradle.revapi;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
@@ -65,17 +65,17 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
         runRevapi(RevapiConfig.empty()
                 .withTextReporter("gradle-revapi-accept-breaks.ftl", breaksPath));
 
-        List<AcceptedBreak> rawAcceptedBreaks =
-                OBJECT_MAPPER.readValue(breaksPath, new TypeReference<List<AcceptedBreak>>() {});
+        List<AcceptedBreakV1> rawAcceptedBreakV1s =
+                OBJECT_MAPPER.readValue(breaksPath, new TypeReference<List<AcceptedBreakV1>>() {});
 
-        Set<AcceptedBreak> acceptedBreaks = rawAcceptedBreaks.stream()
-                .map(rawAcceptedBreak -> AcceptedBreak.builder()
+        Set<AcceptedBreakV1> acceptedBreakV1s = rawAcceptedBreakV1s.stream()
+                .map(rawAcceptedBreak -> AcceptedBreakV1.builder()
                         .from(rawAcceptedBreak)
                         .justification(justification.get())
                         .build())
                 .collect(Collectors.toSet());
 
         configManager().get().modifyConfigFile(config ->
-                config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
+                config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreakV1s));
     }
 }
