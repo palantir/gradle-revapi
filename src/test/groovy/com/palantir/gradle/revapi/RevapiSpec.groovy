@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.revapi
 
+import java.util.concurrent.TimeUnit
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
@@ -177,6 +178,76 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runRevapiExpectingResolutionFailure()
+    }
+
+    def 'when the previous git tag has failed to publish, it will look back up to a further git tag'() {
+        when:
+        gitCommand 'git init'
+        gitCommand 'git config user.name "Test User"'
+        gitCommand 'git config user.email "test@example.com"'
+
+        writeToFile '.gitignore', """
+            .gradle*/
+            build/
+            mavenRepo/
+        """.stripIndent()
+
+        rootProjectNameIs 'name'
+
+        buildFile << """
+            plugins {
+                id 'com.palantir.git-version' version '0.12.2'
+            }
+
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            
+            group = 'group'
+            version = gitVersion()
+   
+            ${mavenRepoGradle()}
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        def javaFile = 'src/main/java/foo/Foo.java'
+        writeToFile javaFile, """
+            interface Foo {
+                String willBeRemoved();
+            }
+        """.stripIndent()
+
+        gitCommand 'git add .'
+        gitCommand 'git commit -m 0.1.0'
+        gitCommand 'git tag 0.1.0'
+
+        runTasksSuccessfully('publish')
+
+        and:
+        gitCommand 'git commit --allow-empty -m publish-failed'
+        gitCommand 'git tag 0.2.0'
+
+        and:
+        writeToFile javaFile, """
+            interface Foo { }
+        """.stripIndent()
+
+        gitCommand 'git commit -am new-work'
+
+        then:
+        def standardError = runTasksWithFailure('revapi').standardError
+        assert standardError.contains('willBeRemoved')
+    }
+
+    void gitCommand(String command) {
+        def process = command.execute(Collections.emptyList(), projectDir)
+        process.waitFor(1, TimeUnit.SECONDS)
+
+        if (process.exitValue() != 0) {
+            println process.in.text
+            println process.err.text
+            assert process.exitValue() == 0
+        }
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
