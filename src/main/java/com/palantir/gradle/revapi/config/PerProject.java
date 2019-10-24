@@ -27,33 +27,33 @@ import java.util.Set;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutablePerProjectAcceptedBreaks.class)
-abstract class PerProjectAcceptedBreaks {
+@JsonDeserialize(as = ImmutablePerProject.class)
+abstract class PerProject<T> {
     @JsonValue
-    protected abstract Map<GroupAndName, Set<AcceptedBreak>> acceptedBreaks();
+    protected abstract Map<GroupAndName, Set<T>> acceptedBreaks();
 
-    public Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupAndName) {
+    public Set<T> acceptedBreaksFor(GroupAndName groupAndName) {
         return acceptedBreaks().getOrDefault(groupAndName, Collections.emptySet());
     }
 
-    public PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
-        Map<GroupAndName, Set<AcceptedBreak>> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
+    public PerProject<T> merge(GroupAndName groupAndName, Set<T> acceptedBreaks) {
+        Map<GroupAndName, Set<T>> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
         newAcceptedBreaks.put(groupAndName, Sets.union(
                 acceptedBreaks,
                 this.acceptedBreaks().getOrDefault(groupAndName, ImmutableSet.of())));
 
-        return builder()
+        return PerProject.<T>builder()
                 .putAllAcceptedBreaks(newAcceptedBreaks)
                 .build();
     }
 
-    static final class Builder extends ImmutablePerProjectAcceptedBreaks.Builder { }
+    static final class Builder<T> extends ImmutablePerProject.Builder<T> { }
 
-    public static Builder builder() {
-        return new Builder();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
     }
 
-    public static PerProjectAcceptedBreaks empty() {
-        return builder().build();
+    public static <T> PerProject<T> empty() {
+        return PerProject.<T>builder().build();
     }
 }
