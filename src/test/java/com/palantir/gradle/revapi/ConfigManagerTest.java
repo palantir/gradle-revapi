@@ -122,7 +122,7 @@ class ConfigManagerTest {
                 "      old: \"old\"",
                 "      new: \"new\"",
                 "- justification: \"j\"",
-                "  afterVersion: \"1.2.3\"",
+                "  afterVersion: \"0.4.1\"",
                 "  breaks:",
                 "    quux:baz:",
                 "    - code: \"c\"",
