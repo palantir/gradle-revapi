@@ -18,11 +18,12 @@ package com.palantir.gradle.revapi.config.v2;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.ImmutablesStyle;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.PerProject;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.immutables.value.Value;
@@ -32,7 +33,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutableAllAcceptedBreaks.class)
 public abstract class AllAcceptedBreaks {
     @JsonValue
-    protected abstract Set<BreakCollection> breakCollections();
+    protected abstract List<BreakCollection> breakCollections();
 
     public final AllAcceptedBreaks addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
@@ -42,14 +43,14 @@ public abstract class AllAcceptedBreaks {
         return fromBreakCollections(mergeInBreaks(groupNameVersion, justification, newAcceptedBreaks));
     }
 
-    private Set<BreakCollection> mergeInBreaks(
+    private List<BreakCollection> mergeInBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,
             Set<AcceptedBreak> newAcceptedBreaks) {
 
-        Set<BreakCollection> possiblyAddedToExistedBreakCollection = breakCollections().stream()
+        List<BreakCollection> possiblyAddedToExistedBreakCollection = breakCollections().stream()
                 .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, newAcceptedBreaks))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         boolean breaksWereAddedToExistingCollection = !possiblyAddedToExistedBreakCollection.equals(breakCollections());
 
@@ -60,12 +61,12 @@ public abstract class AllAcceptedBreaks {
         return appendBreaksInNewCollection(groupNameVersion, justification, newAcceptedBreaks);
     }
 
-    private Set<BreakCollection> appendBreaksInNewCollection(
+    private List<BreakCollection> appendBreaksInNewCollection(
             GroupNameVersion groupNameVersion,
             Justification justification,
             Set<AcceptedBreak> newAcceptedBreaks) {
 
-        return ImmutableSet.<BreakCollection>builder()
+        return ImmutableList.<BreakCollection>builder()
                 .addAll(breakCollections())
                 .add(BreakCollection.builder()
                         .justification(justification)
