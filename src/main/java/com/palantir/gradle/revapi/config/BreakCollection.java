@@ -29,10 +29,6 @@ interface BreakCollection {
     Version afterVersion();
     PerProject<Break> breaks();
 
-    default Set<Break> acceptedBreaksFor(GroupAndName groupAndName) {
-        return breaks().forGroupAndName(groupAndName);
-    }
-
     default BreakCollection addAcceptedBreaksIfMatching(
             Justification justification,
             GroupNameVersion groupNameVersion,

@@ -76,10 +76,6 @@ public abstract class GradleRevapiConfig {
         return acceptedBreaksV2().flattenedBreaksFor(groupAndName);
     }
 
-    public final Set<Break> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return acceptedBreaksV2().acceptedBreaksFor(groupNameVersion);
-    }
-
     public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,

@@ -88,12 +88,6 @@ abstract class AcceptedBreaks {
                 .build();
     }
 
-    public final Set<Break> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return breakCollections().stream()
-                .flatMap(breakCollection -> breakCollection.acceptedBreaksFor(groupNameVersion.groupAndName()).stream())
-                .collect(Collectors.toSet());
-    }
-
     public static class Builder extends ImmutableAcceptedBreaks.Builder {}
 
     public static Builder builder() {
