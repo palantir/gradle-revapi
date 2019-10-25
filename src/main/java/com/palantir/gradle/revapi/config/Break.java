@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.revapi.config.v2;
+package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.ImmutablesStyle;
-import com.palantir.gradle.revapi.config.Justification;
-import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @ImmutablesStyle
-@JsonDeserialize(as = ImmutableAcceptedBreak.class)
-public interface AcceptedBreak {
+@JsonDeserialize(as = ImmutableBreak.class)
+public interface Break {
     String code();
 
     @JsonProperty("old")
@@ -36,8 +33,8 @@ public interface AcceptedBreak {
     @JsonProperty("new")
     Optional<String> newElement();
 
-    default AcceptedBreakV1 withJustification(Justification justification) {
-        return AcceptedBreakV1.builder()
+    default JustifiedBreak withJustification(Justification justification) {
+        return JustifiedBreak.builder()
                 .code(code())
                 .oldElement(oldElement())
                 .newElement(newElement())
@@ -45,7 +42,7 @@ public interface AcceptedBreak {
                 .build();
     }
 
-    class Builder extends ImmutableAcceptedBreak.Builder {}
+    class Builder extends ImmutableBreak.Builder {}
 
     static Builder builder() {
         return new Builder();

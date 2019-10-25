@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.revapi.config.v1;
+package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.FlattenedBreak;
-import com.palantir.gradle.revapi.config.ImmutablesStyle;
-import com.palantir.gradle.revapi.config.JustificationAndVersion;
-import com.palantir.gradle.revapi.config.PerProject;
-import com.palantir.gradle.revapi.config.Version;
-import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
-import com.palantir.gradle.revapi.config.v2.AllAcceptedBreaks;
-import com.palantir.gradle.revapi.config.v2.BreakCollection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +30,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutableDeprecatedAcceptedBreaks.class)
 public abstract class DeprecatedAcceptedBreaks {
     @JsonValue
-    protected abstract Map<Version, PerProject<AcceptedBreakV1>> acceptedBreakV1s();
+    protected abstract Map<Version, PerProject<JustifiedBreak>> acceptedBreakV1s();
 
     private Map<JustificationAndVersion, List<FlattenedBreak>> flattenedBreaks() {
         return EntryStream.of(acceptedBreakV1s())
@@ -48,10 +40,10 @@ public abstract class DeprecatedAcceptedBreaks {
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
     }
 
-    public final AllAcceptedBreaks upgrade() {
+    public final AcceptedBreaks upgrade() {
         Set<BreakCollection> breakCollections = EntryStream.of(flattenedBreaks())
                 .mapKeyValue((justificationAndVersion, flattenedBreaks) -> {
-                    PerProject<AcceptedBreak> perProjectAcceptedBreaks = PerProject
+                    PerProject<Break> perProjectAcceptedBreaks = PerProject
                             .groupingBy(flattenedBreaks, FlattenedBreak::groupAndName)
                             .map(FlattenedBreak::acceptedBreak);
 
@@ -62,7 +54,7 @@ public abstract class DeprecatedAcceptedBreaks {
                             .build();
                 }).collect(Collectors.toSet());
 
-        return AllAcceptedBreaks.fromBreakCollections(breakCollections);
+        return AcceptedBreaks.fromBreakCollections(breakCollections);
     }
 
     public static final class Builder extends ImmutableDeprecatedAcceptedBreaks.Builder { }

@@ -31,7 +31,7 @@ import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.Version;
-import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
+import com.palantir.gradle.revapi.config.Break;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -86,7 +86,7 @@ class ConfigManagerTest {
                                     .justification(Justification.fromString("I don't care about my users"))
                                     .version(Version.fromString("1.2.3"))
                                     .build())
-                            .acceptedBreak(AcceptedBreak.builder()
+                            .acceptedBreak(Break.builder()
                                     .code("blah")
                                     .oldElement("old")
                                     .newElement("new")
@@ -100,7 +100,7 @@ class ConfigManagerTest {
                     .addAcceptedBreaks(
                             GroupNameVersion.fromString("foo:bar:1.2.3"),
                             Justification.fromString("I don't care about my users"),
-                            ImmutableSet.of(AcceptedBreak
+                            ImmutableSet.of(Break
                                     .builder()
                                     .code("something")
                                     .oldElement("old2")
@@ -109,7 +109,7 @@ class ConfigManagerTest {
                     .addAcceptedBreaks(
                             GroupNameVersion.fromString("quux:baz:0.4.1"),
                             Justification.fromString("j"),
-                            ImmutableSet.of(AcceptedBreak
+                            ImmutableSet.of(Break
                                     .builder()
                                     .code("c")
                                     .oldElement("o")

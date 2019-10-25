@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.revapi.config;
 
-import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -24,7 +23,7 @@ import org.immutables.value.Value;
 public interface FlattenedBreak {
     JustificationAndVersion justificationAndVersion();
     GroupAndName groupAndName();
-    AcceptedBreak acceptedBreak();
+    Break acceptedBreak();
 
     class Builder extends ImmutableFlattenedBreak.Builder { }
 

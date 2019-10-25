@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.revapi.config.v2;
+package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.gradle.revapi.config.FlattenedBreak;
-import com.palantir.gradle.revapi.config.GroupAndName;
-import com.palantir.gradle.revapi.config.GroupNameVersion;
-import com.palantir.gradle.revapi.config.ImmutablesStyle;
-import com.palantir.gradle.revapi.config.Justification;
-import com.palantir.gradle.revapi.config.PerProject;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,8 +27,8 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 @ImmutablesStyle
-@JsonDeserialize(as = ImmutableAllAcceptedBreaks.class)
-public abstract class AllAcceptedBreaks {
+@JsonDeserialize(as = ImmutableAcceptedBreaks.class)
+public abstract class AcceptedBreaks {
     @JsonValue
     protected abstract List<BreakCollection> breakCollections();
 
@@ -44,10 +38,10 @@ public abstract class AllAcceptedBreaks {
                 .collect(ImmutableSet.toImmutableSet());
     }
 
-    public final AllAcceptedBreaks addAcceptedBreaks(
+    public final AcceptedBreaks addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,
-            Set<AcceptedBreak> newAcceptedBreaks) {
+            Set<Break> newAcceptedBreaks) {
 
         return fromBreakCollections(mergeInBreaks(groupNameVersion, justification, newAcceptedBreaks));
     }
@@ -55,7 +49,7 @@ public abstract class AllAcceptedBreaks {
     private List<BreakCollection> mergeInBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,
-            Set<AcceptedBreak> newAcceptedBreaks) {
+            Set<Break> newAcceptedBreaks) {
 
         List<BreakCollection> possiblyAddedToExistedBreakCollection = breakCollections().stream()
                 .map(breaks -> breaks.addAcceptedBreaksIfMatching(justification, groupNameVersion, newAcceptedBreaks))
@@ -73,44 +67,44 @@ public abstract class AllAcceptedBreaks {
     private List<BreakCollection> appendBreaksInNewCollection(
             GroupNameVersion groupNameVersion,
             Justification justification,
-            Set<AcceptedBreak> newAcceptedBreaks) {
+            Set<Break> newAcceptedBreaks) {
 
         return ImmutableList.<BreakCollection>builder()
                 .addAll(breakCollections())
                 .add(BreakCollection.builder()
                         .justification(justification)
                         .afterVersion(groupNameVersion.version())
-                        .breaks(PerProject.<AcceptedBreak>builder()
+                        .breaks(PerProject.<Break>builder()
                                 .putPerProjectItems(groupNameVersion.groupAndName(), newAcceptedBreaks)
                                 .build())
                         .build())
                 .build();
     }
 
-    public final AllAcceptedBreaks andAlso(AllAcceptedBreaks otherBreaks) {
+    public final AcceptedBreaks andAlso(AcceptedBreaks otherBreaks) {
         return builder()
                 .from(this)
                 .addAllBreakCollections(otherBreaks.breakCollections())
                 .build();
     }
 
-    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
+    public final Set<Break> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return breakCollections().stream()
                 .flatMap(breakCollection -> breakCollection.acceptedBreaksFor(groupNameVersion.groupAndName()).stream())
                 .collect(Collectors.toSet());
     }
 
-    public static class Builder extends ImmutableAllAcceptedBreaks.Builder {}
+    public static class Builder extends ImmutableAcceptedBreaks.Builder {}
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static AllAcceptedBreaks empty() {
+    public static AcceptedBreaks empty() {
         return builder().build();
     }
 
-    public static AllAcceptedBreaks fromBreakCollections(Iterable<BreakCollection> breakCollections) {
+    public static AcceptedBreaks fromBreakCollections(Iterable<BreakCollection> breakCollections) {
         return builder()
                 .breakCollections(breakCollections)
                 .build();

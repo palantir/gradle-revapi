@@ -25,9 +25,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.palantir.gradle.revapi.config.v1.DeprecatedAcceptedBreaks;
-import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
-import com.palantir.gradle.revapi.config.v2.AllAcceptedBreaks;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -51,14 +48,14 @@ public abstract class GradleRevapiConfig {
     /** Overridden by immutables. */
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
-    protected AllAcceptedBreaks acceptedBreaksV2DeserOnly() {
-        return AllAcceptedBreaks.empty();
+    protected AcceptedBreaks acceptedBreaksV2DeserOnly() {
+        return AcceptedBreaks.empty();
     }
 
     /** Overridden by immutables. */
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
-    protected AllAcceptedBreaks acceptedBreaksV2() {
+    protected AcceptedBreaks acceptedBreaksV2() {
         return oldDeprecatedV1AcceptedBreaksDeserOnly()
                 .upgrade()
                 .andAlso(acceptedBreaksV2DeserOnly());
@@ -79,14 +76,14 @@ public abstract class GradleRevapiConfig {
         return acceptedBreaksV2().flattenedBreaksFor(groupAndName);
     }
 
-    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
+    public final Set<Break> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return acceptedBreaksV2().acceptedBreaksFor(groupNameVersion);
     }
 
     public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,
-            Set<AcceptedBreak> newAcceptedBreaks) {
+            Set<Break> newAcceptedBreaks) {
 
         return ImmutableGradleRevapiConfig.builder()
                 .from(this)

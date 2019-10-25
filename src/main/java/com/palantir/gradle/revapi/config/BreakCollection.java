@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package com.palantir.gradle.revapi.config.v2;
+package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.FlattenedBreak;
-import com.palantir.gradle.revapi.config.GroupAndName;
-import com.palantir.gradle.revapi.config.GroupNameVersion;
-import com.palantir.gradle.revapi.config.ImmutablesStyle;
-import com.palantir.gradle.revapi.config.Justification;
-import com.palantir.gradle.revapi.config.JustificationAndVersion;
-import com.palantir.gradle.revapi.config.PerProject;
-import com.palantir.gradle.revapi.config.Version;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.immutables.value.Value;
@@ -35,16 +27,16 @@ import org.immutables.value.Value;
 public interface BreakCollection {
     Justification justification();
     Version afterVersion();
-    PerProject<AcceptedBreak> breaks();
+    PerProject<Break> breaks();
 
-    default Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupAndName) {
+    default Set<Break> acceptedBreaksFor(GroupAndName groupAndName) {
         return breaks().forGroupAndName(groupAndName);
     }
 
     default BreakCollection addAcceptedBreaksIfMatching(
             Justification justification,
             GroupNameVersion groupNameVersion,
-            Set<AcceptedBreak> breaks) {
+            Set<Break> breaks) {
 
         if (!(justification().equals(justification) && afterVersion().equals(groupNameVersion.version()))) {
             return this;
