@@ -43,23 +43,29 @@ public abstract class GradleRevapiConfig {
 
     protected abstract Map<GroupNameVersion, String> versionOverrides();
 
+    /** Overridden by immutables. */
+    @Value.Default
     @JsonProperty(value = "acceptedBreaks", access = Access.WRITE_ONLY)
-    protected abstract Optional<DeprecatedAcceptedBreaks> oldDeprecatedV1AcceptedBreaks();
+    protected DeprecatedAcceptedBreaks oldDeprecatedV1AcceptedBreaksDeserOnly() {
+        return DeprecatedAcceptedBreaks.empty();
+    }
 
+    /** Overridden by immutables. */
+    @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
-    protected abstract Optional<Set<BreakCollection>> acceptedBreaksV2DeserOnly();
+    protected Set<BreakCollection> acceptedBreaksV2DeserOnly() {
+        return Collections.emptySet();
+    }
 
     /** Overridden by immutables. */
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
     protected Set<BreakCollection> acceptedBreaksV2() {
-        Set<BreakCollection> upgradedBreaks = oldDeprecatedV1AcceptedBreaks()
-                .orElseGet(DeprecatedAcceptedBreaks::empty)
-                .upgrade();
+        Set<BreakCollection> upgradedBreaks = oldDeprecatedV1AcceptedBreaksDeserOnly().upgrade();
 
         return ImmutableSet.<BreakCollection>builder()
                 .addAll(upgradedBreaks)
-                .addAll(acceptedBreaksV2DeserOnly().orElseGet(Collections::emptySet))
+                .addAll(acceptedBreaksV2DeserOnly())
                 .build();
     }
 

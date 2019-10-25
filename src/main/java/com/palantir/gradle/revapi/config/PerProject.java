@@ -73,10 +73,6 @@ public abstract class PerProject<T> {
         return new Builder<>();
     }
 
-    public static <T> PerProject<T> empty() {
-        return PerProject.<T>builder().build();
-    }
-
     public static <T> PerProject<T> fromEntryStream(EntryStream<GroupAndName, Set<T>> perProjectItems) {
         return PerProject.<T>builder()
                 .perProjectItems(perProjectItems.toImmutableMap())
