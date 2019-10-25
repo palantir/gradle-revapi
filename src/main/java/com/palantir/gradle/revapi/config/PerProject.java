@@ -55,7 +55,7 @@ abstract class PerProject<T> {
                 .build();
     }
 
-    public final <R> Stream<R> flatten(BiFunction<GroupAndName, T, R> flattener) {
+    public final <R> Stream<R> flatMap(BiFunction<GroupAndName, T, R> flattener) {
         return EntryStream.of(perProjectItems())
                 .flatMapKeyValue((groupAndName, items) -> items.stream()
                         .map(item -> flattener.apply(groupAndName, item)));

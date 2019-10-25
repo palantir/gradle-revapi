@@ -35,7 +35,7 @@ public abstract class DeprecatedAcceptedBreaks {
     private Map<JustificationAndVersion, List<FlattenedBreak>> flattenedBreaks() {
         return EntryStream.of(acceptedBreakV1s())
                 .flatMapKeyValue((version, perProjectAcceptedBreaks) ->
-                        perProjectAcceptedBreaks.flatten((groupAndName, acceptedBreakV1) ->
+                        perProjectAcceptedBreaks.flatMap((groupAndName, acceptedBreakV1) ->
                                 acceptedBreakV1.flatten(version, groupAndName)))
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
     }
