@@ -6,8 +6,7 @@
  {
   "code": "${diff.code}",
   "old": ${("\"" + report.oldElement.toString()?json_string + "\"")!"null"},
-  "new": ${("\"" + report.newElement.toString()?json_string + "\"")!"null"},
-  "justification": "needs justification"
+  "new": ${("\"" + report.newElement.toString()?json_string + "\"")!"null"}
  },
 </#list>
 </#list>

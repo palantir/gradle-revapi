@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
+import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
@@ -63,7 +65,10 @@ abstract class RevapiConfig {
     }
 
     public RevapiConfig withIgnoredBreaks(Set<AcceptedBreak> acceptedBreaks) {
-        return withExtension("revapi.ignore", OBJECT_MAPPER.convertValue(acceptedBreaks, ArrayNode.class));
+        Set<AcceptedBreakV1> breaksWithJustifications = acceptedBreaks.stream()
+                .map(acceptedBreak -> acceptedBreak.withJustification(Justification.fromString("blah")))
+                .collect(Collectors.toSet());
+        return withExtension("revapi.ignore", OBJECT_MAPPER.convertValue(breaksWithJustifications, ArrayNode.class));
     }
 
     public RevapiConfig withExtension(String extensionId, JsonNode configuration) {

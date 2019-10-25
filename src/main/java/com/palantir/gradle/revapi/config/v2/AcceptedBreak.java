@@ -19,6 +19,8 @@ package com.palantir.gradle.revapi.config.v2;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.palantir.gradle.revapi.config.ImmutablesStyle;
+import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import java.util.Optional;
 import org.immutables.value.Value;
 
@@ -33,6 +35,15 @@ public interface AcceptedBreak {
 
     @JsonProperty("new")
     Optional<String> newElement();
+
+    default AcceptedBreakV1 withJustification(Justification justification) {
+        return AcceptedBreakV1.builder()
+                .code(code())
+                .oldElement(oldElement())
+                .newElement(newElement())
+                .justification(justification)
+                .build();
+    }
 
     class Builder extends ImmutableAcceptedBreak.Builder {}
 

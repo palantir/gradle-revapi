@@ -90,14 +90,39 @@ public abstract class GradleRevapiConfig {
     public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,
-            Set<AcceptedBreak> acceptedBreaks) {
+            Set<AcceptedBreak> newAcceptedBreaks) {
 
         return ImmutableGradleRevapiConfig.builder()
                 .from(this)
-                .acceptedBreaksV2(acceptedBreaksV2().stream()
-                        .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, acceptedBreaks))
-                        .collect(Collectors.toSet()))
+                .acceptedBreaksV2(add(groupNameVersion, justification, newAcceptedBreaks))
                 .build();
+    }
+
+    private Set<BreakCollection> add(
+            GroupNameVersion groupNameVersion,
+            Justification justification,
+            Set<AcceptedBreak> newAcceptedBreaks) {
+
+        Set<BreakCollection> possiblyAddedToExistedBreakCollection = acceptedBreaksV2().stream()
+                .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, newAcceptedBreaks))
+                .collect(Collectors.toSet());
+
+        boolean breaksWereNotAddedToExisting = possiblyAddedToExistedBreakCollection.equals(acceptedBreaksV2());
+
+        if (breaksWereNotAddedToExisting) {
+            return ImmutableSet.<BreakCollection>builder()
+                    .addAll(acceptedBreaksV2())
+                    .add(BreakCollection.builder()
+                            .justification(justification)
+                            .afterVersion(groupNameVersion.version())
+                            .breaks(PerProject.<AcceptedBreak>builder()
+                                    .putPerProjectItems(groupNameVersion.groupAndName(), newAcceptedBreaks)
+                                    .build())
+                            .build())
+                    .build();
+        }
+
+        return possiblyAddedToExistedBreakCollection;
     }
 
     public static GradleRevapiConfig empty() {
