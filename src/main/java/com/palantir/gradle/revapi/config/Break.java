@@ -33,15 +33,6 @@ public interface Break {
     @JsonProperty("new")
     Optional<String> newElement();
 
-    default JustifiedBreak withJustification(Justification justification) {
-        return JustifiedBreak.builder()
-                .code(code())
-                .oldElement(oldElement())
-                .newElement(newElement())
-                .justification(justification)
-                .build();
-    }
-
     class Builder extends ImmutableBreak.Builder {}
 
     static Builder builder() {
