@@ -24,6 +24,7 @@ import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
+import com.palantir.gradle.revapi.config.v2.AllAcceptedBreaks;
 import com.palantir.gradle.revapi.config.v2.BreakCollection;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +48,21 @@ public abstract class DeprecatedAcceptedBreaks {
                 .collect(Collectors.groupingBy(FlattenedBreak::justificationAndVersion));
     }
 
-    public final Set<BreakCollection> upgrade() {
-        return EntryStream.of(flattenedBreaks()).mapKeyValue((justificationAndVersion, flattenedBreaks) -> {
-            PerProject<AcceptedBreak> perProjectAcceptedBreaks = PerProject
-                    .groupingBy(flattenedBreaks, FlattenedBreak::groupAndName)
-                    .map(FlattenedBreak::acceptedBreak);
+    public final AllAcceptedBreaks upgrade() {
+        Set<BreakCollection> breakCollections = EntryStream.of(flattenedBreaks())
+                .mapKeyValue((justificationAndVersion, flattenedBreaks) -> {
+                    PerProject<AcceptedBreak> perProjectAcceptedBreaks = PerProject
+                            .groupingBy(flattenedBreaks, FlattenedBreak::groupAndName)
+                            .map(FlattenedBreak::acceptedBreak);
 
-            return BreakCollection.builder()
-                    .justification(justificationAndVersion.justification())
-                    .afterVersion(justificationAndVersion.version())
-                    .breaks(perProjectAcceptedBreaks)
-                    .build();
-        }).collect(Collectors.toSet());
+                    return BreakCollection.builder()
+                            .justification(justificationAndVersion.justification())
+                            .afterVersion(justificationAndVersion.version())
+                            .breaks(perProjectAcceptedBreaks)
+                            .build();
+                }).collect(Collectors.toSet());
+
+        return AllAcceptedBreaks.fromBreakCollections(breakCollections);
     }
 
     public static final class Builder extends ImmutableDeprecatedAcceptedBreaks.Builder { }

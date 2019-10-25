@@ -25,15 +25,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.google.common.collect.ImmutableSet;
 import com.palantir.gradle.revapi.config.v1.DeprecatedAcceptedBreaks;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
-import com.palantir.gradle.revapi.config.v2.BreakCollection;
-import java.util.Collections;
+import com.palantir.gradle.revapi.config.v2.AllAcceptedBreaks;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -54,20 +51,17 @@ public abstract class GradleRevapiConfig {
     /** Overridden by immutables. */
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
-    protected Set<BreakCollection> acceptedBreaksV2DeserOnly() {
-        return Collections.emptySet();
+    protected AllAcceptedBreaks acceptedBreaksV2DeserOnly() {
+        return AllAcceptedBreaks.empty();
     }
 
     /** Overridden by immutables. */
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
-    protected Set<BreakCollection> acceptedBreaksV2() {
-        Set<BreakCollection> upgradedBreaks = oldDeprecatedV1AcceptedBreaksDeserOnly().upgrade();
-
-        return ImmutableSet.<BreakCollection>builder()
-                .addAll(upgradedBreaks)
-                .addAll(acceptedBreaksV2DeserOnly())
-                .build();
+    protected AllAcceptedBreaks acceptedBreaksV2() {
+        return oldDeprecatedV1AcceptedBreaksDeserOnly()
+                .upgrade()
+                .andAlso(acceptedBreaksV2DeserOnly());
     }
 
     public final Optional<String> versionOverrideFor(GroupNameVersion groupNameVersion) {
@@ -82,9 +76,7 @@ public abstract class GradleRevapiConfig {
     }
 
     public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return acceptedBreaksV2().stream()
-                .flatMap(breakCollection -> breakCollection.acceptedBreaksFor(groupNameVersion.groupAndName()).stream())
-                .collect(Collectors.toSet());
+        return acceptedBreaksV2().acceptedBreaksFor(groupNameVersion);
     }
 
     public final GradleRevapiConfig addAcceptedBreaks(
@@ -94,35 +86,11 @@ public abstract class GradleRevapiConfig {
 
         return ImmutableGradleRevapiConfig.builder()
                 .from(this)
-                .acceptedBreaksV2(add(groupNameVersion, justification, newAcceptedBreaks))
+                .acceptedBreaksV2(acceptedBreaksV2().addAcceptedBreaks(
+                        groupNameVersion,
+                        justification,
+                        newAcceptedBreaks))
                 .build();
-    }
-
-    private Set<BreakCollection> add(
-            GroupNameVersion groupNameVersion,
-            Justification justification,
-            Set<AcceptedBreak> newAcceptedBreaks) {
-
-        Set<BreakCollection> possiblyAddedToExistedBreakCollection = acceptedBreaksV2().stream()
-                .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, newAcceptedBreaks))
-                .collect(Collectors.toSet());
-
-        boolean breaksWereNotAddedToExisting = possiblyAddedToExistedBreakCollection.equals(acceptedBreaksV2());
-
-        if (breaksWereNotAddedToExisting) {
-            return ImmutableSet.<BreakCollection>builder()
-                    .addAll(acceptedBreaksV2())
-                    .add(BreakCollection.builder()
-                            .justification(justification)
-                            .afterVersion(groupNameVersion.version())
-                            .breaks(PerProject.<AcceptedBreak>builder()
-                                    .putPerProjectItems(groupNameVersion.groupAndName(), newAcceptedBreaks)
-                                    .build())
-                            .build())
-                    .build();
-        }
-
-        return possiblyAddedToExistedBreakCollection;
     }
 
     public static GradleRevapiConfig empty() {
