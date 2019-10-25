@@ -25,6 +25,13 @@ public interface FlattenedBreak {
     GroupAndName groupAndName();
     Break acceptedBreak();
 
+    default JustifiedBreak toJustifiedBreak() {
+        return JustifiedBreak.builder()
+                .acceptedBreak(acceptedBreak())
+                .justification(justificationAndVersion().justification())
+                .build();
+    }
+
     class Builder extends ImmutableFlattenedBreak.Builder { }
 
     static Builder builder() {

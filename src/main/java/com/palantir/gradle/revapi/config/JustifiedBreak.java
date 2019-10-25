@@ -16,22 +16,16 @@
 
 package com.palantir.gradle.revapi.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @ImmutablesStyle
 @JsonDeserialize(as = ImmutableJustifiedBreak.class)
 public interface JustifiedBreak {
-    String code();
-
-    @JsonProperty("old")
-    Optional<String> oldElement();
-
-    @JsonProperty("new")
-    Optional<String> newElement();
+    @JsonUnwrapped
+    Break acceptedBreak();
 
     Justification justification();
 
@@ -42,15 +36,7 @@ public interface JustifiedBreak {
                         .justification(justification())
                         .version(version)
                         .build())
-                .acceptedBreak(upgrade())
-                .build();
-    }
-
-    default Break upgrade() {
-        return Break.builder()
-                .code(code())
-                .newElement(newElement())
-                .oldElement(oldElement())
+                .acceptedBreak(acceptedBreak())
                 .build();
     }
 
