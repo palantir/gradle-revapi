@@ -28,7 +28,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 @ImmutablesStyle
 @JsonDeserialize(as = ImmutableAcceptedBreaks.class)
-public abstract class AcceptedBreaks {
+abstract class AcceptedBreaks {
     @JsonValue
     protected abstract List<BreakCollection> breakCollections();
 

@@ -24,7 +24,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 @ImmutablesStyle
 @JsonDeserialize(as = ImmutableBreakCollection.class)
-public interface BreakCollection {
+interface BreakCollection {
     Justification justification();
     Version afterVersion();
     PerProject<Break> breaks();

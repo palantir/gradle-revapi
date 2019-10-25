@@ -36,7 +36,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 @ImmutablesStyle
 @JsonDeserialize(as = ImmutablePerProject.class)
-public abstract class PerProject<T> {
+abstract class PerProject<T> {
     @JsonValue
     protected abstract Map<GroupAndName, Set<T>> perProjectItems();
 
