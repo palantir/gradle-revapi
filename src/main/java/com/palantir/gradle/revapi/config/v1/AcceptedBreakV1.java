@@ -61,12 +61,7 @@ public interface AcceptedBreakV1 {
                 .build();
     }
 
-    class Builder extends ImmutableAcceptedBreakV1.Builder {
-        public Builder justification(String justification) {
-            justification(Justification.fromString(justification));
-            return this;
-        }
-    }
+    class Builder extends ImmutableAcceptedBreakV1.Builder { }
 
     static Builder builder() {
         return new Builder();
