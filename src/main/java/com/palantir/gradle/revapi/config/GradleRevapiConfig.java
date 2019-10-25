@@ -75,6 +75,10 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
+    public final Set<FlattenedBreak> acceptedBreaks(GroupAndName groupAndName) {
+        return acceptedBreaksV2().flattenedBreaksFor(groupAndName);
+    }
+
     public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return acceptedBreaksV2().acceptedBreaksFor(groupNameVersion);
     }

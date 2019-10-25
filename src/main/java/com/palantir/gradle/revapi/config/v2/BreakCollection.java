@@ -17,13 +17,16 @@
 package com.palantir.gradle.revapi.config.v2;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.palantir.gradle.revapi.config.FlattenedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.ImmutablesStyle;
 import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -38,7 +41,7 @@ public interface BreakCollection {
         return breaks().forGroupAndName(groupAndName);
     }
 
-    default BreakCollection addAcceptedBreaksIf(
+    default BreakCollection addAcceptedBreaksIfMatching(
             Justification justification,
             GroupNameVersion groupNameVersion,
             Set<AcceptedBreak> breaks) {
@@ -51,6 +54,19 @@ public interface BreakCollection {
                 .from(this)
                 .breaks(breaks().withAdded(groupNameVersion.groupAndName(), breaks))
                 .build();
+    }
+
+    default Stream<FlattenedBreak> flattenedBreaksFor(GroupAndName groupAndName) {
+        return breaks().forGroupAndName(groupAndName)
+                .stream()
+                .map(acceptedBreak -> FlattenedBreak.builder()
+                        .justificationAndVersion(JustificationAndVersion.builder()
+                                .justification(justification())
+                                .version(afterVersion())
+                                .build())
+                        .groupAndName(groupAndName)
+                        .acceptedBreak(acceptedBreak)
+                        .build());
     }
 
     class Builder extends ImmutableBreakCollection.Builder { }

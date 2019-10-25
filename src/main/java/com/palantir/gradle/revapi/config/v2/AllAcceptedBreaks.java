@@ -19,6 +19,9 @@ package com.palantir.gradle.revapi.config.v2;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.palantir.gradle.revapi.config.FlattenedBreak;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.ImmutablesStyle;
 import com.palantir.gradle.revapi.config.Justification;
@@ -35,6 +38,12 @@ public abstract class AllAcceptedBreaks {
     @JsonValue
     protected abstract List<BreakCollection> breakCollections();
 
+    public final Set<FlattenedBreak> flattenedBreaksFor(GroupAndName groupAndName) {
+        return breakCollections().stream()
+                .flatMap(breakCollection -> breakCollection.flattenedBreaksFor(groupAndName))
+                .collect(ImmutableSet.toImmutableSet());
+    }
+
     public final AllAcceptedBreaks addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Justification justification,
@@ -49,7 +58,7 @@ public abstract class AllAcceptedBreaks {
             Set<AcceptedBreak> newAcceptedBreaks) {
 
         List<BreakCollection> possiblyAddedToExistedBreakCollection = breakCollections().stream()
-                .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, newAcceptedBreaks))
+                .map(breaks -> breaks.addAcceptedBreaksIfMatching(justification, groupNameVersion, newAcceptedBreaks))
                 .collect(Collectors.toList());
 
         boolean breaksWereAddedToExistingCollection = !possiblyAddedToExistedBreakCollection.equals(breakCollections());

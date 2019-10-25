@@ -24,9 +24,13 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
+import com.palantir.gradle.revapi.config.FlattenedBreak;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.JustificationAndVersion;
+import com.palantir.gradle.revapi.config.Version;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import java.io.File;
 import java.io.FileReader;
@@ -74,14 +78,23 @@ class ConfigManagerTest {
 
         configManager.modifyConfigFile(revapiConfig -> {
             assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
-            assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("foo:bar:1.2.3"))).containsExactly(
-                    AcceptedBreak.builder()
-                            .code("blah")
-                            .oldElement("old")
-                            .newElement("new")
-                            .build()
-            );
-            assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("doesnt:exist:1.2.3"))).isEmpty();
+
+            assertThat(revapiConfig.acceptedBreaks(GroupAndName.fromString("foo:bar"))).containsExactly(
+                    FlattenedBreak.builder()
+                            .groupAndName(GroupAndName.fromString("foo:bar"))
+                            .justificationAndVersion(JustificationAndVersion.builder()
+                                    .justification(Justification.fromString("I don't care about my users"))
+                                    .version(Version.fromString("1.2.3"))
+                                    .build())
+                            .acceptedBreak(AcceptedBreak.builder()
+                                    .code("blah")
+                                    .oldElement("old")
+                                    .newElement("new")
+                                    .build())
+                            .build());
+
+            assertThat(revapiConfig.acceptedBreaks(GroupAndName.fromString("doesnt:exist"))).isEmpty();
+
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
                     .addAcceptedBreaks(
