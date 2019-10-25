@@ -26,7 +26,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.v1.DeprecatedAcceptedBreaks;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import com.palantir.gradle.revapi.config.v2.BreakCollection;
@@ -75,21 +74,10 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
-    public final Set<AcceptedBreakV1> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        throw new UnsupportedOperationException();
-    }
-
-    public final Set<AcceptedBreak> acceptedBreaksForV2(GroupNameVersion groupNameVersion) {
+    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
         return acceptedBreaksV2().stream()
                 .flatMap(breakCollection -> breakCollection.acceptedBreaksFor(groupNameVersion.groupAndName()).stream())
                 .collect(Collectors.toSet());
-    }
-
-    public final GradleRevapiConfig addAcceptedBreaks(
-            GroupNameVersion groupNameVersion,
-            Set<AcceptedBreakV1> acceptedBreakV1s) {
-
-        throw new UnsupportedOperationException();
     }
 
     public final GradleRevapiConfig addAcceptedBreaks(

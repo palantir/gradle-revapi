@@ -24,9 +24,10 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
-import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Justification;
+import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -74,22 +75,21 @@ class ConfigManagerTest {
         configManager.modifyConfigFile(revapiConfig -> {
             assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
             assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("foo:bar:1.2.3"))).containsExactly(
-                    AcceptedBreakV1.builder()
+                    AcceptedBreak.builder()
                             .code("blah")
                             .oldElement("old")
                             .newElement("new")
-                            .justification("I don't care about my users")
                             .build()
             );
             assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("doesnt:exist:1.2.3"))).isEmpty();
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
-                    .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreakV1
+                    .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"),
+                            Justification.fromString("j"), ImmutableSet.of(AcceptedBreak
                             .builder()
                             .code("something")
                             .oldElement("old2")
                             .newElement("new2")
-                            .justification("j")
                             .build()));
         });
 
