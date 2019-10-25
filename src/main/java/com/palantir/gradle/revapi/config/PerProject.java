@@ -43,14 +43,14 @@ public abstract class PerProject<T> {
         return perProjectItems().getOrDefault(groupAndName, Collections.emptySet());
     }
 
-    public final PerProject<T> merge(GroupAndName groupAndName, Set<T> items) {
+    public final PerProject<T> withAdded(GroupAndName groupAndName, Set<T> items) {
         Map<GroupAndName, Set<T>> newPerProjectItems = new HashMap<>(perProjectItems());
         newPerProjectItems.put(groupAndName, Sets.union(
                 items,
                 this.perProjectItems().getOrDefault(groupAndName, ImmutableSet.of())));
 
         return PerProject.<T>builder()
-                .putAllItems(newPerProjectItems)
+                .putAllPerProjectItems(newPerProjectItems)
                 .build();
     }
 
@@ -79,7 +79,7 @@ public abstract class PerProject<T> {
 
     public static <T> PerProject<T> fromEntryStream(EntryStream<GroupAndName, Set<T>> perProjectItems) {
         return PerProject.<T>builder()
-                .items(perProjectItems.toImmutableMap())
+                .perProjectItems(perProjectItems.toImmutableMap())
                 .build();
     }
 

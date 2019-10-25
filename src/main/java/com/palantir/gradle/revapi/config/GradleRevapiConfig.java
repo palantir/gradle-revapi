@@ -27,16 +27,14 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.gradle.revapi.config.v1.AcceptedBreakV1;
-import com.palantir.gradle.revapi.config.v1.BreakCollectionV1;
-import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
+import com.palantir.gradle.revapi.config.v1.DeprecatedAcceptedBreaks;
+import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
+import com.palantir.gradle.revapi.config.v2.BreakCollection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -47,7 +45,7 @@ public abstract class GradleRevapiConfig {
     protected abstract Map<GroupNameVersion, String> versionOverrides();
 
     @JsonProperty(value = "acceptedBreaks", access = Access.WRITE_ONLY)
-    protected abstract Optional<BreakCollectionV1> acceptedBreaksDeserOnly();
+    protected abstract Optional<DeprecatedAcceptedBreaks> oldDeprecatedV1AcceptedBreaks();
 
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.WRITE_ONLY)
     protected abstract Optional<Set<BreakCollection>> acceptedBreaksV2DeserOnly();
@@ -56,8 +54,8 @@ public abstract class GradleRevapiConfig {
     @Value.Default
     @JsonProperty(value = ACCEPTED_BREAKS_V2, access = Access.READ_ONLY)
     protected Set<BreakCollection> acceptedBreaksV2() {
-        Set<BreakCollection> upgradedBreaks = acceptedBreaksDeserOnly()
-                .orElseGet(BreakCollectionV1::empty)
+        Set<BreakCollection> upgradedBreaks = oldDeprecatedV1AcceptedBreaks()
+                .orElseGet(DeprecatedAcceptedBreaks::empty)
                 .upgrade();
 
         return ImmutableSet.<BreakCollection>builder()
@@ -78,28 +76,32 @@ public abstract class GradleRevapiConfig {
     }
 
     public final Set<AcceptedBreakV1> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return Optional.ofNullable(acceptedBreaksDeserOnly().get().get(groupNameVersion.version()))
-                .map(projectBreaks -> projectBreaks.forGroupAndName(groupNameVersion.groupAndName()))
-                .orElseGet(Collections::emptySet);
+        throw new UnsupportedOperationException();
+    }
+
+    public final Set<AcceptedBreak> acceptedBreaksForV2(GroupNameVersion groupNameVersion) {
+        return acceptedBreaksV2().stream()
+                .flatMap(breakCollection -> breakCollection.acceptedBreaksFor(groupNameVersion.groupAndName()).stream())
+                .collect(Collectors.toSet());
     }
 
     public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Set<AcceptedBreakV1> acceptedBreakV1s) {
 
-        PerProject<AcceptedBreakV1> existingAcceptedBreaks =
-                acceptedBreaksDeserOnly().get().getOrDefault(groupNameVersion.version(), PerProject.empty());
+        throw new UnsupportedOperationException();
+    }
 
-        PerProject<AcceptedBreakV1> newPerProject = existingAcceptedBreaks.merge(
-                groupNameVersion.groupAndName(),
-                acceptedBreakV1s);
-
-        Map<Version, PerProject<AcceptedBreakV1>> newAcceptedBreaks = new HashMap<>(acceptedBreaksDeserOnly().get());
-        newAcceptedBreaks.put(groupNameVersion.version(), newPerProject);
+    public final GradleRevapiConfig addAcceptedBreaks(
+            GroupNameVersion groupNameVersion,
+            Justification justification,
+            Set<AcceptedBreak> acceptedBreaks) {
 
         return ImmutableGradleRevapiConfig.builder()
                 .from(this)
-                .acceptedBreaksDeserOnly(newAcceptedBreaks)
+                .acceptedBreaksV2(acceptedBreaksV2().stream()
+                        .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, acceptedBreaks))
+                        .collect(Collectors.toSet()))
                 .build();
     }
 

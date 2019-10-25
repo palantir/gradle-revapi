@@ -17,10 +17,12 @@
 package com.palantir.gradle.revapi.config.v2;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.ImmutableBreakCollection;
+import com.palantir.gradle.revapi.config.GroupAndName;
+import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
+import java.util.Set;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -29,6 +31,25 @@ public interface BreakCollection {
     Justification justification();
     Version afterVersion();
     PerProject<AcceptedBreak> breaks();
+
+    default Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupAndName) {
+        return breaks().forGroupAndName(groupAndName);
+    }
+
+    default BreakCollection addAcceptedBreaksIf(
+            Justification justification,
+            GroupNameVersion groupNameVersion,
+            Set<AcceptedBreak> breaks) {
+
+        if (!(justification().equals(justification) && afterVersion().equals(groupNameVersion.version()))) {
+            return this;
+        }
+
+        return builder()
+                .from(this)
+                .breaks(breaks().withAdded(groupNameVersion.groupAndName(), breaks))
+                .build();
+    }
 
     class Builder extends ImmutableBreakCollection.Builder { }
 

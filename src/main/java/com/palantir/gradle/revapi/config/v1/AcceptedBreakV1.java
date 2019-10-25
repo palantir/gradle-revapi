@@ -23,7 +23,7 @@ import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.Version;
-import com.palantir.gradle.revapi.config.v2.AcceptedBreakV2;
+import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import java.util.Optional;
 import org.immutables.value.Value;
 
@@ -51,8 +51,8 @@ public interface AcceptedBreakV1 {
                 .build();
     }
 
-    default AcceptedBreakV2 upgrade() {
-        return AcceptedBreakV2.builder()
+    default AcceptedBreak upgrade() {
+        return AcceptedBreak.builder()
                 .code(code())
                 .newElement(newElement())
                 .oldElement(oldElement())

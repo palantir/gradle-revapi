@@ -16,13 +16,14 @@
 
 package com.palantir.gradle.revapi.config.v1;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.palantir.gradle.revapi.config.v2.BreakCollection;
 import com.palantir.gradle.revapi.config.FlattenedBreak;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
 import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
+import com.palantir.gradle.revapi.config.v2.BreakCollection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +32,9 @@ import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableBreakCollectionV1.class)
-public abstract class BreakCollectionV1 {
+@JsonDeserialize(as = ImmutableDeprecatedAcceptedBreaks.class)
+public abstract class DeprecatedAcceptedBreaks {
+    @JsonValue
     protected abstract Map<Version, PerProject<AcceptedBreakV1>> acceptedBreakV1s();
 
     private Map<JustificationAndVersion, List<FlattenedBreak>> flattenedBreaks() {
@@ -57,13 +59,13 @@ public abstract class BreakCollectionV1 {
         }).collect(Collectors.toSet());
     }
 
-    public static final class Builder extends ImmutableBreakCollectionV1.Builder { }
+    public static final class Builder extends ImmutableDeprecatedAcceptedBreaks.Builder { }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static BreakCollectionV1 empty() {
+    public static DeprecatedAcceptedBreaks empty() {
         return builder().build();
     }
 }
