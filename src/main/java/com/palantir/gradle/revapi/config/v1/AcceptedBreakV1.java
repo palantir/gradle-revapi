@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.palantir.gradle.revapi.config.FlattenedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
+import com.palantir.gradle.revapi.config.ImmutablesStyle;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.Version;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 @JsonDeserialize(as = ImmutableAcceptedBreakV1.class)
 public interface AcceptedBreakV1 {
     String code();

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 public interface Version {
     @JsonValue
     String asString();

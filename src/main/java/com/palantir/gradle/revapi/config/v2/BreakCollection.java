@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi.config.v2;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.ImmutablesStyle;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
@@ -26,6 +27,7 @@ import java.util.Set;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 @JsonDeserialize(as = ImmutableBreakCollection.class)
 public interface BreakCollection {
     Justification justification();

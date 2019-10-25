@@ -20,6 +20,7 @@ import com.palantir.gradle.revapi.config.v2.AcceptedBreak;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 public interface FlattenedBreak {
     JustificationAndVersion justificationAndVersion();
     GroupAndName groupAndName();

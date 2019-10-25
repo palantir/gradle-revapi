@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 @JsonDeserialize(as = ImmutableJustification.class)
 public interface Justification {
     String YOU_MUST_ENTER_JUSTIFICATION = "{why this break is ok}";
@@ -48,3 +49,4 @@ public interface Justification {
                 .build();
     }
 }
+

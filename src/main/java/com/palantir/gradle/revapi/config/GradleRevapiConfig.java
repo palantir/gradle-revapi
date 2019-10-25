@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 @JsonDeserialize(as = ImmutableGradleRevapiConfig.class)
 public abstract class GradleRevapiConfig {
     private static final String ACCEPTED_BREAKS_V2 = "acceptedBreaksV2";

@@ -16,17 +16,15 @@
 
 package com.palantir.gradle.revapi.config;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import org.immutables.value.Value;
 
-@Value.Immutable
-@ImmutablesStyle
-public interface JustificationAndVersion {
-    Justification justification();
-    Version version();
-
-    class Builder extends ImmutableJustificationAndVersion.Builder { }
-
-    static Builder builder() {
-        return new Builder();
-    }
-}
+@Target({ElementType.PACKAGE, ElementType.TYPE})
+@Retention(RetentionPolicy.CLASS)
+@Value.Style(
+        overshadowImplementation = true,
+        visibility = Value.Style.ImplementationVisibility.PACKAGE)
+public @interface ImmutablesStyle { }

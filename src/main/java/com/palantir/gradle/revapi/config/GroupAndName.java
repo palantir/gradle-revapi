@@ -24,6 +24,7 @@ import java.util.List;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 public interface GroupAndName {
     String group();
     String name();

@@ -34,6 +34,7 @@ import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 @JsonDeserialize(as = ImmutablePerProject.class)
 public abstract class PerProject<T> {
     @JsonValue

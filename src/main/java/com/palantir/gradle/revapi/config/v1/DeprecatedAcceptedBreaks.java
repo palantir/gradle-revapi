@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi.config.v1;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.palantir.gradle.revapi.config.FlattenedBreak;
+import com.palantir.gradle.revapi.config.ImmutablesStyle;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.PerProject;
 import com.palantir.gradle.revapi.config.Version;
@@ -32,6 +33,7 @@ import one.util.streamex.EntryStream;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutablesStyle
 @JsonDeserialize(as = ImmutableDeprecatedAcceptedBreaks.class)
 public abstract class DeprecatedAcceptedBreaks {
     @JsonValue
