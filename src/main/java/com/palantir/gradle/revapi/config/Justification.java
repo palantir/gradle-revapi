@@ -49,4 +49,3 @@ public interface Justification {
                 .build();
     }
 }
-
