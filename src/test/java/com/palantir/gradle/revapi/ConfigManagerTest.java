@@ -22,8 +22,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
+import com.palantir.gradle.revapi.config.Break;
 import com.palantir.gradle.revapi.config.FlattenedBreak;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupAndName;
@@ -31,17 +34,21 @@ import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
 import com.palantir.gradle.revapi.config.JustificationAndVersion;
 import com.palantir.gradle.revapi.config.Version;
-import com.palantir.gradle.revapi.config.Break;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.function.UnaryOperator;
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 class ConfigManagerTest {
+    private static final ObjectMapper YAML_OBJECT_MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
+
     @TempDir
     File tempDir;
 
@@ -157,6 +164,92 @@ class ConfigManagerTest {
         GradleRevapiConfig gradleRevapiConfig = configManager.fromFileOrEmptyIfDoesNotExist();
 
         assertThat(gradleRevapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
+    }
+
+    @Test
+    void correctly_upgrades_old_accepted_breaks_to_new_format() throws IOException, JSONException {
+        File configFile = new File(tempDir, "revapi.yml");
+        ConfigManager configManager = new ConfigManager(configFile);
+
+        Files.write(configFile.toPath(), String.join("\n",
+                "versionOverrides:",
+                "  foo:bar:3.12: \"1.0\"",
+                "acceptedBreaks:",
+                "  1.2.3:",
+                "    foo:bar:",
+                "    - code: code1",
+                "      old: old1",
+                "      new: new1",
+                "      justification: reason",
+                "    - code: code2",
+                "      old: old2",
+                "      new: new2",
+                "      justification: reason",
+                "    - code: code3",
+                "      old: old3",
+                "      new: new3",
+                "      justification: other_reason",
+                "    quux:baz:",
+                "    - code: code4",
+                "      old: old4",
+                "      new: new4",
+                "      justification: reason4",
+                "  9.9.9:",
+                "    foo:bar:",
+                "    - code: code5",
+                "      old: old5",
+                "      new: new5",
+                "      justification: reason5")
+                .getBytes(StandardCharsets.UTF_8));
+
+        configManager.modifyConfigFile(UnaryOperator.identity());
+
+        String migratedConfigFileYaml = CharStreams.toString(new FileReader(configFile));
+        System.out.println(migratedConfigFileYaml);
+
+        String expectedYaml = String.join("\n",
+                "versionOverrides:",
+                "  foo:bar:3.12: \"1.0\"",
+                "acceptedBreaksV2:",
+                "- justification: reason",
+                "  afterVersion: 1.2.3",
+                "  breaks:",
+                "    foo:bar:",
+                "    - code: code1",
+                "      old: old1",
+                "      new: new1",
+                "    - code: code2",
+                "      old: old2",
+                "      new: new2",
+                "- justification: other_reason",
+                "  afterVersion: 1.2.3",
+                "  breaks:",
+                "    foo:bar:",
+                "    - code: code3",
+                "      old: old3",
+                "      new: new3",
+                "- justification: reason4",
+                "  afterVersion: 1.2.3",
+                "  breaks:",
+                "    quux:baz:",
+                "    - code: code4",
+                "      old: old4",
+                "      new: new4",
+                "- justification: reason5",
+                "  afterVersion: 9.9.9",
+                "  breaks:",
+                "    foo:bar:",
+                "    - code: code5",
+                "      old: old5",
+                "      new: new5");
+
+        String expectedStr = toJson(expectedYaml);
+        String actualStr = toJson(migratedConfigFileYaml);
+        JSONAssert.assertEquals(expectedStr, actualStr, false);
+    }
+
+    private String toJson(String yaml) throws IOException {
+        return JSON_OBJECT_MAPPER.writeValueAsString(YAML_OBJECT_MAPPER.readTree(yaml));
     }
 
     private UnaryOperator<GradleRevapiConfig> identityFunction() {

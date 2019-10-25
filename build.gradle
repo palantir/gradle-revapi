@@ -60,6 +60,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.skyscreamer:jsonassert'
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 
     annotationProcessor "org.immutables:value"
