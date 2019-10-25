@@ -62,14 +62,14 @@ class ConfigManagerTest {
         Files.write(oldConfigFile.toPath(), String.join("\n",
                 "versionOverrides:",
                 "  foo:bar:3.12: \"1.0\"",
-                "acceptedBreaks:",
-                "  1.2.3:",
+                "acceptedBreaksV2:",
+                "- justification: \"I don't care about my users\"",
+                "  afterVersion: 1.2.3",
+                "  breaks:",
                 "    foo:bar:",
                 "      - code: blah",
                 "        old: old",
-                "        new: new",
-                "        justification: \"I don't care about my users\""
-                        )
+                "        new: new")
                 .getBytes(StandardCharsets.UTF_8));
 
         configManager.modifyConfigFile(revapiConfig -> {
@@ -84,13 +84,24 @@ class ConfigManagerTest {
             assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("doesnt:exist:1.2.3"))).isEmpty();
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
-                    .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"),
-                            Justification.fromString("j"), ImmutableSet.of(AcceptedBreak
-                            .builder()
-                            .code("something")
-                            .oldElement("old2")
-                            .newElement("new2")
-                            .build()));
+                    .addAcceptedBreaks(
+                            GroupNameVersion.fromString("foo:bar:1.2.3"),
+                            Justification.fromString("I don't care about my users"),
+                            ImmutableSet.of(AcceptedBreak
+                                    .builder()
+                                    .code("something")
+                                    .oldElement("old2")
+                                    .newElement("new2")
+                                    .build()))
+                    .addAcceptedBreaks(
+                            GroupNameVersion.fromString("quux:baz:0.4.1"),
+                            Justification.fromString("j"),
+                            ImmutableSet.of(AcceptedBreak
+                                    .builder()
+                                    .code("c")
+                                    .oldElement("o")
+                                    .newElement("n")
+                                    .build()));
         });
 
         System.out.println(CharStreams.toString(new FileReader(oldConfigFile)));
@@ -99,18 +110,24 @@ class ConfigManagerTest {
                 "versionOverrides:",
                 "  foo:bar:3.12: \"1.0\"",
                 "  quux:baz:2.0: \"3.6\"",
-                "acceptedBreaks:",
-                "  1.2.3:",
+                "acceptedBreaksV2:",
+                "- justification: \"I don't care about my users\"",
+                "  afterVersion: \"1.2.3\"",
+                "  breaks:",
                 "    foo:bar:",
-                "    - code: \"blah\"",
-                "      old: \"old\"",
-                "      new: \"new\"",
-                "      justification: \"I don't care about my users\"",
-                "    quux:baz:",
                 "    - code: \"something\"",
                 "      old: \"old2\"",
                 "      new: \"new2\"",
-                "      justification: \"j\""));
+                "    - code: \"blah\"",
+                "      old: \"old\"",
+                "      new: \"new\"",
+                "- justification: \"j\"",
+                "  afterVersion: \"1.2.3\"",
+                "  breaks:",
+                "    quux:baz:",
+                "    - code: \"c\"",
+                "      old: \"o\"",
+                "      new: \"n\""));
 
     }
 
