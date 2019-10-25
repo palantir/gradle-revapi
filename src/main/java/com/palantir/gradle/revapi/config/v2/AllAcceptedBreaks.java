@@ -51,23 +51,30 @@ public abstract class AllAcceptedBreaks {
                 .map(breaks -> breaks.addAcceptedBreaksIf(justification, groupNameVersion, newAcceptedBreaks))
                 .collect(Collectors.toSet());
 
-        boolean breaksWereNotAddedToExistingCollection =
-                possiblyAddedToExistedBreakCollection.equals(breakCollections());
+        boolean breaksWereAddedToExistingCollection = !possiblyAddedToExistedBreakCollection.equals(breakCollections());
 
-        if (breaksWereNotAddedToExistingCollection) {
-            return ImmutableSet.<BreakCollection>builder()
-                    .addAll(breakCollections())
-                    .add(BreakCollection.builder()
-                            .justification(justification)
-                            .afterVersion(groupNameVersion.version())
-                            .breaks(PerProject.<AcceptedBreak>builder()
-                                    .putPerProjectItems(groupNameVersion.groupAndName(), newAcceptedBreaks)
-                                    .build())
-                            .build())
-                    .build();
+        if (breaksWereAddedToExistingCollection) {
+            return possiblyAddedToExistedBreakCollection;
         }
 
-        return possiblyAddedToExistedBreakCollection;
+        return appendBreaksInNewCollection(groupNameVersion, justification, newAcceptedBreaks);
+    }
+
+    private Set<BreakCollection> appendBreaksInNewCollection(
+            GroupNameVersion groupNameVersion,
+            Justification justification,
+            Set<AcceptedBreak> newAcceptedBreaks) {
+
+        return ImmutableSet.<BreakCollection>builder()
+                .addAll(breakCollections())
+                .add(BreakCollection.builder()
+                        .justification(justification)
+                        .afterVersion(groupNameVersion.version())
+                        .breaks(PerProject.<AcceptedBreak>builder()
+                                .putPerProjectItems(groupNameVersion.groupAndName(), newAcceptedBreaks)
+                                .build())
+                        .build())
+                .build();
     }
 
     public final AllAcceptedBreaks andAlso(AllAcceptedBreaks otherBreaks) {
