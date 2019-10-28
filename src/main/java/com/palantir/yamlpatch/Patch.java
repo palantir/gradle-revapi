@@ -23,18 +23,6 @@ abstract class Patch {
     public abstract Range range();
     public abstract String replacement();
 
-    public String applyTo(String input) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(input, 0, range().startIndex());
-        builder.append(replacement());
-        builder.append(input, range().endIndex(), input.length());
-        return builder.toString();
-    }
-
-    public int difference() {
-        return range().length() - replacement().length();
-    }
-
     public static class Builder extends ImmutablePatch.Builder { }
 
     public static Builder builder() {

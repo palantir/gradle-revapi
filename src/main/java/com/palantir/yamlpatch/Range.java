@@ -38,10 +38,6 @@ abstract class Range {
         }
     }
 
-    public int length() {
-        return endIndex() - startIndex();
-    }
-
     public boolean overlaps(Range other) {
         boolean ourRangeIsLess   = startIndex() < other.startIndex() && endIndex() < other.startIndex();
         boolean theirRangeIsLess = other.startIndex() < startIndex() && other.endIndex() < startIndex();
