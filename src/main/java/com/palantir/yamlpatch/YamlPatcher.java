@@ -51,17 +51,20 @@ public final class YamlPatcher {
             JsonNode outputJsonNode = jsonObjectMapper.convertValue(outputType, JsonNode.class);
 
             JsonNode diff = JsonDiff.asJson(inputJsonNode, outputJsonNode);
-
-            List<JsonPatch> patches = JSON_PATCH_OBJECT_MAPPER.convertValue(
-                    diff,
-                    new TypeReference<List<JsonPatch>>() {});
-
             Node jsonDocument = new Yaml().compose(new StringReader(input));
 
-            Patch patch = patches.get(0).patchFor(jsonDocument);
-            return patch.applyTo(input);
+            return patchesFor(diff, jsonDocument).applyTo(input);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Patches patchesFor(JsonNode diff, Node jsonDocument) {
+        List<JsonPatch> jsonPatches = JSON_PATCH_OBJECT_MAPPER.convertValue(
+                diff,
+                new TypeReference<List<JsonPatch>>() {});
+
+        return Patches.of(jsonPatches.stream()
+                .map(jsonPatch -> jsonPatch.patchFor(jsonDocument)));
     }
 }

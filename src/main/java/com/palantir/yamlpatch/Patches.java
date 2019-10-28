@@ -17,10 +17,10 @@
 package com.palantir.yamlpatch;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class Patches {
     private final List<Patch> orderedPatches;
@@ -42,11 +42,11 @@ final class Patches {
     }
 
     public static Patches of(Patch... patches) {
-        return of(Arrays.asList(patches));
+        return of(Arrays.stream(patches));
     }
 
-    public static Patches of(Collection<Patch> patches) {
-        List<Patch> orderedPatches = patches.stream()
+    public static Patches of(Stream<Patch> patches) {
+        List<Patch> orderedPatches = patches
                 .sorted(Comparator.comparing(patch -> patch.range().startIndex()))
                 .collect(Collectors.toList());
 
