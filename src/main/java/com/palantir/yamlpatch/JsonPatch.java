@@ -22,10 +22,12 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.immutables.value.Value;
 import org.yaml.snakeyaml.nodes.Node;
+import org.yaml.snakeyaml.nodes.NodeTuple;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
 @JsonSubTypes({
-        @JsonSubTypes.Type(JsonPatch.Replace.class)
+        @JsonSubTypes.Type(JsonPatch.Replace.class),
+        @JsonSubTypes.Type(JsonPatch.Remove.class)
 })
 public interface JsonPatch {
     JsonPointer path();
@@ -40,13 +42,30 @@ public interface JsonPatch {
 
         @Override
         default Patch patchFor(Node jsonDocument) {
-            Node nodeToReplace = path().narrowDown(jsonDocument);
+            Node nodeToReplace = path().narrowDownToValueIn(jsonDocument);
             return Patch.builder()
                     .range(Range.builder()
                             .startIndex(nodeToReplace.getStartMark().getIndex())
                             .endIndex(nodeToReplace.getEndMark().getIndex())
                             .build())
                     .replacement(value())
+                    .build();
+        }
+    }
+
+    @Value.Immutable
+    @JsonTypeName("remove")
+    @JsonDeserialize(as = ImmutableRemove.class)
+    interface Remove extends JsonPatch {
+        @Override
+        default Patch patchFor(Node jsonDocument) {
+            NodeTuple nodeTupleToReplace = path().narrowDownToKeyIn(jsonDocument);
+            return Patch.builder()
+                    .range(Range.builder()
+                            .startIndex(nodeTupleToReplace.getKeyNode().getStartMark().getIndex())
+                            .endIndex(nodeTupleToReplace.getValueNode().getEndMark().getIndex())
+                            .build())
+                    .replacement("")
                     .build();
         }
     }

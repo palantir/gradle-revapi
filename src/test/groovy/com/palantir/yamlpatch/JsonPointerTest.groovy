@@ -22,6 +22,7 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.nodes.Node
+import org.yaml.snakeyaml.nodes.NodeTuple
 import org.yaml.snakeyaml.nodes.ScalarNode
 
 @CompileStatic
@@ -35,17 +36,35 @@ class JsonPointerTest {
     }
 
     @Test
-    void narrows_down_nested_maps_correctly() {
+    void narrows_down_nested_maps_to_find_value_correctly() {
         Node rootNode = new Yaml().compose(new StringReader("""
             foo:
                 bar:
                     baz: quux
         """.stripIndent()))
 
-        Node narrowedDown = JsonPointer.fromString("/foo/bar/baz").narrowDown(rootNode)
+        Node narrowedDown = JsonPointer.fromString("/foo/bar/baz").narrowDownToValueIn(rootNode)
 
         Assertions.assertThat(narrowedDown).isInstanceOf(ScalarNode)
         Assertions.assertThat(((ScalarNode) narrowedDown).value).isEqualTo("quux")
+    }
+
+    @Test
+    void narrows_down_nested_maps_to_find_key_correctly() {
+        Node rootNode = new Yaml().compose(new StringReader("""
+            foo:
+                bar:
+                    baz: quux
+        """.stripIndent()))
+
+        NodeTuple narrowedDown = JsonPointer.fromString("/foo/bar/baz").narrowDownToKeyIn(rootNode)
+
+        Assertions.assertThat(narrowedDown.getKeyNode()).isInstanceOf(ScalarNode)
+        Assertions.assertThat(((ScalarNode) narrowedDown.getKeyNode()).value).isEqualTo("baz")
+
+        Assertions.assertThat(narrowedDown.getValueNode()).isInstanceOf(ScalarNode)
+        Assertions.assertThat(((ScalarNode) narrowedDown.getValueNode()).value).isEqualTo("quux")
+
     }
 
 }

@@ -25,6 +25,7 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 
+@SuppressWarnings("Duplicates")
 @Value.Immutable
 abstract class JsonPointer {
     protected abstract List<String> parts();
@@ -40,25 +41,31 @@ abstract class JsonPointer {
         return builder.build();
     }
 
-    public Node narrowDown(Node rootNode) {
-        Node narrowedDown = rootNode;
+    public NodeTuple narrowDownToKeyIn(Node rootNode) {
+        Node currentNode = rootNode;
+        NodeTuple narrowedDownToTuple = null;
 
         for (String part : parts()) {
             if (!(rootNode instanceof MappingNode)) {
                 throw new UnsupportedOperationException();
             }
 
-            NodeTuple matched = ((MappingNode) narrowedDown).getValue().stream()
+            NodeTuple matched = ((MappingNode) currentNode).getValue().stream()
                     .filter(nodeTuple -> nodeTuple.getKeyNode() instanceof ScalarNode
                             && ((ScalarNode) nodeTuple.getKeyNode()).getValue().equals(part))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Could not find '" + part + "' somewhere in '" + rootNode + "'"));
 
-            narrowedDown = matched.getValueNode();
+            narrowedDownToTuple = matched;
+            currentNode = matched.getValueNode();
         }
 
-        return narrowedDown;
+        return narrowedDownToTuple;
+    }
+
+    public Node narrowDownToValueIn(Node rootNode) {
+        return narrowDownToKeyIn(rootNode).getValueNode();
     }
 
     public static class Builder extends ImmutableJsonPointer.Builder { }

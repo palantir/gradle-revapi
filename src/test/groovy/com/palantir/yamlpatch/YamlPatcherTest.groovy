@@ -77,4 +77,29 @@ class YamlPatcherTest {
               quux: abcdef # even more comment
         """.stripIndent()
     }
+
+    @Test
+    void 'can patch remove a mapping from an object'() {
+        String input = """
+            # a comment
+            foo:
+              # another comment
+              bar: baz # so many comment
+              quux: goop # even more comment
+        """.stripIndent()
+
+        String output = yamlPatcher.patchYaml(
+                input,
+                TestObjects.Foo,
+                TestObjects.Foo.withValues(
+                        { baz -> baz },
+                        { quux -> Optional.empty() }))
+
+        Assertions.assertThat(output).isEqualTo """
+            # a comment
+            foo:
+              # another comment
+              bar: baz # so many comment
+        """.stripIndent()
+    }
 }
