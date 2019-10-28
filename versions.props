@@ -9,3 +9,5 @@ org.immutables:value = 2.8.1
 com.fasterxml.jackson.*:jackson-* = 2.9.9
 org.mockito:mockito-core = 3.1.0
 org.assertj:assertj-core = 3.14.0
+org.snakeyaml:snakeyaml-engine = 2.0
+com.flipkart.zjsonpatch:zjsonpatch = 0.4.9
