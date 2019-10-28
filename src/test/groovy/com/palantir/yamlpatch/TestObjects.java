@@ -16,7 +16,9 @@
 
 package com.palantir.yamlpatch;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 import org.immutables.value.Value;
 
@@ -28,10 +30,13 @@ final class TestObjects {
     interface Foo {
         Bar foo();
 
-        static UnaryOperator<Foo> withBaz(UnaryOperator<String> bazMapper) {
+        static UnaryOperator<Foo> withValues(
+                UnaryOperator<String> bazMapper,
+                UnaryOperator<Optional<String>> quuxMapper) {
             return foo -> ImmutableFoo.builder()
                     .foo(ImmutableBar.builder()
                             .bar(bazMapper.apply(foo.foo().bar()))
+                            .quux(quuxMapper.apply(foo.foo().quux()))
                             .build())
                     .build();
         }
@@ -39,7 +44,9 @@ final class TestObjects {
 
     @Value.Immutable
     @JsonDeserialize(as = ImmutableBar.class)
+    @JsonInclude(JsonInclude.Include.NON_ABSENT)
     interface Bar {
         String bar();
+        Optional<String> quux();
     }
 }

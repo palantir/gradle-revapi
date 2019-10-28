@@ -20,8 +20,8 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 abstract class Patch {
-    protected abstract Range range();
-    protected abstract String replacement();
+    public abstract Range range();
+    public abstract String replacement();
 
     public String applyTo(String input) {
         StringBuilder builder = new StringBuilder();
@@ -31,9 +31,23 @@ abstract class Patch {
         return builder.toString();
     }
 
+    public int difference() {
+        return range().length() - replacement().length();
+    }
+
     public static class Builder extends ImmutablePatch.Builder { }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static Patch of(int startIndex, int endIndex, String replacement) {
+        return builder()
+                .range(Range.builder()
+                        .startIndex(startIndex)
+                        .endIndex(endIndex)
+                        .build())
+                .replacement(replacement)
+                .build();
     }
 }

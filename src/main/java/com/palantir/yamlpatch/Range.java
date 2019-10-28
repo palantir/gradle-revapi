@@ -20,8 +20,33 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 abstract class Range {
-    protected abstract int startIndex();
-    protected abstract int endIndex();
+    public abstract int startIndex();
+    public abstract int endIndex();
+
+    @Value.Check
+    protected void check() {
+        if (startIndex() > endIndex()) {
+            throw new IllegalArgumentException("startIndex must be greater than endIndex");
+        }
+
+        if (startIndex() < 0) {
+            throw new IllegalArgumentException("startIndex must be >= 0");
+        }
+
+        if (endIndex() < 0) {
+            throw new IllegalArgumentException("endIndex must be >= 0");
+        }
+    }
+
+    public int length() {
+        return endIndex() - startIndex();
+    }
+
+    public boolean overlaps(Range other) {
+        boolean ourRangeIsLess   = startIndex() < other.startIndex() && endIndex() < other.startIndex();
+        boolean theirRangeIsLess = other.startIndex() < startIndex() && other.endIndex() < startIndex();
+        return !(ourRangeIsLess || theirRangeIsLess);
+    }
 
     public static class Builder extends ImmutableRange.Builder { }
 

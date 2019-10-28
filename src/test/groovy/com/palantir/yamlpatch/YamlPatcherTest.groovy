@@ -16,17 +16,20 @@
 
 package com.palantir.yamlpatch
 
-
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import groovy.transform.CompileStatic
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
 @CompileStatic
 class YamlPatcherTest {
-    @Test
-    void foo() {
-        YamlPatcher yamlPatcher = new YamlPatcher({ objectMapper -> objectMapper })
+    private final YamlPatcher yamlPatcher = new YamlPatcher({ ObjectMapper objectMapper ->
+        objectMapper.registerModule(new Jdk8Module());
+    })
 
+    @Test
+    void 'can patch a simple string value replacement'() {
         String input = """
             # a comment
             foo:
@@ -37,7 +40,9 @@ class YamlPatcherTest {
         String output = yamlPatcher.patchYaml(
                 input,
                 TestObjects.Foo,
-                TestObjects.Foo.withBaz({baz -> baz + "andmore"}))
+                TestObjects.Foo.withValues(
+                        { baz -> baz + "andmore" },
+                        { quux -> Optional.empty() }))
 
         Assertions.assertThat(output).isEqualTo """
             # a comment
@@ -47,4 +52,29 @@ class YamlPatcherTest {
         """.stripIndent()
     }
 
+    @Test
+    void 'can patch multi string value replacements'() {
+        String input = """
+            # a comment
+            foo:
+              # another comment
+              bar: baz # so many comment
+              quux: goop # even more comment
+        """.stripIndent()
+
+        String output = yamlPatcher.patchYaml(
+                input,
+                TestObjects.Foo,
+                TestObjects.Foo.withValues(
+                        { baz -> baz + "andmore" },
+                        { quux -> Optional.of("abcdef") }))
+
+        Assertions.assertThat(output).isEqualTo """
+            # a comment
+            foo:
+              # another comment
+              bar: bazandmore # so many comment
+              quux: abcdef # even more comment
+        """.stripIndent()
+    }
 }
