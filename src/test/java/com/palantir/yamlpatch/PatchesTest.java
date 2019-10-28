@@ -41,4 +41,14 @@ class PatchesTest {
 
         assertThat(patches.applyTo("0123456789")).isEqualTo("0123heya6789");
     }
+
+    @Test
+    void applies_a_multiple_patches_correctly() {
+        Patches patches = Patches.of(
+                Patch.of(2, 3, "foop"),
+                Patch.of(5, 8, ""),
+                Patch.of(9, 11, "yoyoyo"));
+
+        assertThat(patches.applyTo("01234567890123")).isEqualTo("01foop348yoyoyo123");
+    }
 }

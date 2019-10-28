@@ -31,9 +31,13 @@ final class Patches {
 
     public String applyTo(String input) {
         StringBuilder builder = new StringBuilder();
-        builder.append(input, 0, orderedPatches.get(0).range().startIndex());
-        builder.append(orderedPatches.get(0).replacement());
-        builder.append(input, orderedPatches.get(0).range().endIndex(), input.length());
+        int lastIndex = 0;
+        for (Patch patch : orderedPatches) {
+            builder.append(input, lastIndex, patch.range().startIndex());
+            builder.append(patch.replacement());
+            lastIndex = patch.range().endIndex();
+        }
+        builder.append(input, lastIndex, input.length());
         return builder.toString();
     }
 
