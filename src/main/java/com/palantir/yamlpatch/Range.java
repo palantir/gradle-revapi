@@ -49,4 +49,11 @@ abstract class Range {
     public static Builder builder() {
         return new Builder();
     }
+
+    public static Range of(int startIndex, int endIndex) {
+        return builder()
+                .startIndex(startIndex)
+                .endIndex(endIndex)
+                .build();
+    }
 }

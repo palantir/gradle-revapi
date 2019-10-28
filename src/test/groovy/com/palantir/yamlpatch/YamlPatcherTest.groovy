@@ -85,6 +85,8 @@ class YamlPatcherTest {
             foo:
               # another comment
               bar: baz # so many comment
+              # multiline fun comment
+              # it's really multiline
               quux: goop # even more comment
         """.stripIndent()
 
