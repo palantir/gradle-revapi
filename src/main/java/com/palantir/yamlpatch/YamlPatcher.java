@@ -16,13 +16,22 @@
 
 package com.palantir.yamlpatch;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.flipkart.zjsonpatch.JsonDiff;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.nodes.Node;
 
 public final class YamlPatcher {
+    private static final ObjectMapper JSON_PATCH_OBJECT_MAPPER = new ObjectMapper();
+
     private final ObjectMapper jsonObjectMapper;
     private final ObjectMapper yamlObjectMapper;
 
@@ -36,9 +45,20 @@ public final class YamlPatcher {
 
     public <T> String patchYaml(String input, Class<T> clazz, UnaryOperator<T> modifier) {
         try {
-            T inputType = yamlObjectMapper.readValue(input, clazz);
+            JsonNode inputJsonNode = yamlObjectMapper.readTree(input);
+            T inputType = yamlObjectMapper.convertValue(inputJsonNode, clazz);
             T outputType = modifier.apply(inputType);
-            return yamlObjectMapper.writeValueAsString(outputType);
+            JsonNode outputJsonNode = jsonObjectMapper.convertValue(outputType, JsonNode.class);
+
+            JsonNode diff = JsonDiff.asJson(inputJsonNode, outputJsonNode);
+
+            List<JsonPatch> patches = JSON_PATCH_OBJECT_MAPPER.convertValue(
+                    diff,
+                    new TypeReference<List<JsonPatch>>() {});
+
+            Node compose = new Yaml().compose(new StringReader(input));
+
+            return diff.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
