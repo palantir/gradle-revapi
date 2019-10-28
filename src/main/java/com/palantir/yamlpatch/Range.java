@@ -19,19 +19,11 @@ package com.palantir.yamlpatch;
 import org.immutables.value.Value;
 
 @Value.Immutable
-abstract class Patch {
-    protected abstract Range range();
-    protected abstract String replacement();
+abstract class Range {
+    protected abstract int startIndex();
+    protected abstract int endIndex();
 
-    public String applyTo(String input) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(input, 0, range().startIndex());
-        builder.append(replacement());
-        builder.append(input, range().endIndex(), input.length());
-        return builder.toString();
-    }
-
-    public static class Builder extends ImmutablePatch.Builder { }
+    public static class Builder extends ImmutableRange.Builder { }
 
     public static Builder builder() {
         return new Builder();

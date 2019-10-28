@@ -56,9 +56,10 @@ public final class YamlPatcher {
                     diff,
                     new TypeReference<List<JsonPatch>>() {});
 
-            Node compose = new Yaml().compose(new StringReader(input));
+            Node jsonDocument = new Yaml().compose(new StringReader(input));
 
-            return diff.toString();
+            Patch patch = patches.get(0).patchFor(jsonDocument);
+            return patch.applyTo(input);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

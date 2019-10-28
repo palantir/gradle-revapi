@@ -30,14 +30,24 @@ import org.yaml.snakeyaml.nodes.Node;
 public interface JsonPatch {
     JsonPointer path();
 
+    Patch patchFor(Node jsonDocument);
+
     @Value.Immutable
     @JsonTypeName("replace")
     @JsonDeserialize(as = ImmutableReplace.class)
     interface Replace extends JsonPatch {
         String value();
 
+        @Override
         default Patch patchFor(Node jsonDocument) {
-            return null;
+            Node nodeToReplace = path().narrowDown(jsonDocument);
+            return Patch.builder()
+                    .range(Range.builder()
+                            .startIndex(nodeToReplace.getStartMark().getIndex())
+                            .endIndex(nodeToReplace.getEndMark().getIndex())
+                            .build())
+                    .replacement(value())
+                    .build();
         }
     }
 }
