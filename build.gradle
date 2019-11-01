@@ -13,7 +13,7 @@ buildscript {
 
     dependencies {
         classpath 'com.netflix.nebula:gradle-info-plugin:5.1.1'
-        classpath 'com.netflix.nebula:nebula-publishing-plugin:14.0.0'
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:14.1.1'
     }
 }
 
