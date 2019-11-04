@@ -20,11 +20,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import java.io.Serializable;
 import java.util.List;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface GroupAndName {
+public interface GroupAndName extends Serializable {
+    long serialVersionUID = -9100078789756427887L;
+
     String group();
     String name();
 
