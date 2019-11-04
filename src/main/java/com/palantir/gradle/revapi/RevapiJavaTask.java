@@ -18,7 +18,6 @@ package com.palantir.gradle.revapi;
 
 import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
-import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
@@ -100,7 +99,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private RevapiConfig revapiIgnores() {
         Set<AcceptedBreak> acceptedBreaks = configManager.get()
                 .fromFileOrEmptyIfDoesNotExist()
-                .acceptedBreaksFor(GroupAndName.fromProject(getProject()));
+                .acceptedBreaksFor(getExtension().oldGroupNameVersion().groupAndName());
 
         return RevapiConfig.empty()
                 .withIgnoredBreaks(acceptedBreaks);

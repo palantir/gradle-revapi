@@ -41,7 +41,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        project.getExtensions().create("revapi", RevapiExtension.class, project);
+        RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
             conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
@@ -53,7 +53,9 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
 
-        project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class);
+        project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
+            task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
+        });
 
         project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
             task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));

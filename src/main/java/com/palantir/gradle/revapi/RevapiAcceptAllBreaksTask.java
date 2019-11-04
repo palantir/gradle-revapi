@@ -29,14 +29,23 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
 public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
     private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newJsonObjectMapper();
-    private static final String JUSTIFICATION = "justification";
+    public static final String JUSTIFICATION = "justification";
+
+    private final Property<GroupNameVersion> oldGroupNameVersion =
+            getProject().getObjects().property(GroupNameVersion.class);
 
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
+
+    @Input
+    final Property<GroupNameVersion> getOldGroupNameVersion() {
+        return oldGroupNameVersion;
+    }
 
     @Option(option = JUSTIFICATION, description = "Justification for why these breaks are ok")
     public final void setJustification(String justificationString) {
@@ -67,6 +76,6 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
                 .collect(Collectors.toSet());
 
         configManager().get().modifyConfigFile(config ->
-                config.addAcceptedBreaks(GroupNameVersion.fromProject(getProject()), acceptedBreaks));
+                config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
     }
 }
