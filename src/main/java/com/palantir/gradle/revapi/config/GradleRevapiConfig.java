@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -53,6 +54,13 @@ public abstract class GradleRevapiConfig {
                 .orElseGet(Collections::emptySet);
     }
 
+    public final Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupNameVersion) {
+        return acceptedBreaks().values().stream()
+                .flatMap(perProjectAcceptedBreaks ->
+                        perProjectAcceptedBreaks.acceptedBreaksFor(groupNameVersion).stream())
+                .collect(Collectors.toSet());
+    }
+
     public final GradleRevapiConfig addAcceptedBreaks(
             GroupNameVersion groupNameVersion,
             Set<AcceptedBreak> acceptedBreaks) {
@@ -73,8 +81,14 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
+    public static class Builder extends ImmutableGradleRevapiConfig.Builder { }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static GradleRevapiConfig empty() {
-        return ImmutableGradleRevapiConfig.builder().build();
+        return builder().build();
     }
 
     public static ObjectMapper newYamlObjectMapper() {

@@ -76,6 +76,6 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
                 .collect(Collectors.toSet());
 
         configManager().get().modifyConfigFile(config ->
-                config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
+                config.addAcceptedBreaks(GroupNameVersion.fromProject(getProject()), acceptedBreaks));
     }
 }

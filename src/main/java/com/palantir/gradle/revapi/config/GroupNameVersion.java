@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import java.util.List;
+import org.gradle.api.Project;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -46,6 +47,13 @@ public interface GroupNameVersion {
                         .name(split.get(1))
                         .build())
                 .version(Version.fromString(split.get(2)))
+                .build();
+    }
+
+    static GroupNameVersion fromProject(Project project) {
+        return builder()
+                .groupAndName(GroupAndName.fromProject(project))
+                .version(Version.fromString(project.getVersion().toString()))
                 .build();
     }
 
