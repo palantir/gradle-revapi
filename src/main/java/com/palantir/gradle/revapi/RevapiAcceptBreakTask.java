@@ -67,8 +67,9 @@ public class RevapiAcceptBreakTask extends DefaultTask {
         ensurePresent(code, CODE_OPTION);
         ensurePresent(justification, JUSTIFICATION_OPTION);
 
-        configManager.get().modifyConfigFile(revapiConfig ->
-                revapiConfig.addAcceptedBreaks(oldGroupNameVersion(), Collections.singleton(AcceptedBreak.builder()
+        configManager.get().modifyConfigFile(revapiConfig -> revapiConfig.addAcceptedBreaks(
+                GroupNameVersion.fromProject(getProject()),
+                Collections.singleton(AcceptedBreak.builder()
                         .code(code.get())
                         .oldElement(Optional.ofNullable(oldElement.getOrNull()))
                         .newElement(Optional.ofNullable(newElement.getOrNull()))
@@ -81,9 +82,5 @@ public class RevapiAcceptBreakTask extends DefaultTask {
         if (!prop.isPresent()) {
             throw new IllegalArgumentException("Please supply the --" + option + " param to this task");
         }
-    }
-
-    private GroupNameVersion oldGroupNameVersion() {
-        return getProject().getExtensions().getByType(RevapiExtension.class).oldGroupNameVersion();
     }
 }
