@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.revapi;
 
-import java.util.function.Supplier;
 import org.gradle.api.Project;
 
 final class PreviousVersionResolutionHelpers {
@@ -59,11 +58,17 @@ final class PreviousVersionResolutionHelpers {
         }
     }
 
-    public static <T> T withRenamedGroupForCurrentThread(Project project, Supplier<T> action) {
+    public static <T, E extends Exception> T withRenamedGroupForCurrentThread(
+            Project project,
+            CheckedSupplier<T, E> action) throws E {
         Object group = project.getGroup();
         project.setGroup(new ThreadLocalGroup(group, "revapi.changed.group." + group));
         T result = action.get();
         project.setGroup(group);
         return result;
+    }
+
+    interface CheckedSupplier<T, E extends Exception> {
+        T get() throws E;
     }
 }
