@@ -23,7 +23,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -46,12 +45,6 @@ public abstract class GradleRevapiConfig {
                 .from(this)
                 .putVersionOverrides(groupNameVersion, versionOverride)
                 .build();
-    }
-
-    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version()))
-                .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
-                .orElseGet(Collections::emptySet);
     }
 
     public final Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupNameVersion) {
