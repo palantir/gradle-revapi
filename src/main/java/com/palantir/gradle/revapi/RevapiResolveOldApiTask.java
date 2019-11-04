@@ -39,6 +39,8 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -76,6 +78,7 @@ public abstract class RevapiResolveOldApiTask extends DefaultTask {
     }
 
     @OutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     final Property<File> outputFile() {
         return outputFile;
     }
@@ -111,9 +114,7 @@ public abstract class RevapiResolveOldApiTask extends DefaultTask {
         throw new IllegalStateException(ExceptionMessages.failedToResolve(getProject(), allVersionedErrors));
     }
 
-    private ResolvedOldApi resolveOldApi(String oldVersion)
-            throws CouldNotResolvedOldApiException {
-
+    private ResolvedOldApi resolveOldApi(String oldVersion) throws CouldNotResolvedOldApiException {
         GroupNameVersion oldGroupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
                 .groupAndName(oldGroupAndName.get())
                 .version(Version.fromString(oldVersion))
