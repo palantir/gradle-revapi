@@ -99,7 +99,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private RevapiConfig revapiIgnores() {
         Set<AcceptedBreak> acceptedBreaks = configManager.get()
                 .fromFileOrEmptyIfDoesNotExist()
-                .acceptedBreaksFor(getExtension().oldGroupNameVersion());
+                .acceptedBreaksFor(getExtension().oldGroupNameVersion().groupAndName());
 
         return RevapiConfig.empty()
                 .withIgnoredBreaks(acceptedBreaks);

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import java.io.File;
 import java.io.IOException;
@@ -70,16 +71,7 @@ class ConfigManagerTest {
                 .getBytes(StandardCharsets.UTF_8));
 
         configManager.modifyConfigFile(revapiConfig -> {
-            assertThat(revapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
-            assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("foo:bar:1.2.3"))).containsExactly(
-                    AcceptedBreak.builder()
-                            .code("blah")
-                            .oldElement("old")
-                            .newElement("new")
-                            .justification("I don't care about my users")
-                            .build()
-            );
-            assertThat(revapiConfig.acceptedBreaksFor(GroupNameVersion.fromString("doesnt:exist:1.2.3"))).isEmpty();
+            assertThat(revapiConfig.acceptedBreaksFor(GroupAndName.fromString("doesnt:exist"))).isEmpty();
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
                     .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
