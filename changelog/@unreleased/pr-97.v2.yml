@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: '`gradle-revapi` will look back at all accepted breaks in the `.palantir/revapi.yml`,
+    in order to not require PRs being up to date with develop before merging (see
+    https://github.com/palantir/gradle-revapi/issues/77)'
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/97
