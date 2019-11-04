@@ -23,11 +23,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -47,10 +47,11 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
-    public final Set<AcceptedBreak> acceptedBreaksFor(GroupNameVersion groupNameVersion) {
-        return Optional.ofNullable(acceptedBreaks().get(groupNameVersion.version()))
-                .map(projectBreaks -> projectBreaks.acceptedBreaksFor(groupNameVersion.groupAndName()))
-                .orElseGet(Collections::emptySet);
+    public final Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupNameVersion) {
+        return acceptedBreaks().values().stream()
+                .flatMap(perProjectAcceptedBreaks ->
+                        perProjectAcceptedBreaks.acceptedBreaksFor(groupNameVersion).stream())
+                .collect(Collectors.toSet());
     }
 
     public final GradleRevapiConfig addAcceptedBreaks(
@@ -73,8 +74,14 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
+    public static class Builder extends ImmutableGradleRevapiConfig.Builder { }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static GradleRevapiConfig empty() {
-        return ImmutableGradleRevapiConfig.builder().build();
+        return builder().build();
     }
 
     public static ObjectMapper newYamlObjectMapper() {
