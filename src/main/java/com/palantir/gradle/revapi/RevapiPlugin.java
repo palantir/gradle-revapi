@@ -41,6 +41,8 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
+        project.getExtensions().create("revapi", RevapiExtension.class, project);
+
         Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
             conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
         });
