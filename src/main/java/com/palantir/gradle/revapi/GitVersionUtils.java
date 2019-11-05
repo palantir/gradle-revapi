@@ -59,7 +59,7 @@ final class GitVersionUtils {
             return Optional.empty();
         }
 
-        return Optional.of(describeResult.stdoutOfThrowIfNonZero());
+        return Optional.of(describeResult.stdoutOrThrowIfNonZero());
     }
 
     private static GitResult execute(Project project, String... command) {
@@ -87,7 +87,7 @@ final class GitVersionUtils {
         String stderr();
         List<String> command();
 
-        default String stdoutOfThrowIfNonZero() {
+        default String stdoutOrThrowIfNonZero() {
             if (exitCode() == 0) {
                 return stdout();
             }

@@ -127,19 +127,19 @@ public abstract class RevapiJavaTask extends DefaultTask {
         List<String> oldVersions = revapiExtension.getOldVersions().get();
 
         Map<String, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
-        for (String olderVersion : oldVersions) {
+        for (String oldVersion : oldVersions) {
             try {
-                API oldApi = resolveOldApi(revapiExtension, olderVersion);
+                API oldApi = resolveOldApi(revapiExtension, oldVersion);
                 if (!exceptionsPerVersion.isEmpty()) {
                     log.warn("{} has successfully resolved. At first we tried to use versions {}, however they all "
                             + "failed to resolve with these errors:\n\n{}",
-                            olderVersion,
+                            oldVersion,
                             exceptionsPerVersion.keySet(),
                             ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
                 return oldApi;
             } catch (CouldNotResolveOldApiException e) {
-                exceptionsPerVersion.put(olderVersion, e);
+                exceptionsPerVersion.put(oldVersion, e);
             }
         }
 
