@@ -16,14 +16,11 @@
 
 package com.palantir.gradle.revapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +39,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -191,7 +187,7 @@ public abstract class RevapiResolveOldApiTask extends DefaultTask {
         });
     }
 
-    class CouldNotResolvedOldApiException extends Exception {
+    private class CouldNotResolvedOldApiException extends Exception {
         private final List<Throwable> resolutionFailures;
 
         CouldNotResolvedOldApiException(List<Throwable> resolutionFailures) {
@@ -200,38 +196,6 @@ public abstract class RevapiResolveOldApiTask extends DefaultTask {
 
         public List<Throwable> resolutionFailures() {
             return resolutionFailures;
-        }
-    }
-
-    @Value.Immutable
-    @JsonDeserialize(as = ImmutableResolvedOldApi.class)
-    interface ResolvedOldApi {
-        ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-        Version version();
-        Set<File> directJars();
-        Set<File> transitiveJars();
-
-        class Builder extends ImmutableResolvedOldApi.Builder { }
-
-        static Builder builder() {
-            return new Builder();
-        }
-
-        default void writeToFile(File file) {
-            try {
-                OBJECT_MAPPER.writeValue(file, this);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        static ResolvedOldApi readFromFile(File file) {
-            try {
-                return OBJECT_MAPPER.readValue(file, ResolvedOldApi.class);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

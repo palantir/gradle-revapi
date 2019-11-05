@@ -16,21 +16,20 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -47,22 +46,41 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private final Property<ConfigManager> configManager =
             getProject().getObjects().property(ConfigManager.class);
 
+    private final Property<GroupAndName> oldGroupAndName =
+            getProject().getObjects().property(GroupAndName.class);
+
     private final Property<Configuration> newApiDependencyJars =
             getProject().getObjects().property(Configuration.class);
 
     private final Property<FileCollection> newApiJars =
             getProject().getObjects().property(FileCollection.class);
 
+    private final Property<File> oldApiFile =
+            getProject().getObjects().property(File.class);
+
+    @Nested
     final Property<ConfigManager> configManager() {
         return configManager;
+    }
+
+    @Input
+    public final Property<GroupAndName> oldGroupAndName() {
+        return oldGroupAndName;
     }
 
     public final Property<Configuration> newApiDependencyJars() {
         return newApiDependencyJars;
     }
 
+
+    @InputFiles
     public final Property<FileCollection> newApiJars() {
         return newApiJars;
+    }
+
+    @InputFile
+    public final Property<File> oldApiFile() {
+        return oldApiFile;
     }
 
     protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
@@ -100,7 +118,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private RevapiConfig revapiIgnores() {
         Set<AcceptedBreak> acceptedBreaks = configManager.get()
                 .fromFileOrEmptyIfDoesNotExist()
-                .acceptedBreaksFor(getExtension().oldGroupNameVersion().groupAndName());
+                .acceptedBreaksFor(oldGroupAndName.get());
 
         return RevapiConfig.empty()
                 .withIgnoredBreaks(acceptedBreaks);
@@ -120,112 +138,11 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     private API oldApi() {
-        RevapiExtension revapiExtension = getExtension();
-
-        List<String> olderVersions = revapiExtension.getOldVersions().get();
-
-        Map<String, CouldNotResolvedOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
-        for (String olderVersion : olderVersions) {
-            try {
-                API oldApi = oldApi2(revapiExtension, olderVersion);
-                if (!exceptionsPerVersion.isEmpty()) {
-                    log.warn(olderVersion + " has successfully resolved. At first we tried to use versions "
-                            + exceptionsPerVersion.keySet() + ", however they all failed to resolve, with these "
-                            + "errors:\n\n" + ExceptionMessages.joined(exceptionsPerVersion.values()));
-                }
-                return oldApi;
-            } catch (CouldNotResolvedOldApiException e) {
-                exceptionsPerVersion.put(olderVersion, e);
-            }
-        }
-
-        String allVersionedErrors = exceptionsPerVersion.entrySet().stream()
-                .map(entry -> "We tried version " + entry.getKey() + " but it failed with errors:\n\n"
-                        + ExceptionMessages.joined(entry.getValue().resolutionFailures()))
-                .collect(Collectors.joining("\n\n"));
-
-        throw new IllegalStateException(ExceptionMessages.failedToResolve(getProject(), allVersionedErrors));
-    }
-
-    class CouldNotResolvedOldApiException extends Exception {
-        private final List<Throwable> resolutionFailures;
-
-        CouldNotResolvedOldApiException(List<Throwable> resolutionFailures) {
-            this.resolutionFailures = resolutionFailures;
-        }
-
-        public List<Throwable> resolutionFailures() {
-            return resolutionFailures;
-        }
-    }
-
-    private API oldApi2(RevapiExtension revapiExtension, String oldVersion) throws CouldNotResolvedOldApiException {
-        Dependency oldApiDependency = getProject().getDependencies().create(String.format(
-                "%s:%s:%s",
-                revapiExtension.getOldGroup().get(),
-                revapiExtension.getOldName().get(),
-                oldVersion));
-
-        Configuration oldApiDepsConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApiDeps",
-                "The dependencies of the previously published version of this project");
-
-        Configuration oldApiConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApi",
-                "Just the previously published version of this project");
-        oldApiConfiguration.setTransitive(false);
-
-        // When the version of the local java project is higher than the old published dependency and has the same
-        // group and name, gradle silently replaces the published external dependency with the project dependency
-        // (see https://discuss.gradle.org/t/fetching-the-previous-version-of-a-projects-jar/8571). This happens on
-        // tag builds, and would cause the publish to fail. Instead we, change the group for just this thread
-        // while resolving these dependencies so the switching out doesnt happen.
-        Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
-                getProject(), () -> resolveConfigurationUnlessMissingJars(oldApiConfiguration));
-
-        Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
-                getProject(), oldApiDepsConfiguration::resolve);
-
-        Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
-
+        ResolvedOldApi resolvedOldApi = ResolvedOldApi.readFromFile(oldApiFile.get());
         return API.builder()
-                .addArchives(toFileArchives(oldOnlyJar))
-                .addSupportArchives(toFileArchives(oldJustDeps))
+                .addArchives(toFileArchives(resolvedOldApi.directJars()))
+                .addSupportArchives(toFileArchives(resolvedOldApi.transitiveJars()))
                 .build();
-    }
-
-    private Set<File> resolveConfigurationUnlessMissingJars(Configuration configuration)
-            throws CouldNotResolvedOldApiException {
-
-        Set<? extends DependencyResult> allDependencies = configuration.getIncoming()
-                .getResolutionResult()
-                .getAllDependencies();
-
-        List<Throwable> resolutionFailures = allDependencies.stream()
-                .filter(dependencyResult -> dependencyResult instanceof UnresolvedDependencyResult)
-                .map(dependencyResult -> (UnresolvedDependencyResult) dependencyResult)
-                .map(UnresolvedDependencyResult::getFailure)
-                .collect(Collectors.toList());
-
-        if (resolutionFailures.isEmpty()) {
-            return configuration.resolve();
-        }
-
-        throw new CouldNotResolvedOldApiException(resolutionFailures);
-    }
-
-    private Configuration oldApiConfiguration(
-            Dependency oldApiDependency,
-            String name,
-            String description) {
-        return getProject().getConfigurations().create(name, conf -> {
-            conf.setDescription(description);
-            conf.getDependencies().add(oldApiDependency);
-            conf.setCanBeConsumed(false);
-            conf.setVisible(false);
-        });
-    }
-
-    private RevapiExtension getExtension() {
-        return getProject().getExtensions().getByType(RevapiExtension.class);
     }
 
     private static List<FileArchive> toFileArchives(Property<FileCollection> fileCollectionProperty) {

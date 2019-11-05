@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.revapi;
 
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -57,6 +58,13 @@ public class RevapiExtension {
 
     public void setOldVersion(String oldVersionValue) {
         oldVersions.set(Collections.singletonList(oldVersionValue));
+    }
+
+    GroupAndName oldGroupAndName() {
+        return GroupAndName.builder()
+                .group(oldGroup.get())
+                .name(oldName.get())
+                .build();
     }
 
     GroupNameVersion oldGroupNameVersion() {

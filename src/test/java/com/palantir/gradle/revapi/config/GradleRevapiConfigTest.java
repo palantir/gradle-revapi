@@ -49,7 +49,8 @@ class GradleRevapiConfigTest {
         GradleRevapiConfig gradleRevapiConfig = GradleRevapiConfig.empty()
                 .addVersionOverride(FOO_BAR_312, "some_version_override");
 
-        assertThat(gradleRevapiConfig.versionOverrideFor(FOO_BAR_312)).hasValue("some_version_override");
+        assertThat(gradleRevapiConfig.versionOverrideFor(FOO_BAR_312))
+                .hasValue(Version.fromString("some_version_override"));
         assertThat(gradleRevapiConfig.versionOverrideFor(QUUX_BAZ_10)).isEmpty();
     }
 
