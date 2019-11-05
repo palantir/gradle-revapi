@@ -27,6 +27,7 @@ import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -114,7 +115,8 @@ class ConfigManagerTest {
 
         GradleRevapiConfig gradleRevapiConfig = configManager.fromFileOrEmptyIfDoesNotExist();
 
-        assertThat(gradleRevapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12"))).hasValue("1.0");
+        assertThat(gradleRevapiConfig.versionOverrideFor(GroupNameVersion.fromString("foo:bar:3.12")))
+                .hasValue(Version.fromString("1.0"));
     }
 
     private UnaryOperator<GradleRevapiConfig> identityFunction() {

@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: '`gradle-revapi` will look back up to 3 git tags if it cannot find
+    the jars for the most recently published git tag. This should fix issues with
+    merging in develop before a develop publish build has succeeded.'
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/99

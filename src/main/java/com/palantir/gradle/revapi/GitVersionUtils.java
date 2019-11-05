@@ -18,20 +18,121 @@ package com.palantir.gradle.revapi;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.gradle.api.Project;
+import org.gradle.process.ExecResult;
+import org.immutables.value.Value;
 
 final class GitVersionUtils {
     private GitVersionUtils() { }
 
-    public static String previousGitTag(Project project) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    public static Stream<String> previousGitTags(Project project) {
+        return StreamSupport.stream(new PreviousGitTags(project), false);
+    }
 
-        project.exec(spec -> {
-            // this matches how gradle-git-version works, just with 'HEAD^' to avoid getting the current tag
-            spec.setCommandLine("git", "describe", "--tags", "--always", "--abbrev=0", "HEAD^");
-            spec.setStandardOutput(baos);
-        }).assertNormalExitValue();
+    private static Optional<String> previousGitTagFromRef(Project project, String ref) {
+        String beforeLastRef = ref + "^";
 
-        return new String(baos.toByteArray(), StandardCharsets.UTF_8).trim();
+        GitResult beforeLastRefTypeResult = execute(project, "git", "cat-file", "-t", beforeLastRef);
+
+        boolean thereIsNoCommitBeforeTheRef = !beforeLastRefTypeResult.stdout().equals("commit");
+        if (thereIsNoCommitBeforeTheRef) {
+            return Optional.empty();
+        }
+
+        GitResult describeResult = execute(project, "git", "describe", "--tags", "--abbrev=0", beforeLastRef);
+
+        if (describeResult.stderr().contains("No tags can describe")) {
+            return Optional.empty();
+        }
+
+        return Optional.of(describeResult.stdoutOrThrowIfNonZero());
+    }
+
+    private static GitResult execute(Project project, String... command) {
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
+        ExecResult execResult = project.exec(spec -> {
+            spec.setCommandLine(Arrays.asList(command));
+            spec.setStandardOutput(stdout);
+            spec.setErrorOutput(stderr);
+            spec.setIgnoreExitValue(true);
+        });
+
+        return GitResult.builder()
+                .exitCode(execResult.getExitValue())
+                .stdout(new String(stdout.toByteArray(), StandardCharsets.UTF_8).trim())
+                .stderr(new String(stderr.toByteArray(), StandardCharsets.UTF_8).trim())
+                .build();
+    }
+
+    @Value.Immutable
+    interface GitResult {
+        int exitCode();
+        String stdout();
+        String stderr();
+        List<String> command();
+
+        default String stdoutOrThrowIfNonZero() {
+            if (exitCode() == 0) {
+                return stdout();
+            }
+
+            throw new RuntimeException("Failed running command:\n"
+                    + "\tCommand:" + command() + "\n"
+                    + "\tExit code: " + exitCode() + "\n"
+                    + "\tStdout:" + stdout() + "\n"
+                    + "\tStderr:" + stderr() + "\n");
+        }
+
+        class Builder extends ImmutableGitResult.Builder { }
+
+        static Builder builder() {
+            return new Builder();
+        }
+    }
+
+    private static final class PreviousGitTags implements Spliterator<String> {
+        private final Project project;
+        private String lastSeenRef = "HEAD";
+
+        PreviousGitTags(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super String> action) {
+            Optional<String> tag = previousGitTagFromRef(project, lastSeenRef);
+
+            if (!tag.isPresent()) {
+                return false;
+            }
+
+            lastSeenRef = tag.get();
+            action.accept(lastSeenRef);
+            return true;
+        }
+
+        @Override
+        public Spliterator<String> trySplit() {
+            return null;
+        }
+
+        @Override
+        public long estimateSize() {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public int characteristics() {
+            return 0;
+        }
     }
 }

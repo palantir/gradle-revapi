@@ -19,6 +19,8 @@ package com.palantir.gradle.revapi;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.gradle.api.Project;
 
 final class ExceptionMessages {
@@ -42,5 +44,11 @@ final class ExceptionMessages {
         } catch (IOException e) {
             throw new RuntimeException("Couldn't read template", e);
         }
+    }
+
+    public static String joined(Collection<? extends Throwable> throwables) {
+        return throwables.stream()
+                    .map(Throwable::getMessage)
+                    .collect(Collectors.joining("\n\n"));
     }
 }

@@ -16,10 +16,17 @@
 
 package com.palantir.gradle.revapi
 
+
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class RevapiSpec extends IntegrationSpec {
+    private Git git
+
+    def setup() {
+        git = new Git(projectDir)
+    }
+
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """
@@ -177,6 +184,63 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runRevapiExpectingResolutionFailure()
+    }
+
+    def 'when the previous git tag has failed to publish, it will look back up to a further git tag'() {
+        when:
+        git.initWithTestUser()
+
+        writeToFile '.gitignore', """
+            .gradle*/
+            build/
+            mavenRepo/
+        """.stripIndent()
+
+        rootProjectNameIs 'name'
+
+        buildFile << """
+            plugins {
+                id 'com.palantir.git-version' version '0.12.2'
+            }
+
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            
+            group = 'group'
+            version = gitVersion()
+   
+            ${mavenRepoGradle()}
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        def javaFile = 'src/main/java/foo/Foo.java'
+        writeToFile javaFile, """
+            public interface Foo {
+                String willBeRemoved();
+            }
+        """.stripIndent()
+
+        git.command 'git add .'
+        git.command 'git commit -m 0.1.0'
+        git.command 'git tag 0.1.0'
+
+        runTasksSuccessfully('publish')
+
+        and:
+        git.command 'git commit --allow-empty -m publish-failed'
+        git.command 'git tag 0.2.0'
+
+        and:
+        writeToFile javaFile, """
+            public interface Foo { }
+        """.stripIndent()
+
+        git.command 'git commit -am new-work'
+
+        then:
+        def standardError = runTasksWithFailure('revapi').standardError
+        assert standardError.contains('willBeRemoved')
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
