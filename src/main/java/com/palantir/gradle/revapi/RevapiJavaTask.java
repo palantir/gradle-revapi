@@ -131,9 +131,11 @@ public abstract class RevapiJavaTask extends DefaultTask {
             try {
                 API oldApi = resolveOldApi(revapiExtension, olderVersion);
                 if (!exceptionsPerVersion.isEmpty()) {
-                    log.warn(olderVersion + " has successfully resolved. At first we tried to use versions "
-                            + exceptionsPerVersion.keySet() + ", however they all failed to resolve, with these "
-                            + "errors:\n\n" + ExceptionMessages.joined(exceptionsPerVersion.values()));
+                    log.warn("{} has successfully resolved. At first we tried to use versions {}, however they all "
+                            + "failed to resolve with these errors:\n\n{}",
+                            olderVersion,
+                            exceptionsPerVersion.keySet(),
+                            ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
                 return oldApi;
             } catch (CouldNotResolveOldApiException e) {
@@ -190,7 +192,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private GroupNameVersion possiblyReplacedOldVersionFor(GroupNameVersion groupNameVersion) {
         Version possiblyReplacedVersion = configManager.get().fromFileOrEmptyIfDoesNotExist()
                 .versionOverrideFor(groupNameVersion)
-                .orElse(groupNameVersion.version());
+                .orElseGet(groupNameVersion::version);
         return GroupNameVersion.builder()
                 .from(groupNameVersion)
                 .version(possiblyReplacedVersion)
