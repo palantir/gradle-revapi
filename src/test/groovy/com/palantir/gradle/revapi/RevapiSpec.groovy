@@ -16,11 +16,17 @@
 
 package com.palantir.gradle.revapi
 
-import java.util.concurrent.TimeUnit
+
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class RevapiSpec extends IntegrationSpec {
+    private Git git
+
+    def setup() {
+        git = new Git(projectDir)
+    }
+
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """
@@ -182,9 +188,7 @@ class RevapiSpec extends IntegrationSpec {
 
     def 'when the previous git tag has failed to publish, it will look back up to a further git tag'() {
         when:
-        gitCommand 'git init'
-        gitCommand 'git config user.name "Test User"'
-        gitCommand 'git config user.email "test@example.com"'
+        git.initWithTestUser()
 
         writeToFile '.gitignore', """
             .gradle*/
@@ -217,37 +221,26 @@ class RevapiSpec extends IntegrationSpec {
             }
         """.stripIndent()
 
-        gitCommand 'git add .'
-        gitCommand 'git commit -m 0.1.0'
-        gitCommand 'git tag 0.1.0'
+        git.command 'git add .'
+        git.command 'git commit -m 0.1.0'
+        git.command 'git tag 0.1.0'
 
         runTasksSuccessfully('publish')
 
         and:
-        gitCommand 'git commit --allow-empty -m publish-failed'
-        gitCommand 'git tag 0.2.0'
+        git.command 'git commit --allow-empty -m publish-failed'
+        git.command 'git tag 0.2.0'
 
         and:
         writeToFile javaFile, """
             public interface Foo { }
         """.stripIndent()
 
-        gitCommand 'git commit -am new-work'
+        git.command 'git commit -am new-work'
 
         then:
         def standardError = runTasksWithFailure('revapi').standardError
         assert standardError.contains('willBeRemoved')
-    }
-
-    void gitCommand(String command) {
-        def process = command.execute(Collections.emptyList(), projectDir)
-        process.waitFor(1, TimeUnit.SECONDS)
-
-        if (process.exitValue() != 0) {
-            println process.in.text
-            println process.err.text
-            assert process.exitValue() == 0
-        }
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {

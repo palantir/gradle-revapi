@@ -17,6 +17,7 @@
 package com.palantir.gradle.revapi
 
 import static com.palantir.gradle.revapi.PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -67,6 +68,18 @@ class PreviousVersionResolutionHelpersSpec extends AbstractProjectSpec {
     def 'reset the group to the original value afterwards'() {
         when:
         withRenamedGroupForCurrentThread(project, { })
+
+        then:
+        assert project.group.is(originalGroupName)
+    }
+
+    def 'if an exception is thrown it will reset the group back to the original value'() {
+        when:
+        assertThatExceptionOfType(IOException.class).isThrownBy {
+            withRenamedGroupForCurrentThread(project, {
+                throw new IOException()
+            })
+        }
 
         then:
         assert project.group.is(originalGroupName)

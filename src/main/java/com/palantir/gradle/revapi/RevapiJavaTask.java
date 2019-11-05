@@ -126,7 +126,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
 
         List<String> olderVersions = revapiExtension.getOlderVersions().get();
 
-        Map<String, CouldNotResolvedOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
+        Map<String, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String olderVersion : olderVersions) {
             try {
                 API oldApi = resolveOldApi(revapiExtension, olderVersion);
@@ -136,7 +136,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
                             + "errors:\n\n" + ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
                 return oldApi;
-            } catch (CouldNotResolvedOldApiException e) {
+            } catch (CouldNotResolveOldApiException e) {
                 exceptionsPerVersion.put(olderVersion, e);
             }
         }
@@ -146,7 +146,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     private API resolveOldApi(RevapiExtension revapiExtension, String oldVersion)
-            throws CouldNotResolvedOldApiException {
+            throws CouldNotResolveOldApiException {
 
         GroupNameVersion groupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
                 .groupAndName(revapiExtension.oldGroupAndName())
@@ -198,7 +198,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     private Set<File> resolveConfigurationUnlessMissingJars(Version oldVersion, Configuration configuration)
-            throws CouldNotResolvedOldApiException {
+            throws CouldNotResolveOldApiException {
 
         Set<? extends DependencyResult> allDependencies = configuration.getIncoming()
                 .getResolutionResult()
@@ -214,14 +214,14 @@ public abstract class RevapiJavaTask extends DefaultTask {
             return configuration.resolve();
         }
 
-        throw new CouldNotResolvedOldApiException(oldVersion, resolutionFailures);
+        throw new CouldNotResolveOldApiException(oldVersion, resolutionFailures);
     }
 
-    private static final class CouldNotResolvedOldApiException extends Exception {
+    private static final class CouldNotResolveOldApiException extends Exception {
         private final Version version;
         private final List<Throwable> resolutionFailures;
 
-        CouldNotResolvedOldApiException(
+        CouldNotResolveOldApiException(
                 Version version,
                 List<Throwable> resolutionFailures) {
             this.version = version;
