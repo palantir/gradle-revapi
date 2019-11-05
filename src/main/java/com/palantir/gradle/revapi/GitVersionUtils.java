@@ -21,8 +21,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.gradle.api.Project;
 import org.gradle.process.ExecResult;
 import org.immutables.value.Value;
@@ -31,16 +33,7 @@ final class GitVersionUtils {
     private GitVersionUtils() { }
 
     public static Stream<String> previousGitTags(Project project) {
-        final AtomicReference<Optional<String>> lastSeenRef = new AtomicReference<>(Optional.of("HEAD"));
-
-        Stream<Optional<String>> previousTags = Stream.generate(() -> {
-            Optional<String> tag = lastSeenRef.get().flatMap(ref -> previousGitTagFromRef(project, ref));
-            lastSeenRef.set(tag);
-            return tag;
-        });
-
-        return Java9Streams.takeWhile(previousTags, Optional::isPresent)
-                .map(Optional::get);
+        return StreamSupport.stream(new PreviousGitTags(project), false);
     }
 
     private static Optional<String> previousGitTagFromRef(Project project, String ref) {
@@ -103,6 +96,43 @@ final class GitVersionUtils {
 
         static Builder builder() {
             return new Builder();
+        }
+    }
+
+    private static final class PreviousGitTags implements Spliterator<String> {
+        private final Project project;
+        private String lastSeenRef = "HEAD";
+
+        PreviousGitTags(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super String> action) {
+            Optional<String> tag = previousGitTagFromRef(project, lastSeenRef);
+
+            if (!tag.isPresent()) {
+                return false;
+            }
+
+            lastSeenRef = tag.get();
+            action.accept(lastSeenRef);
+            return true;
+        }
+
+        @Override
+        public Spliterator<String> trySplit() {
+            return null;
+        }
+
+        @Override
+        public long estimateSize() {
+            return Long.MAX_VALUE;
+        }
+
+        @Override
+        public int characteristics() {
+            return 0;
         }
     }
 }
