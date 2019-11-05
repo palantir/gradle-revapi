@@ -122,7 +122,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private API oldApi() {
         RevapiExtension revapiExtension = getExtension();
 
-        List<String> olderVersions = revapiExtension.getOldVersions().get();
+        List<String> olderVersions = revapiExtension.getOlderVersions().get();
 
         Map<String, CouldNotResolvedOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String olderVersion : olderVersions) {

@@ -16,7 +16,9 @@
 
 package com.palantir.gradle.revapi;
 
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Version;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
@@ -27,7 +29,7 @@ import org.gradle.api.provider.Property;
 public class RevapiExtension {
     private final Property<String> oldGroup;
     private final Property<String> oldName;
-    private final ListProperty<String> oldVersions;
+    private final ListProperty<String> olderVersions;
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
@@ -36,8 +38,8 @@ public class RevapiExtension {
         this.oldName = project.getObjects().property(String.class);
         this.oldName.set(project.getProviders().provider(project::getName));
 
-        this.oldVersions = project.getObjects().listProperty(String.class);
-        this.oldVersions.set(project.getProviders().provider(() ->
+        this.olderVersions = project.getObjects().listProperty(String.class);
+        this.olderVersions.set(project.getProviders().provider(() ->
                 GitVersionUtils.previousGitTags(project)
                         .limit(3)
                         .collect(Collectors.toList())));
@@ -51,15 +53,21 @@ public class RevapiExtension {
         return oldName;
     }
 
-    public ListProperty<String> getOldVersions() {
-        return oldVersions;
+    public ListProperty<String> getOlderVersions() {
+        return olderVersions;
     }
 
     public void setOldVersion(String oldVersionValue) {
-        oldVersions.set(Collections.singletonList(oldVersionValue));
+        olderVersions.set(Collections.singletonList(oldVersionValue));
     }
 
     GroupNameVersion oldGroupNameVersion() {
-        throw new UnsupportedOperationException();
+        return GroupNameVersion.builder()
+                .groupAndName(GroupAndName.builder()
+                        .group(oldGroup.get())
+                        .name(oldName.get())
+                        .build())
+                .version(Version.fromString(olderVersions.get()))
+                .build();
     }
 }
