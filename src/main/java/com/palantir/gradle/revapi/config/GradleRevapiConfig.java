@@ -37,8 +37,7 @@ public abstract class GradleRevapiConfig {
     protected abstract Map<Version, PerProjectAcceptedBreaks> acceptedBreaks();
 
     public final Optional<Version> versionOverrideFor(GroupNameVersion groupNameVersion) {
-        return Optional.ofNullable(versionOverrides().get(groupNameVersion))
-                .map(Version::fromString);
+        return Optional.ofNullable(Version.fromString(versionOverrides().get(groupNameVersion)));
     }
 
     public final GradleRevapiConfig addVersionOverride(GroupNameVersion groupNameVersion, String versionOverride) {

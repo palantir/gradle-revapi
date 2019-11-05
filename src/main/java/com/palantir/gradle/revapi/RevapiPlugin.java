@@ -17,7 +17,6 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,16 +48,6 @@ public final class RevapiPlugin implements Plugin<Project> {
         });
 
         ConfigManager configManager = new ConfigManager(configFile(project));
-        Provider<GroupAndName> oldGroupAndName = project.getProviders().provider(extension::oldGroupAndName);
-        File resolvedOldApiFile = new File(project.getBuildDir(), "revapi/revapi-old-api.json");
-
-        TaskProvider<RevapiResolveOldApiTask> resolveOldApiTask = project.getTasks()
-                .register("revapiResolveOldApi", RevapiResolveOldApiTask.class, task -> {
-                    task.configManager().set(configManager);
-                    task.oldGroupAndName().set(oldGroupAndName);
-                    task.oldVersions().set(extension.getOldVersions());
-                    task.outputFile().set(resolvedOldApiFile);
-                });
 
         TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class);
 
@@ -70,15 +59,11 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
             task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
-            task.oldGroupAndName().set(oldGroupAndName);
             task.configManager().set(configManager);
             task.newApiDependencyJars().set(revapiNewApi);
-            task.oldApiFile().set(resolvedOldApiFile);
 
             Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
             task.newApiJars().set(jarTask.getOutputs().getFiles());
-
-            task.dependsOn(resolveOldApiTask);
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
