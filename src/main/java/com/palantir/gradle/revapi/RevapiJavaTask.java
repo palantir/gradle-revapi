@@ -68,7 +68,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
-        API oldApi = oldApi();
+        API oldApi = resolveOldApiAcrossAllOldVersions();
         API newApi = newApi();
 
         log.info("Old API: {}", oldApi);
@@ -121,7 +121,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .build();
     }
 
-    private API oldApi() {
+    private API resolveOldApiAcrossAllOldVersions() {
         RevapiExtension revapiExtension = getExtension();
 
         List<String> olderVersions = revapiExtension.getOlderVersions().get();
@@ -129,7 +129,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
         Map<String, CouldNotResolvedOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String olderVersion : olderVersions) {
             try {
-                API oldApi = oldApi2(revapiExtension, olderVersion);
+                API oldApi = resolveOldApi(revapiExtension, olderVersion);
                 if (!exceptionsPerVersion.isEmpty()) {
                     log.warn(olderVersion + " has successfully resolved. At first we tried to use versions "
                             + exceptionsPerVersion.keySet() + ", however they all failed to resolve, with these "
@@ -145,7 +145,9 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 ExceptionMessages.joined(exceptionsPerVersion.values())));
     }
 
-    private API oldApi2(RevapiExtension revapiExtension, String oldVersion) throws CouldNotResolvedOldApiException {
+    private API resolveOldApi(RevapiExtension revapiExtension, String oldVersion)
+            throws CouldNotResolvedOldApiException {
+
         GroupNameVersion groupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
                 .groupAndName(revapiExtension.oldGroupAndName())
                 .version(Version.fromString(oldVersion))
