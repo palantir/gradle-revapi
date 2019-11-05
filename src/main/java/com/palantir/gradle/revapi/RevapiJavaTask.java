@@ -145,28 +145,6 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 ExceptionMessages.joined(exceptionsPerVersion.values())));
     }
 
-    class CouldNotResolvedOldApiException extends Exception {
-        private final Version version;
-        private final List<Throwable> resolutionFailures;
-
-        CouldNotResolvedOldApiException(
-                Version version,
-                List<Throwable> resolutionFailures) {
-            this.version = version;
-            this.resolutionFailures = resolutionFailures;
-        }
-
-        @Override
-        public String getMessage() {
-            return "We tried version " + version.asString() + " but it failed with errors:\n\n"
-                    + ExceptionMessages.joined(resolutionFailures);
-        }
-
-        public List<Throwable> resolutionFailures() {
-            return resolutionFailures;
-        }
-    }
-
     private API oldApi2(RevapiExtension revapiExtension, String oldVersion) throws CouldNotResolvedOldApiException {
         GroupNameVersion groupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
                 .groupAndName(revapiExtension.oldGroupAndName())
@@ -181,23 +159,30 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 "Just the previously published version of this project");
         oldApiConfiguration.setTransitive(false);
 
-        // When the version of the local java project is higher than the old published dependency and has the same
-        // group and name, gradle silently replaces the published external dependency with the project dependency
-        // (see https://discuss.gradle.org/t/fetching-the-previous-version-of-a-projects-jar/8571). This happens on
-        // tag builds, and would cause the publish to fail. Instead we, change the group for just this thread
-        // while resolving these dependencies so the switching out doesnt happen.
-        Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(getProject(), () ->
-                resolveConfigurationUnlessMissingJars(groupNameVersion.version(), oldApiConfiguration));
+        try {
+            // When the version of the local java project is higher than the old published dependency and has the same
+            // group and name, gradle silently replaces the published external dependency with the project dependency
+            // (see https://discuss.gradle.org/t/fetching-the-previous-version-of-a-projects-jar/8571). This happens on
+            // tag builds, and would cause the publish to fail. Instead we, change the group for just this thread
+            // while resolving these dependencies so the switching out doesnt happen.
+            Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(getProject(), () ->
+                    resolveConfigurationUnlessMissingJars(groupNameVersion.version(), oldApiConfiguration));
 
-        Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(getProject(),
-                oldApiDepsConfiguration::resolve);
+            Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
+                    getProject(),
+                    oldApiDepsConfiguration::resolve);
 
-        Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
+            Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
 
-        return API.builder()
-                .addArchives(toFileArchives(oldOnlyJar))
-                .addSupportArchives(toFileArchives(oldJustDeps))
-                .build();
+            return API.builder()
+                    .addArchives(toFileArchives(oldOnlyJar))
+                    .addSupportArchives(toFileArchives(oldJustDeps))
+                    .build();
+        } finally {
+            getProject().getConfigurations().remove(oldApiDepsConfiguration);
+            getProject().getConfigurations().remove(oldApiConfiguration);
+        }
+
     }
 
     private GroupNameVersion possiblyReplacedOldVersionFor(GroupNameVersion groupNameVersion) {
@@ -228,6 +213,24 @@ public abstract class RevapiJavaTask extends DefaultTask {
         }
 
         throw new CouldNotResolvedOldApiException(oldVersion, resolutionFailures);
+    }
+
+    private static final class CouldNotResolvedOldApiException extends Exception {
+        private final Version version;
+        private final List<Throwable> resolutionFailures;
+
+        CouldNotResolvedOldApiException(
+                Version version,
+                List<Throwable> resolutionFailures) {
+            this.version = version;
+            this.resolutionFailures = resolutionFailures;
+        }
+
+        @Override
+        public String getMessage() {
+            return "We tried version " + version.asString() + " but it failed with errors:\n\n"
+                    + ExceptionMessages.joined(resolutionFailures);
+        }
     }
 
     private Configuration oldApiConfiguration(
