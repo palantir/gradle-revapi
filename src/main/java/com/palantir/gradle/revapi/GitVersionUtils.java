@@ -48,7 +48,8 @@ final class GitVersionUtils {
 
         GitResult beforeLastRefTypeResult = execute(project, "git", "cat-file", "-t", beforeLastRef);
 
-        if (!beforeLastRefTypeResult.stdout().equals("commit")) {
+        boolean thereIsNoCommitBeforeTheRef = !beforeLastRefTypeResult.stdout().equals("commit");
+        if (thereIsNoCommitBeforeTheRef) {
             return Optional.empty();
         }
 
