@@ -18,6 +18,8 @@ package com.palantir.gradle.revapi;
 
 import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -100,7 +102,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private RevapiConfig revapiIgnores() {
         Set<AcceptedBreak> acceptedBreaks = configManager.get()
                 .fromFileOrEmptyIfDoesNotExist()
-                .acceptedBreaksFor(getExtension().oldGroupNameVersion().groupAndName());
+                .acceptedBreaksFor(getExtension().oldGroupAndName());
 
         return RevapiConfig.empty()
                 .withIgnoredBreaks(acceptedBreaks);
@@ -160,11 +162,11 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     private API oldApi2(RevapiExtension revapiExtension, String oldVersion) throws CouldNotResolvedOldApiException {
-        Dependency oldApiDependency = getProject().getDependencies().create(String.format(
-                "%s:%s:%s",
-                revapiExtension.getOldGroup().get(),
-                revapiExtension.getOldName().get(),
-                oldVersion));
+        GroupNameVersion groupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
+                .groupAndName(revapiExtension.oldGroupAndName())
+                .version(Version.fromString(oldVersion))
+                .build());
+        Dependency oldApiDependency = getProject().getDependencies().create(groupNameVersion.asString());
 
         Configuration oldApiDepsConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApiDeps",
                 "The dependencies of the previously published version of this project");
@@ -189,6 +191,16 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return API.builder()
                 .addArchives(toFileArchives(oldOnlyJar))
                 .addSupportArchives(toFileArchives(oldJustDeps))
+                .build();
+    }
+
+    private GroupNameVersion possiblyReplacedOldVersionFor(GroupNameVersion groupNameVersion) {
+        Version possiblyReplacedVersion = configManager.get().fromFileOrEmptyIfDoesNotExist()
+                .versionOverrideFor(groupNameVersion)
+                .orElse(groupNameVersion.version());
+        return GroupNameVersion.builder()
+                .from(groupNameVersion)
+                .version(possiblyReplacedVersion)
                 .build();
     }
 

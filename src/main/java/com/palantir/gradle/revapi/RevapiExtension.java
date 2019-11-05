@@ -63,11 +63,15 @@ public class RevapiExtension {
 
     GroupNameVersion oldGroupNameVersion() {
         return GroupNameVersion.builder()
-                .groupAndName(GroupAndName.builder()
-                        .group(oldGroup.get())
-                        .name(oldName.get())
-                        .build())
-                .version(Version.fromString(olderVersions.get()))
+                .groupAndName(oldGroupAndName())
+                .version(Version.fromString(olderVersions.get().get(0)))
+                .build();
+    }
+
+    GroupAndName oldGroupAndName() {
+        return GroupAndName.builder()
+                .group(oldGroup.get())
+                .name(oldName.get())
                 .build();
     }
 }
