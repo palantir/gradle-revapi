@@ -29,7 +29,7 @@ import org.gradle.api.provider.Property;
 public class RevapiExtension {
     private final Property<String> oldGroup;
     private final Property<String> oldName;
-    private final ListProperty<String> olderVersions;
+    private final ListProperty<String> oldVersions;
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
@@ -38,8 +38,8 @@ public class RevapiExtension {
         this.oldName = project.getObjects().property(String.class);
         this.oldName.set(project.getProviders().provider(project::getName));
 
-        this.olderVersions = project.getObjects().listProperty(String.class);
-        this.olderVersions.set(project.getProviders().provider(() ->
+        this.oldVersions = project.getObjects().listProperty(String.class);
+        this.oldVersions.set(project.getProviders().provider(() ->
                 GitVersionUtils.previousGitTags(project)
                         .limit(3)
                         .collect(Collectors.toList())));
@@ -53,18 +53,18 @@ public class RevapiExtension {
         return oldName;
     }
 
-    public ListProperty<String> getOlderVersions() {
-        return olderVersions;
+    public ListProperty<String> getOldVersions() {
+        return oldVersions;
     }
 
     public void setOldVersion(String oldVersionValue) {
-        olderVersions.set(Collections.singletonList(oldVersionValue));
+        oldVersions.set(Collections.singletonList(oldVersionValue));
     }
 
     GroupNameVersion oldGroupNameVersion() {
         return GroupNameVersion.builder()
                 .groupAndName(oldGroupAndName())
-                .version(Version.fromString(olderVersions.get().get(0)))
+                .version(Version.fromString(oldVersions.get().get(0)))
                 .build();
     }
 
