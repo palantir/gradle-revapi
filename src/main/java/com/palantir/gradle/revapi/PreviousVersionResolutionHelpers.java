@@ -63,9 +63,11 @@ final class PreviousVersionResolutionHelpers {
             CheckedSupplier<T, E> action) throws E {
         Object group = project.getGroup();
         project.setGroup(new ThreadLocalGroup(group, "revapi.changed.group." + group));
-        T result = action.get();
-        project.setGroup(group);
-        return result;
+        try {
+            return action.get();
+        } finally {
+            project.setGroup(group);
+        }
     }
 
     interface CheckedSupplier<T, E extends Exception> {

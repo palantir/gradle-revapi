@@ -141,19 +141,25 @@ public abstract class RevapiJavaTask extends DefaultTask {
             }
         }
 
-        String allVersionedErrors = exceptionsPerVersion.entrySet().stream()
-                .map(entry -> "We tried version " + entry.getKey() + " but it failed with errors:\n\n"
-                        + ExceptionMessages.joined(entry.getValue().resolutionFailures()))
-                .collect(Collectors.joining("\n\n"));
-
-        throw new IllegalStateException(ExceptionMessages.failedToResolve(getProject(), allVersionedErrors));
+        throw new IllegalStateException(ExceptionMessages.failedToResolve(getProject(),
+                ExceptionMessages.joined(exceptionsPerVersion.values())));
     }
 
     class CouldNotResolvedOldApiException extends Exception {
+        private final Version version;
         private final List<Throwable> resolutionFailures;
 
-        CouldNotResolvedOldApiException(List<Throwable> resolutionFailures) {
+        CouldNotResolvedOldApiException(
+                Version version,
+                List<Throwable> resolutionFailures) {
+            this.version = version;
             this.resolutionFailures = resolutionFailures;
+        }
+
+        @Override
+        public String getMessage() {
+            return "We tried version " + version.asString() + " but it failed with errors:\n\n"
+                    + ExceptionMessages.joined(resolutionFailures);
         }
 
         public List<Throwable> resolutionFailures() {
@@ -168,10 +174,10 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .build());
         Dependency oldApiDependency = getProject().getDependencies().create(groupNameVersion.asString());
 
-        Configuration oldApiDepsConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApiDeps",
+        Configuration oldApiDepsConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApiDeps" + oldVersion,
                 "The dependencies of the previously published version of this project");
 
-        Configuration oldApiConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApi",
+        Configuration oldApiConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApi" + oldVersion,
                 "Just the previously published version of this project");
         oldApiConfiguration.setTransitive(false);
 
@@ -180,11 +186,11 @@ public abstract class RevapiJavaTask extends DefaultTask {
         // (see https://discuss.gradle.org/t/fetching-the-previous-version-of-a-projects-jar/8571). This happens on
         // tag builds, and would cause the publish to fail. Instead we, change the group for just this thread
         // while resolving these dependencies so the switching out doesnt happen.
-        Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
-                getProject(), () -> resolveConfigurationUnlessMissingJars(oldApiConfiguration));
+        Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(getProject(), () ->
+                resolveConfigurationUnlessMissingJars(groupNameVersion.version(), oldApiConfiguration));
 
-        Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
-                getProject(), oldApiDepsConfiguration::resolve);
+        Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(getProject(),
+                oldApiDepsConfiguration::resolve);
 
         Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
 
@@ -204,7 +210,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .build();
     }
 
-    private Set<File> resolveConfigurationUnlessMissingJars(Configuration configuration)
+    private Set<File> resolveConfigurationUnlessMissingJars(Version oldVersion, Configuration configuration)
             throws CouldNotResolvedOldApiException {
 
         Set<? extends DependencyResult> allDependencies = configuration.getIncoming()
@@ -221,7 +227,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
             return configuration.resolve();
         }
 
-        throw new CouldNotResolvedOldApiException(resolutionFailures);
+        throw new CouldNotResolvedOldApiException(oldVersion, resolutionFailures);
     }
 
     private Configuration oldApiConfiguration(

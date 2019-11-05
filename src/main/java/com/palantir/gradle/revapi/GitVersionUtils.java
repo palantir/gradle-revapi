@@ -16,38 +16,57 @@
 
 package com.palantir.gradle.revapi;
 
+import com.google.common.io.ByteStreams;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.gradle.api.Project;
+import org.gradle.process.ExecSpec;
 
 final class GitVersionUtils {
     private GitVersionUtils() { }
 
-    public static String previousGitTag(Project project) {
-        return previousGitTagFromRef(project, "HEAD");
+    private static Optional<String> previousGitTagFromRef(Project project, String ref) {
+        String beforeLastRef = ref + "^";
+
+        String refType = execute(project, spec -> {
+            spec.setCommandLine("git", "cat-file", "-t", beforeLastRef);
+            spec.setIgnoreExitValue(true);
+        });
+
+        if (!refType.equals("commit")) {
+            return Optional.empty();
+        }
+
+        return Optional.of(execute(project, spec ->
+                spec.setCommandLine("git", "describe", "--tags", "--always", "--abbrev=0", beforeLastRef)));
     }
 
-    private static String previousGitTagFromRef(Project project, String ref) {
+    private static String execute(Project project, Consumer<ExecSpec> specAction) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         project.exec(spec -> {
-            // this matches how gradle-git-version works, just with 'HEAD^' to avoid getting the current tag
-            spec.setCommandLine("git", "describe", "--tags", "--always", "--abbrev=0", ref + "^");
+            specAction.accept(spec);
             spec.setStandardOutput(baos);
-        }).assertNormalExitValue();
+            spec.setErrorOutput(ByteStreams.nullOutputStream());
+        });
 
         return new String(baos.toByteArray(), StandardCharsets.UTF_8).trim();
     }
 
     public static Stream<String> previousGitTags(Project project) {
-        final AtomicReference<String> lastSeenRef = new AtomicReference<>("HEAD");
+        final AtomicReference<Optional<String>> lastSeenRef = new AtomicReference<>(Optional.of("HEAD"));
 
-        return Stream.generate(() -> {
-            String tag = previousGitTagFromRef(project, lastSeenRef.get());
+        Stream<Optional<String>> previousTags = Stream.generate(() -> {
+            Optional<String> tag = lastSeenRef.get().flatMap(ref -> previousGitTagFromRef(project, ref));
             lastSeenRef.set(tag);
             return tag;
         });
+
+        return Java9Streams.takeWhile(previousTags, Optional::isPresent)
+                .map(Optional::get);
     }
 }

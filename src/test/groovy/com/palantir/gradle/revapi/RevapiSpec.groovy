@@ -212,7 +212,7 @@ class RevapiSpec extends IntegrationSpec {
 
         def javaFile = 'src/main/java/foo/Foo.java'
         writeToFile javaFile, """
-            interface Foo {
+            public interface Foo {
                 String willBeRemoved();
             }
         """.stripIndent()
@@ -229,7 +229,7 @@ class RevapiSpec extends IntegrationSpec {
 
         and:
         writeToFile javaFile, """
-            interface Foo { }
+            public interface Foo { }
         """.stripIndent()
 
         gitCommand 'git commit -am new-work'
