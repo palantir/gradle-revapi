@@ -94,10 +94,8 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
     }
 
     private GroupNameVersion resolveOldApiWithVersion(Version oldVersion) throws CouldNotResolveOldApiException {
-        GroupNameVersion groupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
-                .groupAndName(oldGroupAndName.get())
-                .version(oldVersion)
-                .build());
+        GroupNameVersion groupNameVersion =
+                possiblyReplacedOldVersionFor(oldGroupAndName.get().withVersion(oldVersion));
 
         Dependency oldApiDependency = getProject().getDependencies().create(groupNameVersion.asString());
 

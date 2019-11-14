@@ -46,6 +46,13 @@ public interface GroupAndName {
                 .build();
     }
 
+    default GroupNameVersion withVersion(Version version) {
+        return GroupNameVersion.builder()
+                .groupAndName(this)
+                .version(version)
+                .build();
+    }
+
     class Builder extends ImmutableGroupAndName.Builder { }
 
     static Builder builder() {
