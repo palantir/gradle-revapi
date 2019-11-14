@@ -77,20 +77,7 @@ final class PreviousVersionResolutionHelpers {
         }
     }
 
-    public static <E extends Exception> void withRenamedGroupForCurrentThread(
-            Project project,
-            CheckedRunnable<E> action) throws E {
-        withRenamedGroupForCurrentThread(project, () -> {
-            action.run();
-            return null;
-        });
-    }
-
     interface CheckedSupplier<T, E extends Exception> {
         T get() throws E;
-    }
-
-    interface CheckedRunnable<E extends Exception> {
-        void run() throws E;
     }
 }
