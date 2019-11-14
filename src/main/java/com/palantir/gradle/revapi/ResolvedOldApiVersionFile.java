@@ -17,17 +17,60 @@
 package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.revapi.config.Version;
-import org.immutables.value.Value;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputFile;
 
-@Value.Immutable
-interface ResolvedOldApiVersionFile {
-    Version oldApiVersion();
+final class ResolvedOldApiVersionFile {
+    private ResolvedOldApiVersionFile() { }
 
-    class Builder extends ImmutableResolvedOldApiVersionFile.Builder {}
+    public static AsInputOutput forFile(File file) {
+        return new Impl(file);
+    }
 
-    static ResolvedOldApiVersionFile fromVersion(Version oldApiVersion) {
-        return new Builder()
-                .oldApiVersion(oldApiVersion)
-                .build();
+    private static final class Impl implements AsInputOutput {
+        private final File file;
+
+        Impl(File file) {
+            this.file = file;
+        }
+
+        public File file() {
+            return file;
+        }
+    }
+
+    interface AsInputOutput extends AsInput, AsOutput { }
+
+    interface AsInput {
+        @InputFile
+        File file();
+
+        default Version read() {
+            try {
+                return Version.fromString(new String(
+                        Files.readAllBytes(file().toPath()),
+                        StandardCharsets.UTF_8));
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    interface AsOutput {
+        @OutputFile
+        File file();
+
+        default void write(Version version) {
+            try {
+                Files.write(file().toPath(), version.asString().getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

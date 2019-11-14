@@ -29,10 +29,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,9 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
     private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
     private final ListProperty<String> oldVersions = getProject().getObjects().listProperty(String.class);
     private final Property<GroupAndName> oldGroupAndName = getProject().getObjects().property(GroupAndName.class);
-    private final RegularFileProperty resolvedApiVersionFile = getProject().getObjects().fileProperty();
+
+    private final Property<ResolvedOldApiVersionFile.AsOutput> resolvedApiVersionFile =
+            getProject().getObjects().property(ResolvedOldApiVersionFile.AsOutput.class);
 
     final Property<ConfigManager> configManager() {
         return configManager;
@@ -62,16 +63,14 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
         return oldGroupAndName;
     }
 
-    @OutputFile
-    public final RegularFileProperty getResolvedApiVersionFile() {
+    @Nested
+    public final Property<ResolvedOldApiVersionFile.AsOutput> getResolvedApiVersionFile() {
         return resolvedApiVersionFile;
     }
 
     @TaskAction
     public final void resolveOldApi() {
-        Version version = resolveOldApiAcrossAllOldVersions();
-        resolvedApiVersionFile.getAsFile();
-        ResolvedOldApiVersionFile resolvedOldApiVersionFile = ResolvedOldApiVersionFile.fromVersion(version);
+        resolvedApiVersionFile.get().write(resolveOldApiAcrossAllOldVersions());
     }
 
     private Version resolveOldApiAcrossAllOldVersions() {
