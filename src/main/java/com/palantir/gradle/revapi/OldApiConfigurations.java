@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 final class OldApiConfigurations {
     private OldApiConfigurations() {}
 
-    static Configuration oldApiConfiguration(
+    static Configuration configuration(
             Project project,
             Dependency oldApiDependency,
             String name,

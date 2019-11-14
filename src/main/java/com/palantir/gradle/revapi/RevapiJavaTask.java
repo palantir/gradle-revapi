@@ -135,13 +135,13 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private API resolveOldApi(GroupNameVersion groupNameVersion) throws CouldNotResolveOldApiException {
         Dependency oldApiDependency = getProject().getDependencies().create(groupNameVersion.asString());
 
-        Configuration oldApiDepsConfiguration = OldApiConfigurations.oldApiConfiguration(
+        Configuration oldApiDepsConfiguration = OldApiConfigurations.configuration(
                 getProject(),
                 oldApiDependency,
                 "revapiOldApiDeps",
                 "The dependencies of the previously published version of this project");
 
-        Configuration oldApiConfiguration = OldApiConfigurations.oldApiConfiguration(
+        Configuration oldApiConfiguration = OldApiConfigurations.configuration(
                 getProject(),
                 oldApiDependency,
                 "revapiOldApi",
