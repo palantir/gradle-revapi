@@ -50,7 +50,6 @@ public final class RevapiPlugin implements Plugin<Project> {
         ConfigManager configManager = new ConfigManager(configFile(project));
 
         File oldApiVersionFile = new File(project.getBuildDir(), "revapi/old-api-version");
-        OldApiDependencyFile.AsInputOutput oldApiDepFile = OldApiDependencyFile.forFile(oldApiVersionFile);
 
         TaskProvider<RevapiResolveOldApiVersion> resolveOldApiVersionTask = project.getTasks().register(
                 "revapiResolveOldApiVersion",
@@ -59,10 +58,11 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.getConfigManager().set(configManager);
                     task.getOldGroupAndName().set(extension.oldGroupAndName());
                     task.getOldVersions().set(extension.getOldVersions());
-                    task.getOldApiVersionFile().set(oldApiDepFile);
+                    task.getOldApiVersionFile().set(OldApiDependencyFile.asOutput(oldApiVersionFile));
                 });
 
         resolveOldApiVersionTask.get().doLast(task -> {
+            task.getOutputs();
             System.out.println("hi");
         });
 

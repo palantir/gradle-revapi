@@ -27,32 +27,30 @@ import org.gradle.api.tasks.OutputFile;
 final class OldApiDependencyFile {
     private OldApiDependencyFile() { }
 
-    public static AsInputOutput forFile(File file) {
-        return new Impl(file);
+    public static AsInput asInput(File file) {
+        return new AsInput(file);
     }
 
-    private static final class Impl implements AsInputOutput {
+    public static AsOutput asOutput(File file) {
+        return new AsOutput(file);
+    }
+
+    static final class AsInput {
         private final File file;
 
-        Impl(File file) {
+        AsInput(File file) {
             this.file = file;
         }
 
-        public File file() {
+        @InputFile
+        public File getFile() {
             return file;
         }
-    }
 
-    interface AsInputOutput extends AsInput, AsOutput { }
-
-    interface AsInput {
-        @InputFile
-        File file();
-
-        default Version read() {
+        public Version read() {
             try {
                 return Version.fromString(new String(
-                        Files.readAllBytes(file().toPath()),
+                        Files.readAllBytes(getFile().toPath()),
                         StandardCharsets.UTF_8));
 
             } catch (IOException e) {
@@ -61,14 +59,22 @@ final class OldApiDependencyFile {
         }
     }
 
-    interface AsOutput {
-        @OutputFile
-        File file();
+    static final class AsOutput {
+        private final File file;
 
-        default void write(Version groupNameVersion) {
+        AsOutput(File file) {
+            this.file = file;
+        }
+
+        @OutputFile
+        public File getFile() {
+            return file;
+        }
+
+        public void write(Version groupNameVersion) {
             try {
-                Files.createDirectories(file().toPath().getParent());
-                Files.write(file().toPath(), groupNameVersion.asString().getBytes(StandardCharsets.UTF_8));
+                Files.createDirectories(getFile().toPath().getParent());
+                Files.write(getFile().toPath(), groupNameVersion.asString().getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
