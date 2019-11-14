@@ -48,8 +48,8 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
     private final ListProperty<String> oldVersions = getProject().getObjects().listProperty(String.class);
     private final Property<GroupAndName> oldGroupAndName = getProject().getObjects().property(GroupAndName.class);
 
-    private final Property<ResolvedOldApiVersionFile.AsOutput> resolvedApiVersionFile =
-            getProject().getObjects().property(ResolvedOldApiVersionFile.AsOutput.class);
+    private final Property<OldApiDependencyFile.AsOutput> oldApiVersionFile =
+            getProject().getObjects().property(OldApiDependencyFile.AsOutput.class);
 
     final Property<ConfigManager> configManager() {
         return configManager;
@@ -64,21 +64,21 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
     }
 
     @Nested
-    public final Property<ResolvedOldApiVersionFile.AsOutput> getResolvedApiVersionFile() {
-        return resolvedApiVersionFile;
+    public final Property<OldApiDependencyFile.AsOutput> getOldApiVersionFile() {
+        return oldApiVersionFile;
     }
 
     @TaskAction
     public final void resolveOldApi() {
-        resolvedApiVersionFile.get().write(resolveOldApiAcrossAllOldVersions());
+        oldApiVersionFile.get().write(resolveOldApiAcrossAllOldVersions());
     }
 
-    private Version resolveOldApiAcrossAllOldVersions() {
+    private GroupNameVersion resolveOldApiAcrossAllOldVersions() {
         Map<Version, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String oldVersionString : oldVersions.get()) {
             Version oldVersion = Version.fromString(oldVersionString);
             try {
-                tryResolveOldApiWithVersion(oldVersion);
+                GroupNameVersion groupNameVersion = resolveOldApiWithVersion(oldVersion);
                 if (!exceptionsPerVersion.isEmpty()) {
                     log.warn("{} has successfully resolved. At first we tried to use versions {}, however they all "
                             + "failed to resolve with these errors:\n\n{}",
@@ -86,7 +86,7 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
                             exceptionsPerVersion.keySet().stream().map(Version::asString).collect(Collectors.toList()),
                             ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
-                return oldVersion;
+                return groupNameVersion;
             } catch (CouldNotResolveOldApiException e) {
                 exceptionsPerVersion.put(oldVersion, e);
             }
@@ -96,7 +96,7 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
                 ExceptionMessages.joined(exceptionsPerVersion.values())));
     }
 
-    private void tryResolveOldApiWithVersion(Version oldVersion) throws CouldNotResolveOldApiException {
+    private GroupNameVersion resolveOldApiWithVersion(Version oldVersion) throws CouldNotResolveOldApiException {
         GroupNameVersion groupNameVersion = possiblyReplacedOldVersionFor(GroupNameVersion.builder()
                 .groupAndName(oldGroupAndName.get())
                 .version(oldVersion)
@@ -104,7 +104,7 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
 
         Dependency oldApiDependency = getProject().getDependencies().create(groupNameVersion.asString());
 
-        Configuration oldApiConfiguration = oldApiConfiguration(oldApiDependency, "revapiOldApi" + oldVersion,
+        Configuration oldApiConfiguration = oldApiConfiguration(oldApiDependency, "revapiResolveOldApi" + oldVersion,
                 "Just the previously published version of this project");
         oldApiConfiguration.setTransitive(false);
 
@@ -115,6 +115,8 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
         // while resolving these dependencies so the switching out doesnt happen.
         PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(getProject(), () ->
                 tryResolveConfigurationUnlessMissingJars(groupNameVersion.version(), oldApiConfiguration));
+
+        return groupNameVersion;
     }
 
     private GroupNameVersion possiblyReplacedOldVersionFor(GroupNameVersion groupNameVersion) {

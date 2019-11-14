@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.revapi;
 
-import com.palantir.gradle.revapi.config.Version;
+import com.palantir.gradle.revapi.config.GroupNameVersion;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,8 +24,8 @@ import java.nio.file.Files;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
 
-final class ResolvedOldApiVersionFile {
-    private ResolvedOldApiVersionFile() { }
+final class OldApiDependencyFile {
+    private OldApiDependencyFile() { }
 
     public static AsInputOutput forFile(File file) {
         return new Impl(file);
@@ -49,9 +49,9 @@ final class ResolvedOldApiVersionFile {
         @InputFile
         File file();
 
-        default Version read() {
+        default GroupNameVersion read() {
             try {
-                return Version.fromString(new String(
+                return GroupNameVersion.fromString(new String(
                         Files.readAllBytes(file().toPath()),
                         StandardCharsets.UTF_8));
 
@@ -65,9 +65,9 @@ final class ResolvedOldApiVersionFile {
         @OutputFile
         File file();
 
-        default void write(Version version) {
+        default void write(GroupNameVersion groupNameVersion) {
             try {
-                Files.write(file().toPath(), version.asString().getBytes(StandardCharsets.UTF_8));
+                Files.write(file().toPath(), groupNameVersion.asString().getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
