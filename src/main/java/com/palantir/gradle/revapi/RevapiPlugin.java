@@ -49,6 +49,23 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         ConfigManager configManager = new ConfigManager(configFile(project));
 
+        File oldApiVersionFile = new File(project.getBuildDir(), "revapi/old-api-version");
+        OldApiDependencyFile.AsInputOutput oldApiDepFile = OldApiDependencyFile.forFile(oldApiVersionFile);
+
+        TaskProvider<RevapiResolveOldApiVersion> resolveOldApiVersionTask = project.getTasks().register(
+                "revapiResolveOldApiVersion",
+                RevapiResolveOldApiVersion.class,
+                task -> {
+                    task.getConfigManager().set(configManager);
+                    task.getOldGroupAndName().set(extension.oldGroupAndName());
+                    task.getOldVersions().set(extension.getOldVersions());
+                    task.getOldApiVersionFile().set(oldApiDepFile);
+                });
+
+        resolveOldApiVersionTask.get().doLast(task -> {
+            System.out.println("hi");
+        });
+
         TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class);
 
         project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);

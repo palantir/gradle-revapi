@@ -16,27 +16,27 @@
 
 package com.palantir.gradle.revapi;
 
+import com.google.common.base.Suppliers;
 import com.palantir.gradle.revapi.OldApiConfigurations.CouldNotResolveOldApiException;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Purposefully not cached as this task depends on external mutable state (which versions of the old api jar are
- * published to the remote repository), so we want to check it's the same every time.
- */
 @SuppressWarnings("Duplicates")
 public class RevapiResolveOldApiVersion extends DefaultTask {
     private static final Logger log = LoggerFactory.getLogger(RevapiResolveOldApiVersion.class);
@@ -48,16 +48,29 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
     private final Property<OldApiDependencyFile.AsOutput> oldApiVersionFile =
             getProject().getObjects().property(OldApiDependencyFile.AsOutput.class);
 
-    final Property<ConfigManager> configManager() {
+    private final Supplier<Version> oldApiVersion = Suppliers.memoize(this::resolveOldApiAcrossAllOldVersions);
+
+    @Nested
+    final Property<ConfigManager> getConfigManager() {
         return configManager;
     }
 
+    @Input
     public final ListProperty<String> getOldVersions() {
         return oldVersions;
     }
 
+    @Input
     public final Property<GroupAndName> getOldGroupAndName() {
         return oldGroupAndName;
+    }
+
+    /**
+     * Hack?.
+     */
+    @Input
+    public final Provider<String> getOldApiVersion() {
+        return getProject().provider(oldApiVersion::get).map(Version::asString);
     }
 
     @Nested
@@ -67,15 +80,15 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
 
     @TaskAction
     public final void resolveOldApi() {
-        oldApiVersionFile.get().write(resolveOldApiAcrossAllOldVersions());
+        oldApiVersionFile.get().write(oldApiVersion.get());
     }
 
-    private GroupNameVersion resolveOldApiAcrossAllOldVersions() {
+    private Version resolveOldApiAcrossAllOldVersions() {
         Map<Version, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String oldVersionString : oldVersions.get()) {
             Version oldVersion = Version.fromString(oldVersionString);
             try {
-                GroupNameVersion groupNameVersion = resolveOldApiWithVersion(oldVersion);
+                resolveOldApiWithVersion(oldVersion);
                 if (!exceptionsPerVersion.isEmpty()) {
                     log.warn("{} has successfully resolved. At first we tried to use versions {}, however they all "
                             + "failed to resolve with these errors:\n\n{}",
@@ -83,7 +96,7 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
                             exceptionsPerVersion.keySet().stream().map(Version::asString).collect(Collectors.toList()),
                             ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
-                return groupNameVersion;
+                return oldVersion;
             } catch (CouldNotResolveOldApiException e) {
                 exceptionsPerVersion.put(oldVersion, e);
             }
@@ -93,7 +106,7 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
                 ExceptionMessages.joined(exceptionsPerVersion.values())));
     }
 
-    private GroupNameVersion resolveOldApiWithVersion(Version oldVersion) throws CouldNotResolveOldApiException {
+    private void resolveOldApiWithVersion(Version oldVersion) throws CouldNotResolveOldApiException {
         GroupNameVersion groupNameVersion =
                 possiblyReplacedOldVersionFor(oldGroupAndName.get().withVersion(oldVersion));
 
@@ -102,7 +115,7 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
         Configuration oldApiConfiguration = OldApiConfigurations.configuration(
                 getProject(),
                 oldApiDependency,
-                "revapiResolveOldApi" + oldVersion,
+                "revapiResolveOldApi" + oldVersion.asString(),
                 "Just the previously published version of this project");
 
         oldApiConfiguration.setTransitive(false);
@@ -111,8 +124,6 @@ public class RevapiResolveOldApiVersion extends DefaultTask {
                 OldApiConfigurations.resolveConfigurationUnlessMissingJars(
                         groupNameVersion.version(),
                         oldApiConfiguration));
-
-        return groupNameVersion;
     }
 
     private GroupNameVersion possiblyReplacedOldVersionFor(GroupNameVersion groupNameVersion) {

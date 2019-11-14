@@ -24,12 +24,14 @@ import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 
 @SuppressWarnings("DesignForExtension")
 public class RevapiExtension {
     private final Property<String> oldGroup;
     private final Property<String> oldName;
     private final ListProperty<String> oldVersions;
+    private final Provider<GroupAndName> oldGroupAndName;
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
@@ -43,6 +45,11 @@ public class RevapiExtension {
                 GitVersionUtils.previousGitTags(project)
                         .limit(3)
                         .collect(Collectors.toList())));
+
+        this.oldGroupAndName = project.provider(() -> GroupAndName.builder()
+                .group(oldGroup.get())
+                .name(oldName.get())
+                .build());
     }
 
     public Property<String> getOldGroup() {
@@ -62,13 +69,10 @@ public class RevapiExtension {
     }
 
     GroupNameVersion oldGroupNameVersion() {
-        return oldGroupAndName().withVersion(Version.fromString(oldVersions.get().get(0)));
+        return oldGroupAndName().get().withVersion(Version.fromString(oldVersions.get().get(0)));
     }
 
-    GroupAndName oldGroupAndName() {
-        return GroupAndName.builder()
-                .group(oldGroup.get())
-                .name(oldName.get())
-                .build();
+    Provider<GroupAndName> oldGroupAndName() {
+        return oldGroupAndName;
     }
 }

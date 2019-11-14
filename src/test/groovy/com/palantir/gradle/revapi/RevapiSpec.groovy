@@ -27,6 +27,38 @@ class RevapiSpec extends IntegrationSpec {
         git = new Git(projectDir)
     }
 
+    def test() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                compile 'one.util:streamex:0.7.0'
+            }
+            
+            revapi {
+                oldGroup = 'org.revapi'
+                oldName = 'revapi'
+                oldVersion = '0.11.1'
+            }
+            
+            revapiResolveOldApiVersion {
+                doLast {
+                    println inputs.properties
+                    println outputs.properties
+                }
+            }
+        """.stripIndent()
+
+        then:
+        println runTasksSuccessfully('revapiResolveOldApiVersion').standardOutput
+    }
+
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """

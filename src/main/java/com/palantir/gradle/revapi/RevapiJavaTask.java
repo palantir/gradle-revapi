@@ -77,7 +77,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
-        GroupNameVersion groupNameVersion = oldApiDependencyFile.get().read();
+        GroupNameVersion groupNameVersion = oldGroupAndName.get().withVersion(oldApiDependencyFile.get().read());
 
         API oldApi = resolveOldApi(groupNameVersion);
         API newApi = newApi();
@@ -113,7 +113,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private RevapiConfig revapiIgnores() {
         Set<AcceptedBreak> acceptedBreaks = configManager.get()
                 .fromFileOrEmptyIfDoesNotExist()
-                .acceptedBreaksFor(getExtension().oldGroupAndName());
+                .acceptedBreaksFor(oldGroupAndName.get());
 
         return RevapiConfig.empty()
                 .withIgnoredBreaks(acceptedBreaks);
@@ -163,10 +163,6 @@ public abstract class RevapiJavaTask extends DefaultTask {
                 .addArchives(toFileArchives(oldOnlyJar))
                 .addSupportArchives(toFileArchives(oldJustDeps))
                 .build();
-    }
-
-    private RevapiExtension getExtension() {
-        return getProject().getExtensions().getByType(RevapiExtension.class);
     }
 
     private static List<FileArchive> toFileArchives(Property<FileCollection> fileCollectionProperty) {
