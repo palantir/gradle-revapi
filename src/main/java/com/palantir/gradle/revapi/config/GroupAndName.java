@@ -21,14 +21,11 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import java.util.List;
-import org.gradle.api.tasks.Input;
 import org.immutables.value.Value;
 
 @Value.Immutable
 public interface GroupAndName {
-    @Input
     String group();
-    @Input
     String name();
 
     @JsonValue
