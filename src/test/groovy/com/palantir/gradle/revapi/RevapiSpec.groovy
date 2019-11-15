@@ -46,18 +46,6 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'revapi'
                 oldVersion = '0.11.1'
             }
-            
-            def revapiTask = tasks.getByName('revapi')
-            
-            task foo {
-                doLast {
-                    println revapiTask.inputs.properties
-                    println revapiTask.inputs.files.files
-                    println revapiTask.outputs.properties
-                }
-            }
-            
-            tasks.getByName('revapi').finalizedBy foo
         """.stripIndent()
 
         rootProjectNameIs("root-project")
@@ -89,18 +77,10 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'empty-jar'
                 oldVersion = '1.7.7'
             }
-            
-            tasks.getByName('revapi').configure { task ->
-                doLast {
-                    println task.inputs.properties
-                    println task.inputs.files.files
-                    println task.outputs.properties
-                }
-            }
         """.stripIndent()
 
         then:
-        println runTasksSuccessfully("revapi").standardOutput
+        runTasksSuccessfully("revapi")
     }
 
     def 'revapiAcceptAllBreaks succeeds when there are no breaking changes'() {
