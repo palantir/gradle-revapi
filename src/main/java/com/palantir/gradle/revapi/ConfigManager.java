@@ -21,8 +21,6 @@ import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.UnaryOperator;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
 
 final class ConfigManager {
     private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newYamlObjectMapper();
@@ -35,13 +33,6 @@ final class ConfigManager {
 
     ConfigManager(File configFile) {
         this.configFile = configFile;
-    }
-
-    @Optional
-    @InputFile
-    public File getConfigFile() {
-        // Unnecessary in gradle 6.0, see https://github.com/gradle/gradle/issues/2016
-        return configFile.exists() ? configFile : null;
     }
 
     public void modifyConfigFile(UnaryOperator<GradleRevapiConfig> transformer) {
