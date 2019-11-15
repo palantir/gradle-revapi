@@ -17,6 +17,7 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,10 +58,15 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
         });
 
+        Provider<Version> oldVersionProvider =
+                ResolveOldApiVersion.resolveOldApiVersionProvider(project, extension, configManager);
+
         project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
             task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
             task.configManager().set(configManager);
             task.newApiDependencyJars().set(revapiNewApi);
+            task.getOldGroupAndName().set(extension.oldGroupAndName());
+            task.getOldVersion().set(oldVersionProvider);
 
             Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
             task.newApiJars().set(jarTask.getOutputs().getFiles());

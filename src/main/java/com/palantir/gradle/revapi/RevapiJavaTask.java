@@ -71,6 +71,14 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return newApiJars;
     }
 
+    public final Property<GroupAndName> getOldGroupAndName() {
+        return oldGroupAndName;
+    }
+
+    public final Property<Version> getOldVersion() {
+        return oldVersion;
+    }
+
     protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
         GroupNameVersion groupNameVersion = oldGroupAndName.get().withVersion(oldVersion.get());
 
