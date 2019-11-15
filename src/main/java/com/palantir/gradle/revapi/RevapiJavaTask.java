@@ -21,6 +21,7 @@ import com.palantir.gradle.revapi.OldApiConfigurations.CouldNotResolveOldApiExce
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
+import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Nested;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -56,8 +56,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private final Property<GroupAndName> oldGroupAndName =
             getProject().getObjects().property(GroupAndName.class);
 
-    private final Property<OldApiDependencyFile.AsInput> oldApiDependencyFile =
-            getProject().getObjects().property(OldApiDependencyFile.AsInput.class);
+    private final Property<Version> oldVersion =
+            getProject().getObjects().property(Version.class);
 
     final Property<ConfigManager> configManager() {
         return configManager;
@@ -71,13 +71,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return newApiJars;
     }
 
-    @Nested
-    public final Property<OldApiDependencyFile.AsInput> oldApiDependencyFile() {
-        return oldApiDependencyFile;
-    }
-
     protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
-        GroupNameVersion groupNameVersion = oldGroupAndName.get().withVersion(oldApiDependencyFile.get().read());
+        GroupNameVersion groupNameVersion = oldGroupAndName.get().withVersion(oldVersion.get());
 
         API oldApi = resolveOldApi(groupNameVersion);
         API newApi = newApi();
