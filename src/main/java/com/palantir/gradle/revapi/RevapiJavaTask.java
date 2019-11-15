@@ -31,6 +31,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -63,18 +66,24 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return configManager;
     }
 
-    public final Property<Configuration> newApiDependencyJars() {
+    @InputFiles
+    @CompileClasspath
+    public final Property<Configuration> getNewApiDependencyJars() {
         return newApiDependencyJars;
     }
 
-    public final Property<FileCollection> newApiJars() {
+    @InputFiles
+    @CompileClasspath
+    public final Property<FileCollection> getNewApiJars() {
         return newApiJars;
     }
 
+    @Nested
     public final Property<GroupAndName> getOldGroupAndName() {
         return oldGroupAndName;
     }
 
+    @Nested
     public final Property<Version> getOldVersion() {
         return oldVersion;
     }

@@ -18,10 +18,12 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.gradle.api.tasks.Input;
 import org.immutables.value.Value;
 
 @Value.Immutable
 public interface Version {
+    @Input
     @JsonValue
     String asString();
 
