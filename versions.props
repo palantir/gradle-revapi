@@ -1,11 +1,11 @@
-com.netflix.nebula:nebula-test = 7.4.0
+com.netflix.nebula:nebula-test = 7.5.0
 org.junit:junit-bom = 5.5.2
 org.revapi:revapi-basic-features = 0.8.1
 org.revapi:revapi-java = 0.19.1
 org.revapi:revapi-reporter-text = 0.10.1
 org.freemarker:freemarker = 2.3.29
 com.google.guava:guava = 23.1-jre
-org.immutables:value = 2.8.1
-com.fasterxml.jackson.*:jackson-* = 2.9.9
+org.immutables:value = 2.8.2
+com.fasterxml.jackson.*:jackson-* = 2.10.1
 org.mockito:mockito-core = 3.1.0
 org.assertj:assertj-core = 3.14.0
