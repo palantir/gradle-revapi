@@ -37,29 +37,19 @@ final class OldApiConfigurations {
         Dependency oldApiDependency = project.getDependencies().create(groupNameVersion.asString());
 
         String transitivityString = transitive ? "_transitive" : "";
+        String configurationName = "revapiOldApi_" + groupNameVersion.version().asString() + transitivityString;
 
-        Configuration oldApiConfiguration = OldApiConfigurations.configuration(
-                project,
-                oldApiDependency,
-                "revapiOldApi_" + groupNameVersion.version().asString() + transitivityString);
-        oldApiConfiguration.setTransitive(transitive);
-
-        return PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
-                OldApiConfigurations.resolveConfigurationUnlessMissingJars(
-                        groupNameVersion.version(),
-                        oldApiConfiguration));
-    }
-
-    private static Configuration configuration(
-            Project project,
-            Dependency oldApiDependency,
-            String name) {
-
-        return project.getConfigurations().create(name, conf -> {
+        Configuration oldApiConfiguration = project.getConfigurations().create(configurationName, conf -> {
             conf.getDependencies().add(oldApiDependency);
             conf.setCanBeConsumed(false);
             conf.setVisible(false);
         });
+        oldApiConfiguration.setTransitive(transitive);
+
+        return PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
+                resolveConfigurationUnlessMissingJars(
+                        groupNameVersion.version(),
+                        oldApiConfiguration));
     }
 
     private static Set<File> resolveConfigurationUnlessMissingJars(Version oldVersion, Configuration configuration)
