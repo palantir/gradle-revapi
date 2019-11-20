@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.provider.Provider;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -85,29 +83,8 @@ final class ResolveOldApi {
     private static OldApi resolveOldApiWithVersion(Project project, GroupNameVersion groupNameVersion)
             throws CouldNotResolveOldApiException {
 
-        Dependency oldApiDependency = project.getDependencies().create(groupNameVersion.asString());
-
-        Configuration oldApiConfiguration = OldApiConfigurations.configuration(
-                project,
-                oldApiDependency,
-                "revapiResolveOldApi_" + groupNameVersion.version().asString(),
-                "Just the previously published version of this project");
-        oldApiConfiguration.setTransitive(false);
-
-        Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
-                OldApiConfigurations.resolveConfigurationUnlessMissingJars(
-                        groupNameVersion.version(),
-                        oldApiConfiguration));
-
-        Configuration oldApiDepsConfiguration = OldApiConfigurations.configuration(
-                project,
-                oldApiDependency,
-                "revapiOldApiDeps",
-                "The dependencies of the previously published version of this project");
-
-        Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
-                project,
-                oldApiDepsConfiguration::resolve);
+        Set<File> oldOnlyJar  = OldApiConfigurations.doIt(project, groupNameVersion, false);
+        Set<File> oldWithDeps = OldApiConfigurations.doIt(project, groupNameVersion, true);
 
         Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
 

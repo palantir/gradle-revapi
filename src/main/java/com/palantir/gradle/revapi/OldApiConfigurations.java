@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.revapi;
 
+import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
 import java.util.List;
@@ -30,21 +31,34 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 final class OldApiConfigurations {
     private OldApiConfigurations() {}
 
-    static Configuration configuration(
+    static Set<File> doIt(Project project, GroupNameVersion groupNameVersion, boolean transitive) throws CouldNotResolveOldApiException {
+        Dependency oldApiDependency = project.getDependencies().create(groupNameVersion.asString());
+
+        Configuration oldApiConfiguration = OldApiConfigurations.configuration(
+                project,
+                oldApiDependency,
+                "revapiOldApi_" + groupNameVersion.version().asString());
+        oldApiConfiguration.setTransitive(transitive);
+
+        return PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
+                OldApiConfigurations.resolveConfigurationUnlessMissingJars(
+                        groupNameVersion.version(),
+                        oldApiConfiguration));
+    }
+
+    private static Configuration configuration(
             Project project,
             Dependency oldApiDependency,
-            String name,
-            String description) {
+            String name) {
 
         return project.getConfigurations().create(name, conf -> {
-            conf.setDescription(description);
             conf.getDependencies().add(oldApiDependency);
             conf.setCanBeConsumed(false);
             conf.setVisible(false);
         });
     }
 
-    static Set<File> resolveConfigurationUnlessMissingJars(Version oldVersion, Configuration configuration)
+    private static Set<File> resolveConfigurationUnlessMissingJars(Version oldVersion, Configuration configuration)
             throws CouldNotResolveOldApiException {
 
         Set<? extends DependencyResult> allDependencies = configuration.getIncoming()
