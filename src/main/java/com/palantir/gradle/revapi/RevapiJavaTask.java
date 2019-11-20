@@ -54,19 +54,19 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return acceptedBreaks;
     }
 
-    public final SetProperty<File> newApiJars() {
+    public final SetProperty<File> getNewApiJars() {
         return newApiJars;
     }
 
-    public final SetProperty<File> newApiDependencyJars() {
+    public final SetProperty<File> getNewApiDependencyJars() {
         return newApiDependencyJars;
     }
 
-    public final SetProperty<File> oldApiJars() {
+    public final SetProperty<File> getOldApiJars() {
         return oldApiJars;
     }
 
-    public final SetProperty<File> oldApiDependencyJars() {
+    public final SetProperty<File> getOldApiDependencyJars() {
         return oldApiDependencyJars;
     }
 

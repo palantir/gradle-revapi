@@ -68,10 +68,10 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
             Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
-            task.newApiJars().set(jarTask.getOutputs().getFiles());
-            task.newApiDependencyJars().set(revapiNewApi);
-            task.oldApiJars().set(oldApi.map(OldApi::jars));
-            task.oldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
+            task.getNewApiJars().set(jarTask.getOutputs().getFiles());
+            task.getNewApiDependencyJars().set(revapiNewApi);
+            task.getOldApiJars().set(oldApi.map(OldApi::jars));
+            task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
