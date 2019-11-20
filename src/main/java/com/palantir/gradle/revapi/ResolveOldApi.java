@@ -16,27 +16,31 @@
 
 package com.palantir.gradle.revapi;
 
+import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.OldApiConfigurations.CouldNotResolveOldApiException;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.provider.Provider;
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("Duplicates")
-final class ResolveOldApiVersion {
-    private static final Logger log = LoggerFactory.getLogger(ResolveOldApiVersion.class);
+final class ResolveOldApi {
+    private static final Logger log = LoggerFactory.getLogger(ResolveOldApi.class);
 
-    private ResolveOldApiVersion() { }
+    private ResolveOldApi() { }
 
-    public static Provider<Version> resolveOldApiVersionProvider(
+    public static Provider<OldApi> oldApiProvider(
             Project project,
             RevapiExtension extension,
             ConfigManager configManager) {
@@ -45,7 +49,7 @@ final class ResolveOldApiVersion {
                 resolveOldApiAcrossAllOldVersions(project, extension, configManager.fromFileOrEmptyIfDoesNotExist()));
     }
 
-    private static Version resolveOldApiAcrossAllOldVersions(
+    private static OldApi resolveOldApiAcrossAllOldVersions(
             Project project,
             RevapiExtension extension,
             GradleRevapiConfig config) {
@@ -59,7 +63,7 @@ final class ResolveOldApiVersion {
                             .withVersion(Version.fromString(oldVersionString)));
 
             try {
-                resolveOldApiWithVersion(project, oldGroupNameVersion);
+                OldApi oldApi = resolveOldApiWithVersion(project, oldGroupNameVersion);
                 if (!exceptionsPerVersion.isEmpty()) {
                     log.warn("{} has successfully resolved. At first we tried to use versions {}, however they all "
                             + "failed to resolve with these errors:\n\n{}",
@@ -67,7 +71,7 @@ final class ResolveOldApiVersion {
                             exceptionsPerVersion.keySet().stream().map(Version::asString).collect(Collectors.toList()),
                             ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
-                return oldGroupNameVersion.version();
+                return oldApi;
             } catch (CouldNotResolveOldApiException e) {
                 exceptionsPerVersion.put(oldGroupNameVersion.version(), e);
             }
@@ -78,7 +82,7 @@ final class ResolveOldApiVersion {
                 ExceptionMessages.joined(exceptionsPerVersion.values())));
     }
 
-    private static void resolveOldApiWithVersion(Project project, GroupNameVersion groupNameVersion)
+    private static OldApi resolveOldApiWithVersion(Project project, GroupNameVersion groupNameVersion)
             throws CouldNotResolveOldApiException {
 
         Dependency oldApiDependency = project.getDependencies().create(groupNameVersion.asString());
@@ -88,13 +92,29 @@ final class ResolveOldApiVersion {
                 oldApiDependency,
                 "revapiResolveOldApi_" + groupNameVersion.version().asString(),
                 "Just the previously published version of this project");
-
         oldApiConfiguration.setTransitive(false);
 
-        PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
+        Set<File> oldOnlyJar = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
                 OldApiConfigurations.resolveConfigurationUnlessMissingJars(
                         groupNameVersion.version(),
                         oldApiConfiguration));
+
+        Configuration oldApiDepsConfiguration = OldApiConfigurations.configuration(
+                project,
+                oldApiDependency,
+                "revapiOldApiDeps",
+                "The dependencies of the previously published version of this project");
+
+        Set<File> oldWithDeps = PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
+                project,
+                oldApiDepsConfiguration::resolve);
+
+        Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
+
+        return OldApi.builder()
+                .jars(oldOnlyJar)
+                .dependencyJars(oldJustDeps)
+                .build();
     }
 
     private static GroupNameVersion possiblyReplacedOldVersionFor(
@@ -109,5 +129,17 @@ final class ResolveOldApiVersion {
                 .from(groupNameVersion)
                 .version(possiblyReplacedVersion)
                 .build();
+    }
+
+    @Value.Immutable
+    interface OldApi {
+        Set<File> jars();
+        Set<File> dependencyJars();
+
+        class Builder extends ImmutableOldApi.Builder { }
+
+        static Builder builder() {
+            return new Builder();
+        }
     }
 }
