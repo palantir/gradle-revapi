@@ -83,8 +83,8 @@ final class ResolveOldApi {
     private static OldApi resolveOldApiWithVersion(Project project, GroupNameVersion groupNameVersion)
             throws CouldNotResolveOldApiException {
 
-        Set<File> oldOnlyJar  = OldApiConfigurations.doIt(project, groupNameVersion, false);
-        Set<File> oldWithDeps = OldApiConfigurations.doIt(project, groupNameVersion, true);
+        Set<File> oldOnlyJar  = OldApiConfigurations.resolveOldConfiguration(project, groupNameVersion, false);
+        Set<File> oldWithDeps = OldApiConfigurations.resolveOldConfiguration(project, groupNameVersion, true);
 
         Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
 

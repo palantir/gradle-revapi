@@ -31,7 +31,9 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 final class OldApiConfigurations {
     private OldApiConfigurations() {}
 
-    static Set<File> doIt(Project project, GroupNameVersion groupNameVersion, boolean transitive) throws CouldNotResolveOldApiException {
+    static Set<File> resolveOldConfiguration(Project project, GroupNameVersion groupNameVersion, boolean transitive)
+            throws CouldNotResolveOldApiException {
+
         Dependency oldApiDependency = project.getDependencies().create(groupNameVersion.asString());
 
         Configuration oldApiConfiguration = OldApiConfigurations.configuration(
