@@ -17,13 +17,10 @@
 package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.revapi.config.AcceptedBreak;
-import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -38,8 +35,8 @@ import org.slf4j.LoggerFactory;
 public abstract class RevapiJavaTask extends DefaultTask {
     private static final Logger log = LoggerFactory.getLogger(RevapiJavaTask.class);
 
-    private final Property<ConfigManager> configManager =
-            getProject().getObjects().property(ConfigManager.class);
+    private final SetProperty<AcceptedBreak> acceptedBreaks =
+            getProject().getObjects().setProperty(AcceptedBreak.class);
 
     private final SetProperty<File> newApiJars =
             getProject().getObjects().setProperty(File.class);
@@ -53,15 +50,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private final SetProperty<File> oldApiDependencyJars =
             getProject().getObjects().setProperty(File.class);
 
-    private final Property<GroupAndName> oldGroupAndName =
-            getProject().getObjects().property(GroupAndName.class);
-
-    final Property<ConfigManager> configManager() {
-        return configManager;
-    }
-
-    public final Property<GroupAndName> getOldGroupAndName() {
-        return oldGroupAndName;
+    public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
+        return acceptedBreaks;
     }
 
     public final SetProperty<File> newApiJars() {
@@ -113,12 +103,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
     }
 
     private RevapiConfig revapiIgnores() {
-        Set<AcceptedBreak> acceptedBreaks = configManager.get()
-                .fromFileOrEmptyIfDoesNotExist()
-                .acceptedBreaksFor(oldGroupAndName.get());
-
         return RevapiConfig.empty()
-                .withIgnoredBreaks(acceptedBreaks);
+                .withIgnoredBreaks(acceptedBreaks.get());
     }
 
     private API api(SetProperty<File> apiJars, SetProperty<File> dependencyJars) {

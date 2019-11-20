@@ -18,6 +18,8 @@ package com.palantir.gradle.revapi;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
+import com.palantir.gradle.revapi.config.AcceptedBreak;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,14 +58,14 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
+            task.getConfigManager().set(configManager);
         });
 
         Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
         project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
             task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
-            task.configManager().set(configManager);
-            task.getOldGroupAndName().set(extension.oldGroupAndName());
+            task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
             Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
             task.newApiJars().set(jarTask.getOutputs().getFiles());
@@ -79,6 +81,17 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
             task.configManager().set(configManager);
         });
+    }
+
+    private Provider<Set<AcceptedBreak>> acceptedBreaks(
+            Project project,
+            ConfigManager configManager,
+            Provider<GroupAndName> oldGroupAndNameProvider) {
+
+        return GradleUtils.memoisedProvider(project, () ->
+                configManager.fromFileOrEmptyIfDoesNotExist()
+                        .acceptedBreaksFor(oldGroupAndNameProvider.get()));
+
     }
 
     @VisibleForTesting
