@@ -62,7 +62,7 @@ final class PreviousVersionResolutionHelpers {
      * When the version of the local java project is higher than the old published dependency and has the same
      * group and name, gradle silently replaces the published external dependency with the project dependency
      * (see https://discuss.gradle.org/t/fetching-the-previous-version-of-a-projects-jar/8571). This happens on
-     * tag builds, and would cause the publish to fail. Instead we, change the group for just this thread
+     * tag builds, and would cause the publish to fail. Instead, we change the group for just this thread
      * while resolving these dependencies so the switching out doesnt happen.
      */
     public static <T, E extends Exception> T withRenamedGroupForCurrentThread(

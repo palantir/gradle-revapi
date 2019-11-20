@@ -36,12 +36,12 @@ final class OldApiConfigurations {
 
         Dependency oldApiDependency = project.getDependencies().create(groupNameVersion.asString());
 
-        String transitivityString = transitive ? "transitive" : "";
+        String transitivityString = transitive ? "_transitive" : "";
 
         Configuration oldApiConfiguration = OldApiConfigurations.configuration(
                 project,
                 oldApiDependency,
-                "revapiOldApi_" + groupNameVersion.version().asString() + "_" + transitivityString);
+                "revapiOldApi_" + groupNameVersion.version().asString() + transitivityString);
         oldApiConfiguration.setTransitive(transitive);
 
         return PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
