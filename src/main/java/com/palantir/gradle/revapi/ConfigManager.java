@@ -21,6 +21,8 @@ import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.UnaryOperator;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputFile;
 
 final class ConfigManager {
     private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newYamlObjectMapper();
@@ -29,6 +31,8 @@ final class ConfigManager {
     // application managing everything.
     private static final Object CONFIG_FILE_LOCK = new Object();
 
+    @InputFile
+    @OutputFile
     private final File configFile;
 
     ConfigManager(File configFile) {

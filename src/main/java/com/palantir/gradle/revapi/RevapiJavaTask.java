@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -50,6 +51,9 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private final SetProperty<File> oldApiDependencyJars =
             getProject().getObjects().setProperty(File.class);
 
+    private final RegularFileProperty resultsFile =
+            getProject().getObjects().fileProperty();
+
     public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
         return acceptedBreaks;
     }
@@ -68,6 +72,10 @@ public abstract class RevapiJavaTask extends DefaultTask {
 
     public final SetProperty<File> getOldApiDependencyJars() {
         return oldApiDependencyJars;
+    }
+
+    public final RegularFileProperty getResultsFile() {
+        return resultsFile;
     }
 
     protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
