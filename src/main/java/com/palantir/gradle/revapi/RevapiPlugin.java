@@ -58,24 +58,28 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         File resultsFile = new File(project.getBuildDir(), "revapi/revapi-breaks.json");
 
-        project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
-            task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
-            task.getConfigManager().set(configManager);
-            task.getResultsFile().set(resultsFile);
-        });
 
         Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
-        project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
-            task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
-            task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
+        TaskProvider<RevapiJavaTask> results = project.getTasks().register("revapiAnalyse", RevapiJavaTask.class,
+                task -> {
+                    task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
+                    task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
-            Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
-            task.getNewApiJars().set(jarTask.getOutputs().getFiles());
-            task.getNewApiDependencyJars().set(revapiNewApi);
-            task.getOldApiJars().set(oldApi.map(OldApi::jars));
-            task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
+                    Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
+                    task.getNewApiJars().set(jarTask.getOutputs().getFiles());
+                    task.getNewApiDependencyJars().set(revapiNewApi);
+                    task.getOldApiJars().set(oldApi.map(OldApi::jars));
+                    task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
 
+                    task.getResultsFile().set(resultsFile);
+                });
+
+        project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
+            task.dependsOn(results);
+
+            task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
+            task.getConfigManager().set(configManager);
             task.getResultsFile().set(resultsFile);
         });
 

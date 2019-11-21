@@ -26,9 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
-public class RevapiReportTask extends RevapiJavaTask {
+public class RevapiReportTask extends DefaultTask {
     @TaskAction
     public final void runRevapi() throws Exception {
         Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
@@ -57,9 +58,9 @@ public class RevapiReportTask extends RevapiJavaTask {
         Path textOutputTemplate = templateWithDifferenceTemplateAndWriteToFile(
                 "gradle-revapi-text-template.ftl", differenceTemplate);
 
-        runRevapi(RevapiConfig.empty()
-                .withTextReporter(junitTemplate.toString(), junitOutput())
-                .withTextReporter(textOutputTemplate.toString(), textOutputPath.toFile()));
+        // runRevapi(RevapiConfig.empty()
+        //         .withTextReporter(junitTemplate.toString(), junitOutput())
+        //         .withTextReporter(textOutputTemplate.toString(), textOutputPath.toFile()));
 
         String textOutput = new String(Files.readAllBytes(textOutputPath), StandardCharsets.UTF_8);
         if (!textOutput.trim().isEmpty()) {

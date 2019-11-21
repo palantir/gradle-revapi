@@ -24,6 +24,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -80,7 +81,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return resultsFile;
     }
 
-    protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
+    @TaskAction
+    protected final void runRevapi() throws Exception {
         API oldApi = api(oldApiJars, oldApiDependencyJars);
         API newApi = api(newApiJars, newApiDependencyJars);
 

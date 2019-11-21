@@ -296,6 +296,7 @@ class RevapiSpec extends IntegrationSpec {
 
         and:
         !revapiYml.exists()
+        runTasksSuccessfully("revapiAnalyse")
         runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "it's all good :)")
         revapiYml.text.contains('java.class.removed')
 
