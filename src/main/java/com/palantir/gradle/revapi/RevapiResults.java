@@ -30,7 +30,7 @@ import org.immutables.value.Value;
 public abstract class RevapiResults {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public abstract List<String> archives();
+    public abstract String archiveNames();
     public abstract List<RevapiResult> results();
 
     final Set<AcceptedBreak> toAcceptedBreaks(Justification justification) {
