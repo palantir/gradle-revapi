@@ -24,27 +24,34 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.immutables.value.Value;
 import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 
 @Value.Immutable
-abstract class RevapiResult {
+public abstract class RevapiResult {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public abstract String code();
+    @Nullable
     public abstract String oldElement();
+    @Nullable
     public abstract String newElement();
+    @Nullable
     public abstract String description();
+    @Nullable
     public abstract String oldArchiveName();
+    @Nullable
     public abstract String newArchiveName();
-    public abstract Map<CompatibilityType, DifferenceSeverity> statuses();
+    public abstract Map<CompatibilityType, DifferenceSeverity> classification();
 
-    public AcceptedBreak toAcceptedBreak(Justification justification) {
+    final AcceptedBreak toAcceptedBreak(Justification justification) {
         return AcceptedBreak.builder()
                 .code(code())
-                .oldElement(oldElement())
-                .newElement(newElement())
+                .oldElement(Optional.ofNullable(oldElement()))
+                .newElement(Optional.ofNullable(newElement()))
                 .justification(justification)
                 .build();
     }

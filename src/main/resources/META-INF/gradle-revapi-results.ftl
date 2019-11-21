@@ -10,7 +10,7 @@
         "description": "${diff.description?json_string}",
         "oldArchiveName": "${report.oldElement.archive.name?json_string}",
         "newArchiveName": "${report.newElement.archive.name?json_string}",
-        "statuses": {
+        "classification": {
 <#list diff.classification as compatibilityType, differenceSeverity>
             "${compatibilityType}": "${differenceSeverity}",
 </#list>
