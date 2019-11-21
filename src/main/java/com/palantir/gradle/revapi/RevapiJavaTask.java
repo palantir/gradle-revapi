@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.OutputFile;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -74,6 +75,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
         return oldApiDependencyJars;
     }
 
+    @OutputFile
     public final RegularFileProperty getResultsFile() {
         return resultsFile;
     }
@@ -94,7 +96,7 @@ public abstract class RevapiJavaTask extends DefaultTask {
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(oldApi, newApi),
-                taskSpecificConfigJson,
+                RevapiConfig.empty().withTextReporter("gradle-revapi-results.ftl", resultsFile.getAsFile().get()),
                 revapiIgnores(),
                 ConjureProjectFilters.forProject(getProject()));
 

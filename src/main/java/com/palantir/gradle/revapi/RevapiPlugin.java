@@ -56,9 +56,12 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
 
+        File resultsFile = new File(project.getBuildDir(), "revapi/revapi-breaks.json");
+
         project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
             task.getConfigManager().set(configManager);
+            task.getResultsFile().set(resultsFile);
         });
 
         Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
@@ -72,6 +75,8 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.getNewApiDependencyJars().set(revapiNewApi);
             task.getOldApiJars().set(oldApi.map(OldApi::jars));
             task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
+
+            task.getResultsFile().set(resultsFile);
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {

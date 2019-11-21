@@ -10,8 +10,8 @@
             "oldElement": ${("\"" + report.oldElement.toString()?json_string + "\"")!"null"},
             "newElement": ${("\"" + report.newElement.toString()?json_string + "\"")!"null"},
             "description": "${diff.description?json_string}",
-            "oldArchiveName": "${report.oldElement.archive.name?json_string}",
-            "newArchiveName": "${report.newElement.archive.name?json_string}",
+            "oldArchiveName": ${("\"" + report.oldElement.archive.name?json_string + "\"")!"null"},
+            "newArchiveName": ${("\"" + report.newElement.archive.name?json_string + "\"")!"null"},
             "classification": {
             <#list diff.classification as compatibilityType, differenceSeverity>
                 "${compatibilityType}": "${differenceSeverity}",
