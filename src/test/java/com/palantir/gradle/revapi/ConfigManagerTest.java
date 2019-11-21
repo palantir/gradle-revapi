@@ -89,7 +89,7 @@ class ConfigManagerTest {
                 "  foo:bar:3.12: \"1.0\"",
                 "  quux:baz:2.0: \"3.6\"",
                 "acceptedBreaks:",
-                "  1.2.3:",
+                "  \"1.2.3\":",
                 "    foo:bar:",
                 "    - code: \"blah\"",
                 "      old: \"old\"",
