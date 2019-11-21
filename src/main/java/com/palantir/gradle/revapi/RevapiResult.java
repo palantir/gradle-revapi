@@ -16,13 +16,9 @@
 
 package com.palantir.gradle.revapi;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.Justification;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -31,9 +27,8 @@ import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 
 @Value.Immutable
+@JsonDeserialize(as = ImmutableRevapiResult.class)
 public abstract class RevapiResult {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     public abstract String code();
     @Nullable
     public abstract String oldElement();
@@ -54,14 +49,6 @@ public abstract class RevapiResult {
                 .newElement(Optional.ofNullable(newElement()))
                 .justification(justification)
                 .build();
-    }
-
-    public static List<RevapiResult> fromFile(File file) {
-        try {
-            return OBJECT_MAPPER.readValue(file, new TypeReference<List<RevapiResult>>() {});
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     static class Builder extends ImmutableRevapiResult.Builder { }

@@ -20,7 +20,6 @@ import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
@@ -66,9 +65,8 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
             throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param to this task");
         }
 
-        Set<AcceptedBreak> acceptedBreaks = RevapiResult.fromFile(resultsFile.getAsFile().get()).stream()
-                .map(result -> result.toAcceptedBreak(justification.get()))
-                .collect(Collectors.toSet());
+        Set<AcceptedBreak> acceptedBreaks = RevapiResults.fromFile(resultsFile.getAsFile().get())
+                .toAcceptedBreaks(justification.get());
 
         configManager.get().modifyConfigFile(config ->
                 config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
