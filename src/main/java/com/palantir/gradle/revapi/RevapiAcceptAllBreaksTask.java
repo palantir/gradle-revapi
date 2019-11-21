@@ -37,10 +37,15 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
     private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newJsonObjectMapper();
     public static final String JUSTIFICATION = "justification";
 
+    private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
     private final Property<GroupNameVersion> oldGroupNameVersion =
             getProject().getObjects().property(GroupNameVersion.class);
 
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
+
+    final Property<ConfigManager> getConfigManager() {
+        return configManager;
+    }
 
     @Input
     final Property<GroupNameVersion> getOldGroupNameVersion() {
@@ -75,7 +80,7 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
                         .build())
                 .collect(Collectors.toSet());
 
-        configManager().get().modifyConfigFile(config ->
+        configManager.get().modifyConfigFile(config ->
                 config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
     }
 }
