@@ -27,8 +27,6 @@ import java.io.StringWriter;
 import java.util.Map;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 public class RevapiReportTask extends DefaultTask {
@@ -39,12 +37,10 @@ public class RevapiReportTask extends DefaultTask {
         this.getOutputs().upToDateWhen(_task -> false);
     }
 
-    @InputFile
     public final RegularFileProperty getResultsFile() {
         return resultsFile;
     }
 
-    @OutputFile
     public final RegularFileProperty getJunitOutputFile() {
         return junitOutputFile;
     }
