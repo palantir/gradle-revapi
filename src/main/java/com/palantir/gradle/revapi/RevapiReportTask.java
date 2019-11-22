@@ -22,8 +22,9 @@ import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
-import java.io.FileWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
@@ -69,7 +70,8 @@ public class RevapiReportTask extends DefaultTask {
         );
 
         Template junitTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-junit-template.ftl");
-        junitTemplate.process(templateData, new FileWriter(junitOutputFile.getAsFile().get()));
+        junitTemplate.process(templateData, Files.newBufferedWriter(
+                junitOutputFile.getAsFile().get().toPath(), StandardCharsets.UTF_8));
 
         Template textTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-text-template.ftl");
         StringWriter textOutputWriter = new StringWriter();
