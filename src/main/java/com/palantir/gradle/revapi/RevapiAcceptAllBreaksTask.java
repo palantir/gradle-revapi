@@ -39,6 +39,10 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
     private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
+    public RevapiAcceptAllBreaksTask() {
+        this.getOutputs().upToDateWhen(_task -> false);
+    }
+
     @Nested
     final Property<ConfigManager> getConfigManager() {
         return configManager;
