@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: The Revapi analysis task is now cacheable by gradle, reducing the number
+    of time it will need to be run.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/118
