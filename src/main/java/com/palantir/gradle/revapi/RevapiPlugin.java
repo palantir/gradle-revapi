@@ -47,17 +47,16 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
-        Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
-            conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
-        });
-
         ConfigManager configManager = new ConfigManager(configFile(project));
         File resultsFile = new File(project.getBuildDir(), "revapi/revapi-results.json");
 
-        Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
-
         TaskProvider<RevapiAnalyzeTask> results = project.getTasks().register("revapiAnalyze", RevapiAnalyzeTask.class,
                 task -> {
+                    Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
+                        conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
+                    });
+                    Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
+
                     task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
