@@ -48,9 +48,8 @@ public final class RevapiPlugin implements Plugin<Project> {
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         ConfigManager configManager = new ConfigManager(configFile(project));
-        File resultsFile = new File(project.getBuildDir(), "revapi/revapi-results.json");
 
-        TaskProvider<RevapiAnalyzeTask> results = project.getTasks()
+        TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
@@ -67,24 +66,24 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.getOldApiJars().set(oldApi.map(OldApi::jars));
                     task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
 
-                    task.getAnalysisResultsFile().set(resultsFile);
+                    task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
                 });
 
-        TaskProvider<RevapiReportTask> revapiTask = project.getTasks()
+        TaskProvider<RevapiReportTask> reportTask = project.getTasks()
                 .register("revapi", RevapiReportTask.class, task -> {
-                    task.dependsOn(results);
-                    task.getAnalysisResultsFile().set(resultsFile);
+                    task.dependsOn(analyzeTask);
+                    task.getAnalysisResultsFile().set(analyzeTask.flatMap(RevapiAnalyzeTask::getAnalysisResultsFile));
                     task.getJunitOutputFile().set(junitOutput(project));
                 });
 
-        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(reportTask);
 
         project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
-            task.dependsOn(results);
+            task.dependsOn(analyzeTask);
 
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
             task.getConfigManager().set(configManager);
-            task.getAnalysisResultsFile().set(resultsFile);
+            task.getAnalysisResultsFile().set(analyzeTask.flatMap(RevapiAnalyzeTask::getAnalysisResultsFile));
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
