@@ -68,10 +68,10 @@ public class RevapiReportTask extends DefaultTask {
                 "explainWhy", Justification.YOU_MUST_ENTER_JUSTIFICATION
         );
 
-        Template junitTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-junit-template2.ftl");
+        Template junitTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-junit-template.ftl");
         junitTemplate.process(templateData, new FileWriter(junitOutputFile.getAsFile().get()));
 
-        Template textTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-text-template2.ftl");
+        Template textTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-text-template.ftl");
         StringWriter textOutputWriter = new StringWriter();
         textTemplate.process(templateData, textOutputWriter);
 
