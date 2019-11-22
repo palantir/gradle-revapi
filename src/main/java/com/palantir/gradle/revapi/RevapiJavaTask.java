@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.revapi.API;
@@ -56,22 +58,27 @@ public abstract class RevapiJavaTask extends DefaultTask {
     private final RegularFileProperty resultsFile =
             getProject().getObjects().fileProperty();
 
+    @Input
     public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
         return acceptedBreaks;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getNewApiJars() {
         return newApiJars;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getNewApiDependencyJars() {
         return newApiDependencyJars;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getOldApiJars() {
         return oldApiJars;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getOldApiDependencyJars() {
         return oldApiDependencyJars;
     }

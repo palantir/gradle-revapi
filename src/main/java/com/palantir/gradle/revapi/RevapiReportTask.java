@@ -35,6 +35,10 @@ public class RevapiReportTask extends DefaultTask {
     private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
     private final RegularFileProperty junitOutputFile = getProject().getObjects().fileProperty();
 
+    public RevapiReportTask() {
+        this.getOutputs().upToDateWhen(_task -> false);
+    }
+
     @InputFile
     public final RegularFileProperty getResultsFile() {
         return resultsFile;

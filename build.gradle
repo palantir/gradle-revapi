@@ -62,7 +62,9 @@ dependencies {
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 
     annotationProcessor "org.immutables:value"
+    annotationProcessor "org.immutables:serial"
     compileOnly "org.immutables:value::annotations"
+    compileOnly "org.immutables:serial::annotations"
 }
 
 test {
