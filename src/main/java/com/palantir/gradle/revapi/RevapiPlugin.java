@@ -52,7 +52,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         });
 
         ConfigManager configManager = new ConfigManager(configFile(project));
-        File resultsFile = new File(project.getBuildDir(), "revapi/revapi-breaks.json");
+        File resultsFile = new File(project.getBuildDir(), "revapi/revapi-results.json");
 
         Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
