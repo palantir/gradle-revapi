@@ -6,7 +6,7 @@
         <#list results.results() as result>
         <testcase id="${result.code()}-${result.oldElement()!(result.newElement()!"<none>")}" name="Revapi Java API/ABI compatibility checker - ${result.code()}">
             <failure message="${result.oldElement()!(result.newElement()!"<none>")}<#if result.description()??>: ${result.description()}</#if>"><![CDATA[
-{{differenceTemplate}}
+<#include "gradle-revapi-difference-template2.ftl">
             ]]></failure>
         </testcase>
         </#list>

@@ -1,4 +1,8 @@
 <#-- @ftlvariable name="result" type="com.palantir.gradle.revapi.RevapiResult" -->
+<#-- @ftlvariable name="explainWhy" type="java.lang.String" -->
+<#-- @ftlvariable name="acceptBreakTask" type="java.lang.String" -->
+<#-- @ftlvariable name="acceptAllBreaksProjectTask" type="java.lang.String" -->
+<#-- @ftlvariable name="acceptAllBreaksEverywhereTask" type="java.lang.String" -->
 old: ${result.oldElement()!"<none>"}
 new: ${result.newElement()!"<none>"}
 
@@ -10,11 +14,11 @@ From new archive: ${(result.newArchiveName())!"<none>"}
 If this is an acceptable break that will not harm your users, you can ignore it in future runs like so for:
 
   * Just this break:
-      ./gradlew {{acceptBreakTask}} --justification "{{explainWhy}}" \
+      ./gradlew ${acceptBreakTask} --justification "${explainWhy}" \
         --code "${result.code()}"<#if result.oldElement()??> \
         --old "${result.oldElement()}"</#if><#if result.newElement()??> \
         --new "${result.newElement()}"</#if>
   * All breaks in this project:
-      ./gradlew {{acceptAllBreaksProjectTask}} --justification "{{explainWhy}}"
+      ./gradlew ${acceptAllBreaksProjectTask} --justification "${explainWhy}"
   * All breaks in all projects:
-      ./gradlew {{acceptAllBreaksEverywhereTask}} --justification "{{explainWhy}}"
+      ./gradlew ${acceptAllBreaksEverywhereTask} --justification "${explainWhy}"

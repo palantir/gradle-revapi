@@ -1,7 +1,7 @@
-<#-- @ftlvariable name="results" type="java.util.List<com.palantir.gradle.revapi.RevapiResult>" -->
-<#list results as result>
+<#-- @ftlvariable name="results" type="com.palantir.gradle.revapi.RevapiResults" -->
+<#list results.results() as result>
 ${result.code()}<#if result.description()??>: ${result.description()}</#if>
 
-{{differenceTemplate}}
+<#include "gradle-revapi-difference-template2.ftl">
 ----------------------------------------------------------------------------------------------------
 </#list>

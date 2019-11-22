@@ -21,6 +21,7 @@ import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Plugin;
@@ -51,13 +52,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         });
 
         ConfigManager configManager = new ConfigManager(configFile(project));
-
-        TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class);
-
-        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
-
         File resultsFile = new File(project.getBuildDir(), "revapi/revapi-breaks.json");
-
 
         Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
@@ -74,6 +69,15 @@ public final class RevapiPlugin implements Plugin<Project> {
 
                     task.getResultsFile().set(resultsFile);
                 });
+
+        TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class,
+                task -> {
+                    task.dependsOn(results);
+                    task.getResultsFile().set(resultsFile);
+                    task.getJunitOutputFile().set(junitOutput(project));
+                });
+
+        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
 
         project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
             task.dependsOn(results);
@@ -125,5 +129,13 @@ public final class RevapiPlugin implements Plugin<Project> {
 
     private static File configFile(Project project) {
         return new File(project.getRootDir(), ".palantir/revapi.yml");
+    }
+
+    private File junitOutput(Project project) {
+        Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
+        File reportsDir = circleReportsDir
+                .map(File::new)
+                .orElseGet(project::getBuildDir);
+        return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
     }
 }
