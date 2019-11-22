@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @CacheableTask
-public abstract class RevapiAnalyzeTask extends DefaultTask {
+public class RevapiAnalyzeTask extends DefaultTask {
     private static final Logger log = LoggerFactory.getLogger(RevapiAnalyzeTask.class);
 
     private final SetProperty<AcceptedBreak> acceptedBreaks =
