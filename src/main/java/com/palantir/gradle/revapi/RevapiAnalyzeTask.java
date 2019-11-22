@@ -50,7 +50,7 @@ public abstract class RevapiAnalyzeTask extends DefaultTask {
     private final SetProperty<File> newApiDependencyJars = getProject().getObjects().setProperty(File.class);
     private final SetProperty<File> oldApiJars = getProject().getObjects().setProperty(File.class);
     private final SetProperty<File> oldApiDependencyJars = getProject().getObjects().setProperty(File.class);
-    private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
+    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
 
     @Input
     public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
@@ -79,8 +79,8 @@ public abstract class RevapiAnalyzeTask extends DefaultTask {
 
     @OutputFile
     @PathSensitive(PathSensitivity.RELATIVE)
-    public final RegularFileProperty getResultsFile() {
-        return resultsFile;
+    public final RegularFileProperty getAnalysisResultsFile() {
+        return analysisResultsFile;
     }
 
     @TaskAction
@@ -100,7 +100,8 @@ public abstract class RevapiAnalyzeTask extends DefaultTask {
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(oldApi, newApi),
-                RevapiConfig.empty().withTextReporter("gradle-revapi-results.ftl", resultsFile.getAsFile().get()),
+                RevapiConfig.empty()
+                        .withTextReporter("gradle-revapi-results.ftl", analysisResultsFile.getAsFile().get()),
                 revapiIgnores(),
                 ConjureProjectFilters.forProject(getProject()));
 

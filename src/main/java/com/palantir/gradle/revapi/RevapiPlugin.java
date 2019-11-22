@@ -67,13 +67,13 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.getOldApiJars().set(oldApi.map(OldApi::jars));
                     task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
 
-                    task.getResultsFile().set(resultsFile);
+                    task.getAnalysisResultsFile().set(resultsFile);
                 });
 
         TaskProvider<RevapiReportTask> revapiTask = project.getTasks()
                 .register("revapi", RevapiReportTask.class, task -> {
                     task.dependsOn(results);
-                    task.getResultsFile().set(resultsFile);
+                    task.getAnalysisResultsFile().set(resultsFile);
                     task.getJunitOutputFile().set(junitOutput(project));
                 });
 
@@ -84,7 +84,7 @@ public final class RevapiPlugin implements Plugin<Project> {
 
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
             task.getConfigManager().set(configManager);
-            task.getResultsFile().set(resultsFile);
+            task.getAnalysisResultsFile().set(resultsFile);
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {

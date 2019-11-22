@@ -27,8 +27,8 @@ import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableRevapiResult.class)
-public abstract class RevapiResult {
+@JsonDeserialize(as = ImmutableAnalysisResult.class)
+public abstract class AnalysisResult {
     public abstract String code();
     // Using @Nullable instead of Optionals as freemarker templating does not not support Optionals
     @Nullable
@@ -52,7 +52,7 @@ public abstract class RevapiResult {
                 .build();
     }
 
-    static class Builder extends ImmutableRevapiResult.Builder { }
+    static class Builder extends ImmutableAnalysisResult.Builder { }
 
     public static Builder builder() {
         return new Builder();

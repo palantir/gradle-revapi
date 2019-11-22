@@ -30,14 +30,14 @@ import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@JsonDeserialize(as = ImmutableRevapiResults.class)
-public abstract class RevapiResults {
+@JsonDeserialize(as = ImmutableAnalysisResults.class)
+public abstract class AnalysisResults {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new GuavaModule())
             .enable(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature());
 
     public abstract String archiveNames();
-    public abstract List<RevapiResult> results();
+    public abstract List<AnalysisResult> results();
 
     final Set<AcceptedBreak> toAcceptedBreaks(Justification justification) {
         return results().stream()
@@ -45,15 +45,15 @@ public abstract class RevapiResults {
                 .collect(Collectors.toSet());
     }
 
-    public static RevapiResults fromFile(File file) {
+    public static AnalysisResults fromFile(File file) {
         try {
-            return OBJECT_MAPPER.readValue(file, RevapiResults.class);
+            return OBJECT_MAPPER.readValue(file, AnalysisResults.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static class Builder extends ImmutableRevapiResults.Builder { }
+    static class Builder extends ImmutableAnalysisResults.Builder { }
 
     public static Builder builder() {
         return new Builder();

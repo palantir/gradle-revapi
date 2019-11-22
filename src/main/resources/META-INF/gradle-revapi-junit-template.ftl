@@ -1,5 +1,5 @@
 <#ftl output_format="XML">
-<#-- @ftlvariable name="results" type="com.palantir.gradle.revapi.RevapiResults" -->
+<#-- @ftlvariable name="results" type="com.palantir.gradle.revapi.AnalysisResults" -->
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <testsuites failures="1" id="project-name" name="project-name" tests="1" time="0.000">
     <testsuite failures="1" id="${results.archiveNames()}" name="${results.archiveNames()}" tests="1" time="0.000">

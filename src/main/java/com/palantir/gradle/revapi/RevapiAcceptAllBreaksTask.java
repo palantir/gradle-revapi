@@ -33,7 +33,7 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
     private final Property<GroupNameVersion> oldGroupNameVersion =
             getProject().getObjects().property(GroupNameVersion.class);
 
-    private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
+    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
     final Property<ConfigManager> getConfigManager() {
@@ -44,8 +44,8 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
         return oldGroupNameVersion;
     }
 
-    final RegularFileProperty getResultsFile() {
-        return resultsFile;
+    final RegularFileProperty getAnalysisResultsFile() {
+        return analysisResultsFile;
     }
 
     @Option(option = JUSTIFICATION, description = "Justification for why these breaks are ok")
@@ -59,7 +59,7 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
             throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param to this task");
         }
 
-        Set<AcceptedBreak> acceptedBreaks = RevapiResults.fromFile(resultsFile.getAsFile().get())
+        Set<AcceptedBreak> acceptedBreaks = AnalysisResults.fromFile(analysisResultsFile.getAsFile().get())
                 .toAcceptedBreaks(justification.get());
 
         configManager.get().modifyConfigFile(config ->

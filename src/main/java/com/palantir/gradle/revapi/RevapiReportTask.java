@@ -31,11 +31,11 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.TaskAction;
 
 public class RevapiReportTask extends DefaultTask {
-    private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
+    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
     private final RegularFileProperty junitOutputFile = getProject().getObjects().fileProperty();
 
-    public final RegularFileProperty getResultsFile() {
-        return resultsFile;
+    public final RegularFileProperty getAnalysisResultsFile() {
+        return analysisResultsFile;
     }
 
     public final RegularFileProperty getJunitOutputFile() {

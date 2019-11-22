@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="result" type="com.palantir.gradle.revapi.RevapiResult" -->
+<#-- @ftlvariable name="result" type="com.palantir.gradle.revapi.AnalysisResult" -->
 <#-- @ftlvariable name="explainWhy" type="java.lang.String" -->
 <#-- @ftlvariable name="acceptBreakTask" type="java.lang.String" -->
 <#-- @ftlvariable name="acceptAllBreaksProjectTask" type="java.lang.String" -->
