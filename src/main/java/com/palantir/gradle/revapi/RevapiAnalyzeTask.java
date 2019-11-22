@@ -46,21 +46,11 @@ public abstract class RevapiAnalyzeTask extends DefaultTask {
 
     private final SetProperty<AcceptedBreak> acceptedBreaks =
             getProject().getObjects().setProperty(AcceptedBreak.class);
-
-    private final SetProperty<File> newApiJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final SetProperty<File> newApiDependencyJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final SetProperty<File> oldApiJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final SetProperty<File> oldApiDependencyJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final RegularFileProperty resultsFile =
-            getProject().getObjects().fileProperty();
+    private final SetProperty<File> newApiJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> newApiDependencyJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> oldApiJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> oldApiDependencyJars = getProject().getObjects().setProperty(File.class);
+    private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
 
     @Input
     public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
