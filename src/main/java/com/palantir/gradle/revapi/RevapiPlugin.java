@@ -56,7 +56,7 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
-        TaskProvider<RevapiJavaTask> results = project.getTasks().register("revapiAnalyze", RevapiJavaTask.class,
+        TaskProvider<RevapiAnalyzeTask> results = project.getTasks().register("revapiAnalyze", RevapiAnalyzeTask.class,
                 task -> {
                     task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));

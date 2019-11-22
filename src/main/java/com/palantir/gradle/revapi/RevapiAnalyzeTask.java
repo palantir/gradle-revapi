@@ -39,8 +39,8 @@ import org.revapi.simple.FileArchive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class RevapiJavaTask extends DefaultTask {
-    private static final Logger log = LoggerFactory.getLogger(RevapiJavaTask.class);
+public abstract class RevapiAnalyzeTask extends DefaultTask {
+    private static final Logger log = LoggerFactory.getLogger(RevapiAnalyzeTask.class);
 
     private final SetProperty<AcceptedBreak> acceptedBreaks =
             getProject().getObjects().setProperty(AcceptedBreak.class);
