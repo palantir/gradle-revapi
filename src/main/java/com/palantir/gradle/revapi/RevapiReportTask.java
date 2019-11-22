@@ -50,7 +50,7 @@ public class RevapiReportTask extends DefaultTask {
     }
 
     @TaskAction
-    public final void runRevapi() throws Exception {
+    public final void reportBreaks() throws Exception {
         RevapiResults results = RevapiResults.fromFile(resultsFile.getAsFile().get());
 
         Configuration freeMarkerConfiguration = createFreeMarkerConfiguration();
@@ -83,10 +83,10 @@ public class RevapiReportTask extends DefaultTask {
     }
 
     private Configuration createFreeMarkerConfiguration() {
-        DefaultObjectWrapperBuilder bld = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23);
+        DefaultObjectWrapperBuilder objectWrapper = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23);
         Configuration freeMarker = new Configuration(Configuration.VERSION_2_3_23);
 
-        freeMarker.setObjectWrapper(bld.build());
+        freeMarker.setObjectWrapper(objectWrapper.build());
         freeMarker.setAPIBuiltinEnabled(true);
         freeMarker.setTemplateLoader(new ClassTemplateLoader(getClass(), "/META-INF"));
 
