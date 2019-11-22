@@ -44,7 +44,7 @@ public class RevapiReportTask extends DefaultTask {
 
     @TaskAction
     public final void reportBreaks() throws Exception {
-        RevapiResults results = RevapiResults.fromFile(resultsFile.getAsFile().get());
+        AnalysisResults results = AnalysisResults.fromFile(analysisResultsFile.getAsFile().get());
 
         Configuration freeMarkerConfiguration = createFreeMarkerConfiguration();
         Map<String, Object> templateData = ImmutableMap.of(
