@@ -50,10 +50,11 @@ public final class RevapiPlugin implements Plugin<Project> {
         ConfigManager configManager = new ConfigManager(configFile(project));
         File resultsFile = new File(project.getBuildDir(), "revapi/revapi-results.json");
 
-        TaskProvider<RevapiAnalyzeTask> results = project.getTasks().register("revapiAnalyze", RevapiAnalyzeTask.class,
-                task -> {
+        TaskProvider<RevapiAnalyzeTask> results = project.getTasks()
+                .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
-                        conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
+                        conf.extendsFrom(
+                                project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
                     });
                     Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
@@ -69,8 +70,8 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.getResultsFile().set(resultsFile);
                 });
 
-        TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class,
-                task -> {
+        TaskProvider<RevapiReportTask> revapiTask = project.getTasks()
+                .register("revapi", RevapiReportTask.class, task -> {
                     task.dependsOn(results);
                     task.getResultsFile().set(resultsFile);
                     task.getJunitOutputFile().set(junitOutput(project));
