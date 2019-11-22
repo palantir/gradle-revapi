@@ -64,7 +64,7 @@ dependencies {
     annotationProcessor "org.immutables:value"
     annotationProcessor "org.immutables:serial"
     compileOnly "org.immutables:value::annotations"
-    compileOnly "org.immutables:serial::annotations"
+    compileOnly "org.immutables:serial"
 }
 
 test {
