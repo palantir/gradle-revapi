@@ -30,6 +30,7 @@ import org.revapi.DifferenceSeverity;
 @JsonDeserialize(as = ImmutableRevapiResult.class)
 public abstract class RevapiResult {
     public abstract String code();
+    // Using @Nullable instead of Optionals as freemarker templating does not not support Optionals
     @Nullable
     public abstract String oldElement();
     @Nullable
