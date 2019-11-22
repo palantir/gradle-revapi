@@ -88,11 +88,11 @@ public final class RevapiPlugin implements Plugin<Project> {
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
-            task.configManager().set(configManager);
+            task.getConfigManager().set(configManager);
         });
 
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
-            task.configManager().set(configManager);
+            task.getConfigManager().set(configManager);
         });
     }
 

@@ -34,7 +34,7 @@ public class RevapiVersionOverrideTask extends DefaultTask {
     }
 
     @Nested
-    final Property<ConfigManager> configManager() {
+    final Property<ConfigManager> getConfigManager() {
         return configManager;
     }
 
