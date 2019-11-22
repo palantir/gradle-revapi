@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Optional;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
@@ -39,11 +38,6 @@ public class RevapiAcceptBreakTask extends DefaultTask {
     private final Property<String> newElement = getProject().getObjects().property(String.class);
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
-    public RevapiAcceptBreakTask() {
-        this.getOutputs().upToDateWhen(_task -> false);
-    }
-
-    @Nested
     final Property<ConfigManager> getConfigManager() {
         return configManager;
     }

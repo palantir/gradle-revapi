@@ -28,24 +28,16 @@ import java.nio.file.Files;
 import java.util.Map;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 public class RevapiReportTask extends DefaultTask {
     private final RegularFileProperty resultsFile = getProject().getObjects().fileProperty();
     private final RegularFileProperty junitOutputFile = getProject().getObjects().fileProperty();
 
-    public RevapiReportTask() {
-        this.getOutputs().upToDateWhen(_task -> false);
-    }
-
-    @InputFile
     public final RegularFileProperty getResultsFile() {
         return resultsFile;
     }
 
-    @OutputFile
     public final RegularFileProperty getJunitOutputFile() {
         return junitOutputFile;
     }
