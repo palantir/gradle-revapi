@@ -17,23 +17,42 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
 import com.palantir.gradle.revapi.config.Justification;
-import java.io.File;
-import java.io.IOException;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapperBuilder;
+import freemarker.template.Template;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-public class RevapiReportTask extends RevapiJavaTask {
-    @TaskAction
-    public final void runRevapi() throws Exception {
-        Path textOutputPath = Files.createTempFile("revapi-text-output", ".txt");
+public class RevapiReportTask extends DefaultTask {
+    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
+    private final RegularFileProperty junitOutputFile = getProject().getObjects().fileProperty();
 
-        String differenceTemplate = templateResource("gradle-revapi-difference-template.ftl", ImmutableMap.of(
+    @InputFile
+    public final RegularFileProperty getAnalysisResultsFile() {
+        return analysisResultsFile;
+    }
+
+    @OutputFile
+    public final RegularFileProperty getJunitOutputFile() {
+        return junitOutputFile;
+    }
+
+    @TaskAction
+    public final void reportBreaks() throws Exception {
+        AnalysisResults results = AnalysisResults.fromFile(analysisResultsFile.getAsFile().get());
+
+        Configuration freeMarkerConfiguration = createFreeMarkerConfiguration();
+        Map<String, Object> templateData = ImmutableMap.of(
+                "results", results,
                 "acceptBreakTask", getProject().getTasks()
                         .withType(RevapiAcceptBreakTask.class)
                         .getByName(RevapiPlugin.ACCEPT_BREAK_TASK_NAME)
@@ -44,51 +63,31 @@ public class RevapiReportTask extends RevapiJavaTask {
                         .getPath(),
                 "acceptAllBreaksEverywhereTask", RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME,
                 "explainWhy", Justification.YOU_MUST_ENTER_JUSTIFICATION
-        ));
+        );
 
+        Template junitTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-junit-template.ftl");
+        junitTemplate.process(templateData, Files.newBufferedWriter(
+                junitOutputFile.getAsFile().get().toPath(), StandardCharsets.UTF_8));
 
-        // Here, we are templating the templates to add the common `differenceTemplate` information. This is because
-        // revapi does not allow us to specify our own template variables, so we must manually template out the
-        // variables we care about (like the task paths etc above) before Revapi does it's own templating with the
-        // api breaks.
-        Path junitTemplate = templateWithDifferenceTemplateAndWriteToFile(
-                "gradle-revapi-junit-template.ftl", differenceTemplate);
+        Template textTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-text-template.ftl");
+        StringWriter textOutputWriter = new StringWriter();
+        textTemplate.process(templateData, textOutputWriter);
 
-        Path textOutputTemplate = templateWithDifferenceTemplateAndWriteToFile(
-                "gradle-revapi-text-template.ftl", differenceTemplate);
+        String textOutput = textOutputWriter.toString();
 
-        runRevapi(RevapiConfig.empty()
-                .withTextReporter(junitTemplate.toString(), junitOutput())
-                .withTextReporter(textOutputTemplate.toString(), textOutputPath.toFile()));
-
-        String textOutput = new String(Files.readAllBytes(textOutputPath), StandardCharsets.UTF_8);
         if (!textOutput.trim().isEmpty()) {
             throw new RuntimeException("There were Java public API/ABI breaks reported by revapi:\n\n" + textOutput);
         }
     }
 
-    private String templateResource(String resourceName, Map<String, String> args) throws IOException {
-        String template = Resources.toString(Resources.getResource("META-INF/" + resourceName), StandardCharsets.UTF_8);
-        return args.entrySet().stream().reduce(template, (partiallyRendered, arg) ->
-                partiallyRendered.replace("{{" + arg.getKey() + "}}", arg.getValue()),
-                (a, b) -> a);
-    }
+    private Configuration createFreeMarkerConfiguration() {
+        DefaultObjectWrapperBuilder objectWrapper = new DefaultObjectWrapperBuilder(Configuration.VERSION_2_3_23);
+        Configuration freeMarker = new Configuration(Configuration.VERSION_2_3_23);
 
-    private Path templateWithDifferenceTemplateAndWriteToFile(String resourceName, String differenceTemplate)
-            throws IOException {
+        freeMarker.setObjectWrapper(objectWrapper.build());
+        freeMarker.setAPIBuiltinEnabled(true);
+        freeMarker.setTemplateLoader(new ClassTemplateLoader(getClass(), "/META-INF"));
 
-        Path templateOutput = Files.createTempFile(resourceName, "template");
-        Files.write(templateOutput, templateResource(resourceName, ImmutableMap.of(
-                "differenceTemplate", differenceTemplate
-        )).getBytes(StandardCharsets.UTF_8));
-        return templateOutput.toAbsolutePath();
-    }
-
-    private File junitOutput() {
-        Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
-        File reportsDir = circleReportsDir
-                .map(File::new)
-                .orElseGet(() -> getProject().getBuildDir());
-        return new File(reportsDir, "junit-reports/revapi/revapi-" + getProject().getName() + ".xml");
+        return freeMarker;
     }
 }

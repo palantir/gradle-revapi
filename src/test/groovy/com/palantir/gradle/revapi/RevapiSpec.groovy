@@ -485,6 +485,75 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("tasks")
     }
 
+    def 'is up to date when nothing has changed after running once'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.codehaus.cargo'
+                oldName = 'empty-jar'
+                oldVersion = '1.7.7'
+            }
+        """.stripIndent()
+
+        then:
+        runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
+        runTasksSuccessfully('revapi').wasUpToDate('revapiAnalyze')
+    }
+
+    def 'is not up to date when public (not private) api has changed'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.codehaus.cargo'
+                oldName = 'empty-jar'
+                oldVersion = '1.7.7'
+            }
+        """.stripIndent()
+
+        String javaFile = 'src/main/java/foo/Foo.java'
+        writeToFile javaFile, '''
+            public class Foo {
+                public void publicMethod() {}
+                private void privateMethod() {}
+            }
+        '''.stripIndent()
+
+        then:
+        runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
+
+        writeToFile javaFile, '''
+            public class Foo {
+                public void publicMethod() {}
+                private void privateMethodRenamed() {}
+            }
+        '''.stripIndent()
+
+        runTasksSuccessfully('revapi').wasUpToDate('revapiAnalyze')
+
+        writeToFile javaFile, '''
+            public class Foo {
+                public void publicMethodRenamed() {}
+                private void privateMethodRenamed() {}
+            }
+        '''.stripIndent()
+
+        runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
+    }
+
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
         rootProjectNameIs('api')

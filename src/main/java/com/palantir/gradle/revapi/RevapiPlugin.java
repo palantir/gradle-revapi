@@ -21,6 +21,7 @@ import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Plugin;
@@ -46,40 +47,51 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
-        Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
-            conf.extendsFrom(project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
-        });
-
         ConfigManager configManager = new ConfigManager(configFile(project));
 
-        TaskProvider<RevapiReportTask> revapiTask = project.getTasks().register("revapi", RevapiReportTask.class);
+        TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
+                .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
+                    Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
+                        conf.extendsFrom(
+                                project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
+                    });
+                    Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
-        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(revapiTask);
+                    task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
+                    task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
+
+                    Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
+                    task.getNewApiJars().set(jarTask.getOutputs().getFiles());
+                    task.getNewApiDependencyJars().set(revapiNewApi);
+                    task.getOldApiJars().set(oldApi.map(OldApi::jars));
+                    task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
+
+                    task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
+                });
+
+        TaskProvider<RevapiReportTask> reportTask = project.getTasks()
+                .register("revapi", RevapiReportTask.class, task -> {
+                    task.dependsOn(analyzeTask);
+                    task.getAnalysisResultsFile().set(analyzeTask.flatMap(RevapiAnalyzeTask::getAnalysisResultsFile));
+                    task.getJunitOutputFile().set(junitOutput(project));
+                });
+
+        project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(reportTask);
 
         project.getTasks().register(ACCEPT_ALL_BREAKS_TASK_NAME, RevapiAcceptAllBreaksTask.class, task -> {
+            task.dependsOn(analyzeTask);
+
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
             task.getConfigManager().set(configManager);
-        });
-
-        Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
-
-        project.getTasks().withType(RevapiJavaTask.class).configureEach(task -> {
-            task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
-            task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
-
-            Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
-            task.getNewApiJars().set(jarTask.getOutputs().getFiles());
-            task.getNewApiDependencyJars().set(revapiNewApi);
-            task.getOldApiJars().set(oldApi.map(OldApi::jars));
-            task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
+            task.getAnalysisResultsFile().set(analyzeTask.flatMap(RevapiAnalyzeTask::getAnalysisResultsFile));
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
-            task.configManager().set(configManager);
+            task.getConfigManager().set(configManager);
         });
 
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
-            task.configManager().set(configManager);
+            task.getConfigManager().set(configManager);
         });
     }
 
@@ -116,5 +128,13 @@ public final class RevapiPlugin implements Plugin<Project> {
 
     private static File configFile(Project project) {
         return new File(project.getRootDir(), ".palantir/revapi.yml");
+    }
+
+    private File junitOutput(Project project) {
+        Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
+        File reportsDir = circleReportsDir
+                .map(File::new)
+                .orElseGet(project::getBuildDir);
+        return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
     }
 }

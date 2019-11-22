@@ -16,40 +16,36 @@
 
 package com.palantir.gradle.revapi;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
-import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Justification;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
-public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
-    private static final ObjectMapper OBJECT_MAPPER = GradleRevapiConfig.newJsonObjectMapper();
+public class RevapiAcceptAllBreaksTask extends DefaultTask {
     public static final String JUSTIFICATION = "justification";
 
     private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
     private final Property<GroupNameVersion> oldGroupNameVersion =
             getProject().getObjects().property(GroupNameVersion.class);
 
+    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
     private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
 
     final Property<ConfigManager> getConfigManager() {
         return configManager;
     }
 
-    @Input
     final Property<GroupNameVersion> getOldGroupNameVersion() {
         return oldGroupNameVersion;
+    }
+
+    final RegularFileProperty getAnalysisResultsFile() {
+        return analysisResultsFile;
     }
 
     @Option(option = JUSTIFICATION, description = "Justification for why these breaks are ok")
@@ -58,27 +54,13 @@ public class RevapiAcceptAllBreaksTask extends RevapiJavaTask {
     }
 
     @TaskAction
-    public final void addVersionOverride() throws Exception {
+    public final void addVersionOverride() {
         if (!justification.isPresent()) {
             throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param to this task");
         }
 
-        Path tempDir = getProject().getLayout().getBuildDirectory().dir("tmp").get().getAsFile().toPath();
-
-        File breaksPath = Files.createTempFile(tempDir, "revapi-breaks", ".json").toFile();
-
-        runRevapi(RevapiConfig.empty()
-                .withTextReporter("gradle-revapi-accept-breaks.ftl", breaksPath));
-
-        List<AcceptedBreak> rawAcceptedBreaks =
-                OBJECT_MAPPER.readValue(breaksPath, new TypeReference<List<AcceptedBreak>>() {});
-
-        Set<AcceptedBreak> acceptedBreaks = rawAcceptedBreaks.stream()
-                .map(rawAcceptedBreak -> AcceptedBreak.builder()
-                        .from(rawAcceptedBreak)
-                        .justification(justification.get())
-                        .build())
-                .collect(Collectors.toSet());
+        Set<AcceptedBreak> acceptedBreaks = AnalysisResults.fromFile(analysisResultsFile.getAsFile().get())
+                .toAcceptedBreaks(justification.get());
 
         configManager.get().modifyConfigFile(config ->
                 config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));

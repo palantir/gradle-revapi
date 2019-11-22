@@ -1,10 +1,7 @@
-<#-- @ftlvariable name="reports" type="java.util.Collection<org.revapi.Report>" -->
-<#-- @ftlvariable name="analysis" type="org.revapi.AnalysisContext" -->
-<#list reports as report>
-<#list report.differences as diff>
-${diff.code}<#if diff.description??>: ${diff.description}</#if>
+<#-- @ftlvariable name="results" type="com.palantir.gradle.revapi.AnalysisResults" -->
+<#list results.results() as result>
+${result.code()}<#if result.description()??>: ${result.description()}</#if>
 
-{{differenceTemplate}}
+<#include "gradle-revapi-difference-template.ftl">
 ----------------------------------------------------------------------------------------------------
-</#list>
 </#list>

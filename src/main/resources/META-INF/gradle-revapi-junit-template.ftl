@@ -1,17 +1,14 @@
 <#ftl output_format="XML">
-<#-- @ftlvariable name="reports" type="java.util.Collection<org.revapi.Report>" -->
-<#-- @ftlvariable name="analysis" type="org.revapi.AnalysisContext" -->
+<#-- @ftlvariable name="results" type="com.palantir.gradle.revapi.AnalysisResults" -->
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <testsuites failures="1" id="project-name" name="project-name" tests="1" time="0.000">
-    <testsuite failures="1" id="<#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>" name="<#list analysis.newApi.archives as archive>${archive.name}<#sep>, </#list>" tests="1" time="0.000">
-        <#list reports as report>
-        <#list report.differences as diff>
-        <testcase id="${diff.code}-${report.oldElement!(report.newElement!"<none>")}" name="Revapi Java API/ABI compatibility checker - ${diff.code}">
-            <failure message="${report.oldElement!(report.newElement!"<none>")}<#if diff.description??>: ${diff.description}</#if>"><![CDATA[
-{{differenceTemplate}}
+    <testsuite failures="1" id="${results.archiveNames()}" name="${results.archiveNames()}" tests="1" time="0.000">
+        <#list results.results() as result>
+        <testcase id="${result.code()}-${result.oldElement()!(result.newElement()!"<none>")}" name="Revapi Java API/ABI compatibility checker - ${result.code()}">
+            <failure message="${result.oldElement()!(result.newElement()!"<none>")}<#if result.description()??>: ${result.description()}</#if>"><![CDATA[
+<#include "gradle-revapi-difference-template.ftl">
             ]]></failure>
         </testcase>
-        </#list>
         </#list>
     </testsuite>
 </testsuites>

@@ -21,7 +21,15 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskAction;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
 import org.revapi.AnalysisResult;
@@ -32,45 +40,51 @@ import org.revapi.simple.FileArchive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class RevapiJavaTask extends DefaultTask {
-    private static final Logger log = LoggerFactory.getLogger(RevapiJavaTask.class);
+@CacheableTask
+public class RevapiAnalyzeTask extends DefaultTask {
+    private static final Logger log = LoggerFactory.getLogger(RevapiAnalyzeTask.class);
 
     private final SetProperty<AcceptedBreak> acceptedBreaks =
             getProject().getObjects().setProperty(AcceptedBreak.class);
+    private final SetProperty<File> newApiJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> newApiDependencyJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> oldApiJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> oldApiDependencyJars = getProject().getObjects().setProperty(File.class);
+    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
 
-    private final SetProperty<File> newApiJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final SetProperty<File> newApiDependencyJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final SetProperty<File> oldApiJars =
-            getProject().getObjects().setProperty(File.class);
-
-    private final SetProperty<File> oldApiDependencyJars =
-            getProject().getObjects().setProperty(File.class);
-
+    @Input
     public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
         return acceptedBreaks;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getNewApiJars() {
         return newApiJars;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getNewApiDependencyJars() {
         return newApiDependencyJars;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getOldApiJars() {
         return oldApiJars;
     }
 
+    @CompileClasspath
     public final SetProperty<File> getOldApiDependencyJars() {
         return oldApiDependencyJars;
     }
 
-    protected final void runRevapi(RevapiConfig taskSpecificConfigJson) throws Exception {
+    @OutputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public final RegularFileProperty getAnalysisResultsFile() {
+        return analysisResultsFile;
+    }
+
+    @TaskAction
+    protected final void runRevapi() throws Exception {
         API oldApi = api(oldApiJars, oldApiDependencyJars);
         API newApi = api(newApiJars, newApiDependencyJars);
 
@@ -86,7 +100,8 @@ public abstract class RevapiJavaTask extends DefaultTask {
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(oldApi, newApi),
-                taskSpecificConfigJson,
+                RevapiConfig.empty()
+                        .withTextReporter("gradle-revapi-results.ftl", analysisResultsFile.getAsFile().get()),
                 revapiIgnores(),
                 ConjureProjectFilters.forProject(getProject()));
 
