@@ -81,6 +81,27 @@ class GitVersionUtilsSpec extends AbstractProjectSpec {
         assert previousGitTags() == ["3", "2", "1"]
     }
 
+    def 'when the initial commit is 0.0.0, ignore it as its the first, unpublished release'() {
+        when:
+        git.command 'git commit --allow-empty -m "Initial"'
+        git.command 'git tag 0.0.0'
+        git.command 'git commit --allow-empty -m "Another"'
+
+        then:
+        assert previousGitTags().isEmpty()
+    }
+
+    def 'when a non-initial commit is 0.0.0, return it'() {
+        when:
+        git.command 'git commit --allow-empty -m "Initial"'
+        git.command 'git commit --allow-empty -m "AnotherInitial"'
+        git.command 'git tag 0.0.0'
+        git.command 'git commit --allow-empty -m "Additional"'
+
+        then:
+        assert previousGitTags() == ['0.0.0']
+    }
+
     private List<String> previousGitTags() {
         GitVersionUtils.previousGitTags(getProject()).collect(Collectors.toList())
     }
