@@ -23,7 +23,9 @@ import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
@@ -37,7 +39,7 @@ final class ResolveOldApi {
 
     private ResolveOldApi() { }
 
-    public static Provider<OldApi> oldApiProvider(
+    public static Provider<Optional<OldApi>> oldApiProvider(
             Project project,
             RevapiExtension extension,
             ConfigManager configManager) {
@@ -46,13 +48,19 @@ final class ResolveOldApi {
                 resolveOldApiAcrossAllOldVersions(project, extension, configManager.fromFileOrEmptyIfDoesNotExist()));
     }
 
-    private static OldApi resolveOldApiAcrossAllOldVersions(
+    private static Optional<OldApi> resolveOldApiAcrossAllOldVersions(
             Project project,
             RevapiExtension extension,
             GradleRevapiConfig config) {
 
+        List<String> oldVersionStrings = extension.getOldVersions().get();
+
+        if (oldVersionStrings.isEmpty()) {
+            return Optional.empty();
+        }
+
         Map<Version, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
-        for (String oldVersionString : extension.getOldVersions().get()) {
+        for (String oldVersionString : oldVersionStrings) {
             GroupNameVersion oldGroupNameVersion = possiblyReplacedOldVersionFor(
                     config,
                     extension.oldGroupAndName()
@@ -68,7 +76,7 @@ final class ResolveOldApi {
                             exceptionsPerVersion.keySet().stream().map(Version::asString).collect(Collectors.toList()),
                             ExceptionMessages.joined(exceptionsPerVersion.values()));
                 }
-                return oldApi;
+                return Optional.of(oldApi);
             } catch (CouldNotResolveOldApiException e) {
                 exceptionsPerVersion.put(oldGroupNameVersion.version(), e);
             }
