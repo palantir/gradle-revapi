@@ -18,19 +18,26 @@ package com.palantir.gradle.revapi;
 
 import com.google.common.io.Resources;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 
 final class ExceptionMessages {
+    private static final String OLD_API_FAILED_TO_RESOLVE = "revapi-old-api-failed-to-resolve.txt";
+
     private ExceptionMessages() { }
 
     public static String failedToResolve(Project project, String errors) {
         try {
-            String errorTemplate = Resources.toString(
-                    Resources.getResource("revapi-old-api-failed-to-resolve.txt"),
-                    StandardCharsets.UTF_8);
+            URL errorMessageTemplateUrl = Optional.ofNullable(
+                            ExceptionMessages.class.getClassLoader().getResource(OLD_API_FAILED_TO_RESOLVE))
+                    .orElseThrow(() -> new RuntimeException(
+                            "Could not find template for error message for " + OLD_API_FAILED_TO_RESOLVE));
+
+            String errorTemplate = Resources.toString(errorMessageTemplateUrl, StandardCharsets.UTF_8);
 
             return errorTemplate
                     .replace("{{versionOverrideTaskName}}", RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
