@@ -20,7 +20,7 @@ buildscript {
 plugins {
     id 'com.gradle.plugin-publish' version '0.10.1'
     id 'com.jfrog.bintray' version '1.8.4' apply false
-    id 'com.palantir.baseline' version '2.35.2'
+    id 'com.palantir.baseline' version '2.36.0'
     id 'com.palantir.consistent-versions' version '1.12.4'
     id 'com.palantir.git-version' version '0.12.2'
     id 'org.inferred.processors' version '3.1.0'
