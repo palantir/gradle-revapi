@@ -69,10 +69,12 @@ public final class RevapiPlugin implements Plugin<Project> {
                     Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
                     task.getNewApiJars().set(jarTask.getOutputs().getFiles());
                     task.getNewApiDependencyJars().set(revapiNewApi);
-                    task.getOldApiJars()
-                            .set(maybeOldApi.map(oldApi1 -> oldApi1.map(OldApi::jars).orElse(Collections.emptySet())));
-                    task.getOldApiDependencyJars().set(maybeOldApi.map(
-                            oldApi1 -> oldApi1.map(OldApi::dependencyJars).orElse(Collections.emptySet())));
+                    task.getOldApiJars().set(
+                            maybeOldApi.map(oldApi ->
+                                    oldApi.map(OldApi::jars).orElse(Collections.emptySet())));
+                    task.getOldApiDependencyJars().set(
+                            maybeOldApi.map(oldApi ->
+                                    oldApi.map(OldApi::dependencyJars).orElse(Collections.emptySet())));
 
                     task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
 
