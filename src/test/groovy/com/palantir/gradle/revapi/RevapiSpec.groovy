@@ -186,6 +186,29 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingResolutionFailure()
     }
 
+    def 'skips revapi tasks when the versiosn to check is empty list'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'org.revapi'
+                oldName = 'revapi'
+                oldVersions = []
+            }
+        """.stripIndent()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapi')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapi')
+    }
+
     def 'when the previous git tag has failed to publish, it will look back up to a further git tag'() {
         when:
         git.initWithTestUser()
