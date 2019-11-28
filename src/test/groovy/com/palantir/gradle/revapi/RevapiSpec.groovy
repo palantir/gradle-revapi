@@ -186,7 +186,7 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingResolutionFailure()
     }
 
-    def 'skips revapi tasks when the versiosn to check is empty list'() {
+    def 'skips revapi tasks when the versions to check is empty list'() {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
