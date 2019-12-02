@@ -33,7 +33,8 @@ final class GitVersionUtils {
     private GitVersionUtils() { }
 
     public static Stream<String> previousGitTags(Project project) {
-        return StreamSupport.stream(new PreviousGitTags(project), false);
+        return StreamSupport.stream(new PreviousGitTags(project), false)
+                .filter(tag -> !isInitial000Tag(project, tag));
     }
 
     private static Optional<String> previousGitTagFromRef(Project project, String ref) {
@@ -53,6 +54,16 @@ final class GitVersionUtils {
         }
 
         return Optional.of(describeResult.stdoutOrThrowIfNonZero());
+    }
+
+    private static boolean isInitial000Tag(Project project, String tag) {
+        if (!tag.equals("0.0.0")) {
+            return false;
+        }
+
+        GitResult foo = execute(project, "git", "rev-parse", "--verify", "--quiet", "0.0.0^");
+        boolean parentDoesNotExist = foo.exitCode() != 0;
+        return parentDoesNotExist;
     }
 
     private static GitResult execute(Project project, String... command) {

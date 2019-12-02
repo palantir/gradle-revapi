@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: For projects with no tags, or just a single `0.0.0` tag on the initial
+    commit, `gradle-revapi` will not run.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/120

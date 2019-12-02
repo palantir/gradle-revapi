@@ -21,16 +21,19 @@ import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentResult;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -49,13 +52,16 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         ConfigManager configManager = new ConfigManager(configFile(project));
 
+        Provider<Optional<OldApi>> maybeOldApi =
+                ResolveOldApi.oldApiProvider(project, extension, configManager);
+        Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
+
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
                                 project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
                     });
-                    Provider<OldApi> oldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
 
                     task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
@@ -63,10 +69,16 @@ public final class RevapiPlugin implements Plugin<Project> {
                     Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
                     task.getNewApiJars().set(jarTask.getOutputs().getFiles());
                     task.getNewApiDependencyJars().set(revapiNewApi);
-                    task.getOldApiJars().set(oldApi.map(OldApi::jars));
-                    task.getOldApiDependencyJars().set(oldApi.map(OldApi::dependencyJars));
+                    task.getOldApiJars().set(
+                            maybeOldApi.map(oldApi ->
+                                    oldApi.map(OldApi::jars).orElseGet(Collections::emptySet)));
+                    task.getOldApiDependencyJars().set(
+                            maybeOldApi.map(oldApi ->
+                                    oldApi.map(OldApi::dependencyJars).orElseGet(Collections::emptySet)));
 
                     task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
+
+                    task.onlyIf(oldApiIsPresent);
                 });
 
         TaskProvider<RevapiReportTask> reportTask = project.getTasks()
@@ -74,6 +86,8 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.dependsOn(analyzeTask);
                     task.getAnalysisResultsFile().set(analyzeTask.flatMap(RevapiAnalyzeTask::getAnalysisResultsFile));
                     task.getJunitOutputFile().set(junitOutput(project));
+
+                    task.onlyIf(oldApiIsPresent);
                 });
 
         project.getTasks().findByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(reportTask);
