@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: When looking for the last published version in git tags, `v` prefixes
+    will be stripped.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/146

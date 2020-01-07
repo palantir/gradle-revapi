@@ -34,7 +34,8 @@ final class GitVersionUtils {
 
     public static Stream<String> previousGitTags(Project project) {
         return StreamSupport.stream(new PreviousGitTags(project), false)
-                .filter(tag -> !isInitial000Tag(project, tag));
+                .filter(tag -> !isInitial000Tag(project, tag))
+                .map(GitVersionUtils::stripVFromTag);
     }
 
     private static Optional<String> previousGitTagFromRef(Project project, String ref) {
@@ -64,6 +65,14 @@ final class GitVersionUtils {
         GitResult foo = execute(project, "git", "rev-parse", "--verify", "--quiet", "0.0.0^");
         boolean parentDoesNotExist = foo.exitCode() != 0;
         return parentDoesNotExist;
+    }
+
+    private static String stripVFromTag(String tag) {
+        if (tag.startsWith("v")) {
+            return tag.substring(1);
+        } else {
+            return tag;
+        }
     }
 
     private static GitResult execute(Project project, String... command) {

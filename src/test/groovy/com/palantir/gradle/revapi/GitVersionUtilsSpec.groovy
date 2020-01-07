@@ -102,6 +102,16 @@ class GitVersionUtilsSpec extends AbstractProjectSpec {
         assert previousGitTags() == ['0.0.0']
     }
 
+    def 'strips tags of v prefixes'() {
+        when:
+        git.command 'git commit --allow-empty -m "Initial"'
+        git.command 'git tag v1.2.3'
+        git.command 'git commit --allow-empty -m "Additional"'
+
+        then:
+        assert previousGitTags() == ['1.2.3']
+    }
+
     private List<String> previousGitTags() {
         GitVersionUtils.previousGitTags(getProject()).collect(Collectors.toList())
     }
