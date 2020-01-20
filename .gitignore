@@ -38,3 +38,4 @@ reports/
 *.tmproj
 *.tmproject
 *.sw[op]
+build/
