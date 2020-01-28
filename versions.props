@@ -1,4 +1,4 @@
-com.netflix.nebula:nebula-test = 7.6.0
+com.netflix.nebula:nebula-test = 7.7.0
 org.junit:junit-bom = 5.6.0
 org.revapi:revapi-basic-features = 0.8.1
 org.revapi:revapi-java = 0.19.1
