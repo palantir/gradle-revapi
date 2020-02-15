@@ -19,6 +19,7 @@ package com.palantir.yamlpatch
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import groovy.transform.CompileStatic
+import java.util.function.UnaryOperator
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -136,6 +137,29 @@ class YamlPatcherTest {
             bar: baz # trailing
             # random other comment
             quux: now exists
+        '''.stripIndent()
+    }
+
+    @Test
+    void 'can insert a complex object into an existing object'() {
+        // language=yaml
+        String input = '''
+          foo:
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(
+                input,
+                TestObjects.Foo,
+                (UnaryOperator<TestObjects.Foo>) { foo -> ImmutableFoo.builder()
+                        .foo(ImmutableBar.builder()
+                                .bar("baz")
+                                .build())
+                        .build() })
+
+        // language=yaml
+        Assertions.assertThat(output).isEqualTo '''
+          foo:
+            bar: baz
         '''.stripIndent()
     }
 }

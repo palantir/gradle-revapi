@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.flipkart.zjsonpatch.JsonDiff;
 import java.io.IOException;
 import java.io.StringReader;
@@ -37,7 +38,9 @@ public final class YamlPatcher {
 
     public YamlPatcher(Consumer<ObjectMapper> objectMapperConfigurer) {
         this.jsonObjectMapper = new ObjectMapper();
-        this.yamlObjectMapper = new ObjectMapper(new YAMLFactory());
+        this.yamlObjectMapper = new ObjectMapper(new YAMLFactory()
+                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
 
         objectMapperConfigurer.accept(jsonObjectMapper);
         objectMapperConfigurer.accept(yamlObjectMapper);
@@ -65,6 +68,6 @@ public final class YamlPatcher {
                 new TypeReference<List<JsonPatch>>() {});
 
         return Patches.of(jsonPatches.stream()
-                .map(jsonPatch -> jsonPatch.patchFor(input, jsonDocument)));
+                .map(jsonPatch -> jsonPatch.patchFor(yamlObjectMapper, input, jsonDocument)));
     }
 }

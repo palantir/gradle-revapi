@@ -19,6 +19,9 @@ package com.palantir.yamlpatch;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,24 +43,39 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 public interface JsonPatch {
     JsonPointer path();
 
-    Patch patchFor(String input, Node jsonDocument);
+    Patch patchFor(ObjectMapper yamlObjectMapper, String input, Node jsonDocument);
 
     @Value.Immutable
     @JsonTypeName("replace")
     @JsonDeserialize(as = ImmutableReplace.class)
     interface Replace extends JsonPatch {
-        String value();
+        JsonNode value();
 
         @Override
-        default Patch patchFor(String _input, Node jsonDocument) {
+        default Patch patchFor(
+                ObjectMapper yamlObjectMapper,
+                String _input,
+                Node jsonDocument) {
             Node nodeToReplace = path().narrowDownToValueIn(jsonDocument);
+
+            String replacementAsYaml = replacementAsYaml(yamlObjectMapper);
+            String newlinePrefix = value().isObject() ? "\n  " : "";
+
             return Patch.builder()
                     .range(Range.builder()
                             .startIndex(nodeToReplace.getStartMark().getIndex())
                             .endIndex(nodeToReplace.getEndMark().getIndex())
                             .build())
-                    .replacement(value())
+                    .replacement(newlinePrefix + replacementAsYaml)
                     .build();
+        }
+
+        default String replacementAsYaml(ObjectMapper yamlObjectMapper) {
+            try {
+                return yamlObjectMapper.writeValueAsString(value()).trim();
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -68,7 +86,10 @@ public interface JsonPatch {
         String value();
 
         @Override
-        default Patch patchFor(String input, Node jsonDocument) {
+        default Patch patchFor(
+                ObjectMapper yamlObjectMapper,
+                String input,
+                Node jsonDocument) {
             JsonPointer parent =
                     path().parent().orElseThrow(() -> new IllegalArgumentException("Cannot add item at root node"));
             Node nodeToInsertInto = parent.narrowDownToValueIn(jsonDocument);
@@ -90,7 +111,10 @@ public interface JsonPatch {
         Pattern ONLY_WHITESPACE = Pattern.compile("\\s*");
 
         @Override
-        default Patch patchFor(String input, Node jsonDocument) {
+        default Patch patchFor(
+                ObjectMapper yamlObjectMapper,
+                String input,
+                Node jsonDocument) {
             NodeTuple nodeTupleToReplace = path().narrowDownToKeyIn(jsonDocument);
 
             int startIndex = nodeTupleToReplace.getKeyNode().getStartMark().getIndex();

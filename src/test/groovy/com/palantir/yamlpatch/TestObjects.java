@@ -25,24 +25,29 @@ import org.immutables.value.Value;
 final class TestObjects {
     private TestObjects() { }
 
+    @Value.Style(overshadowImplementation = true)
+    @interface ImmutableStyle {}
+
     @Value.Immutable
+    @ImmutableStyle
     @JsonDeserialize(as = ImmutableFoo.class)
     interface Foo {
-        Bar foo();
+        Optional<Bar> foo();
 
         static UnaryOperator<Foo> withValues(
                 UnaryOperator<String> bazMapper,
                 UnaryOperator<Optional<String>> quuxMapper) {
             return foo -> ImmutableFoo.builder()
-                    .foo(ImmutableBar.builder()
-                            .bar(bazMapper.apply(foo.foo().bar()))
-                            .quux(quuxMapper.apply(foo.foo().quux()))
-                            .build())
+                    .foo(foo.foo().map(bar -> ImmutableBar.builder()
+                            .bar(bazMapper.apply(bar.bar()))
+                            .quux(quuxMapper.apply(bar.quux()))
+                            .build()))
                     .build();
         }
     }
 
     @Value.Immutable
+    @ImmutableStyle
     @JsonDeserialize(as = ImmutableBar.class)
     @JsonInclude(JsonInclude.Include.NON_ABSENT)
     interface Bar {
