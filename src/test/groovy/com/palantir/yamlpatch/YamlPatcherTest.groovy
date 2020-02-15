@@ -99,7 +99,7 @@ class YamlPatcherTest {
                 input,
                 TestObjects.Foo,
                 TestObjects.Foo.withValues(
-                        { baz -> baz },
+                         { baz -> baz },
                         { quux -> Optional.empty() }))
 
         // language=yaml
@@ -109,5 +109,33 @@ class YamlPatcherTest {
               # another comment
               bar: baz # so many comment
         """.stripIndent()
+    }
+
+    @Test
+    void 'can add a mapping to an object'() {
+        // language=yaml
+        String input = '''
+          # a comment
+          foo:
+            # before
+            bar: baz # trailing
+            # random other comment
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(input,
+                TestObjects.Foo,
+                TestObjects.Foo.withValues(
+                        { baz -> baz },
+                        { quux -> Optional.of("now exists") }))
+
+        // language=yaml
+        Assertions.assertThat(output).isEqualTo '''
+          # a comment
+          foo:
+            # before
+            bar: baz # trailing
+            # random other comment
+            quux: now exists
+        '''.stripIndent()
     }
 }

@@ -16,9 +16,10 @@
 
 package com.palantir.yamlpatch
 
+import static org.assertj.core.api.Assertions.assertThat
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.transform.CompileStatic
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.nodes.Node
@@ -28,15 +29,15 @@ import org.yaml.snakeyaml.nodes.ScalarNode
 @CompileStatic
 class JsonPointerTest {
     @Test
-    void can_be_parsed_from_a_json_string() {
+    void 'can be parsed from a json string'() {
         ObjectMapper objectMapper = new ObjectMapper()
 
         JsonPointer jsonPointer = objectMapper.readValue("\"/foo/bar/1/baz\"", JsonPointer)
-        Assertions.assertThat(jsonPointer.parts()).containsExactly("foo", "bar", "1", "baz")
+        assertThat(jsonPointer.parts()).containsExactly("foo", "bar", "1", "baz")
     }
 
     @Test
-    void narrows_down_nested_maps_to_find_value_correctly() {
+    void 'narrows down nested maps to find value correctly'() {
         // language=yaml
         Node rootNode = new Yaml().compose(new StringReader("""
             foo:
@@ -46,12 +47,12 @@ class JsonPointerTest {
 
         Node narrowedDown = JsonPointer.fromString("/foo/bar/baz").narrowDownToValueIn(rootNode)
 
-        Assertions.assertThat(narrowedDown).isInstanceOf(ScalarNode)
-        Assertions.assertThat(((ScalarNode) narrowedDown).value).isEqualTo("quux")
+        assertThat(narrowedDown).isInstanceOf(ScalarNode)
+        assertThat(((ScalarNode) narrowedDown).value).isEqualTo("quux")
     }
 
     @Test
-    void narrows_down_nested_maps_to_find_key_correctly() {
+    void 'narrows down nested maps to find key correctly'() {
         // language=yaml
         Node rootNode = new Yaml().compose(new StringReader("""
             foo:
@@ -61,12 +62,36 @@ class JsonPointerTest {
 
         NodeTuple narrowedDown = JsonPointer.fromString("/foo/bar/baz").narrowDownToKeyIn(rootNode)
 
-        Assertions.assertThat(narrowedDown.getKeyNode()).isInstanceOf(ScalarNode)
-        Assertions.assertThat(((ScalarNode) narrowedDown.getKeyNode()).value).isEqualTo("baz")
+        assertThat(narrowedDown.getKeyNode()).isInstanceOf(ScalarNode)
+        assertThat(((ScalarNode) narrowedDown.getKeyNode()).value).isEqualTo("baz")
 
-        Assertions.assertThat(narrowedDown.getValueNode()).isInstanceOf(ScalarNode)
-        Assertions.assertThat(((ScalarNode) narrowedDown.getValueNode()).value).isEqualTo("quux")
+        assertThat(narrowedDown.getValueNode()).isInstanceOf(ScalarNode)
+        assertThat(((ScalarNode) narrowedDown.getValueNode()).value).isEqualTo("quux")
 
+    }
+
+    @Test
+    void 'returns parent node when it exists'() {
+        Optional<JsonPointer> parent = JsonPointer.fromString("/foo/bar/baz").parent()
+        assertThat(parent).hasValue(JsonPointer.fromString("/foo/bar"));
+    }
+
+    @Test
+    void 'returns empty when parent node does not exist'() {
+        Optional<JsonPointer> parent = JsonPointer.fromString("/").parent()
+        assertThat(parent).isEmpty();
+    }
+
+    @Test
+    void 'returns most specific part when not the root node'() {
+        Optional<String> mostSpecific = JsonPointer.fromString("/a/b/c/d").mostSpecificPart();
+        assertThat(mostSpecific).hasValue("d");
+    }
+
+    @Test
+    void 'returns empty for most specific part when the root node'() {
+        Optional<String> mostSpecific = JsonPointer.fromString("/").mostSpecificPart();
+        assertThat(mostSpecific).isEmpty();
     }
 
 }

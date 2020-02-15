@@ -34,6 +34,7 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
 @JsonSubTypes({
         @JsonSubTypes.Type(JsonPatch.Replace.class),
+        @JsonSubTypes.Type(JsonPatch.Add.class),
         @JsonSubTypes.Type(JsonPatch.Remove.class)
 })
 public interface JsonPatch {
@@ -57,6 +58,27 @@ public interface JsonPatch {
                             .build())
                     .replacement(value())
                     .build();
+        }
+    }
+
+    @Value.Immutable
+    @JsonTypeName("add")
+    @JsonDeserialize(as = ImmutableAdd.class)
+    interface Add extends JsonPatch {
+        String value();
+
+        @Override
+        default Patch patchFor(String input, Node jsonDocument) {
+            JsonPointer parent =
+                    path().parent().orElseThrow(() -> new IllegalArgumentException("Cannot add item at root node"));
+            Node nodeToInsertInto = parent.narrowDownToValueIn(jsonDocument);
+
+            int whitespaceDepth = nodeToInsertInto.getStartMark().getColumn();
+            String whitespace = String.format("%1$" + whitespaceDepth + "s", "");
+            String replacement = whitespace + path().mostSpecificPart().get() + ": " + value() + "\n";
+
+            int endIndex = nodeToInsertInto.getEndMark().getIndex();
+            return Patch.of(endIndex, endIndex, replacement);
         }
     }
 

@@ -19,6 +19,7 @@ package com.palantir.yamlpatch;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.immutables.value.Value;
 import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Node;
@@ -29,6 +30,24 @@ import org.yaml.snakeyaml.nodes.ScalarNode;
 @Value.Immutable
 abstract class JsonPointer {
     protected abstract List<String> parts();
+
+    public Optional<JsonPointer> parent() {
+        if (parts().isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(JsonPointer.builder()
+                .addAllParts(parts().subList(0, parts().size() - 1))
+                .build());
+    }
+
+    public Optional<String> mostSpecificPart() {
+        if (parts().isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(parts().get(parts().size() - 1));
+    }
 
     @JsonCreator
     public static JsonPointer fromString(String path) {
