@@ -30,6 +30,7 @@ class YamlPatcherTest {
 
     @Test
     void 'can patch a simple string value replacement'() {
+        // language=yaml
         String input = """
             # a comment
             foo:
@@ -44,6 +45,7 @@ class YamlPatcherTest {
                         { baz -> baz + "andmore" },
                         { quux -> Optional.empty() }))
 
+        // language=yaml
         Assertions.assertThat(output).isEqualTo """
             # a comment
             foo:
@@ -54,6 +56,7 @@ class YamlPatcherTest {
 
     @Test
     void 'can patch multi string value replacements'() {
+        // language=yaml
         String input = """
             # a comment
             foo:
@@ -69,6 +72,7 @@ class YamlPatcherTest {
                         { baz -> baz + "andmore" },
                         { quux -> Optional.of("abcdef") }))
 
+        // language=yaml
         Assertions.assertThat(output).isEqualTo """
             # a comment
             foo:
@@ -80,6 +84,7 @@ class YamlPatcherTest {
 
     @Test
     void 'can patch remove a mapping from an object'() {
+        // language=yaml
         String input = """
             # a comment
             foo:
@@ -97,6 +102,7 @@ class YamlPatcherTest {
                         { baz -> baz },
                         { quux -> Optional.empty() }))
 
+        // language=yaml
         Assertions.assertThat(output).isEqualTo """
             # a comment
             foo:

@@ -37,6 +37,7 @@ class JsonPointerTest {
 
     @Test
     void narrows_down_nested_maps_to_find_value_correctly() {
+        // language=yaml
         Node rootNode = new Yaml().compose(new StringReader("""
             foo:
                 bar:
@@ -51,6 +52,7 @@ class JsonPointerTest {
 
     @Test
     void narrows_down_nested_maps_to_find_key_correctly() {
+        // language=yaml
         Node rootNode = new Yaml().compose(new StringReader("""
             foo:
                 bar:
