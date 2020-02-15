@@ -144,7 +144,9 @@ class YamlPatcherTest {
     void 'can insert a complex object into an existing object'() {
         // language=yaml
         String input = '''
+          # comment
           foo:
+          # comment
         '''.stripIndent()
 
         String output = yamlPatcher.patchYaml(
@@ -158,8 +160,10 @@ class YamlPatcherTest {
 
         // language=yaml
         Assertions.assertThat(output).isEqualTo '''
+          # comment
           foo:
             bar: baz
+          # comment
         '''.stripIndent()
     }
 }
