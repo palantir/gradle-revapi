@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: '`revapi.yml` entires are now sorted to ensure that new entries do
+    not cause existing entires to be reordered.'
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/194
