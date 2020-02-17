@@ -18,29 +18,31 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSortedSet;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutablePerProjectAcceptedBreaks.class)
 abstract class PerProjectAcceptedBreaks {
     @JsonValue
-    protected abstract Map<GroupAndName, Set<AcceptedBreak>> acceptedBreaks();
+    @Value.NaturalOrder
+    protected abstract SortedMap<GroupAndName, SortedSet<AcceptedBreak>> acceptedBreaks();
 
     public Set<AcceptedBreak> acceptedBreaksFor(GroupAndName groupAndName) {
-        return acceptedBreaks().getOrDefault(groupAndName, Collections.emptySet());
+        return acceptedBreaks().getOrDefault(groupAndName, Collections.emptySortedSet());
     }
 
     public PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
-        Map<GroupAndName, Set<AcceptedBreak>> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
-        newAcceptedBreaks.put(groupAndName, Sets.union(
-                acceptedBreaks,
-                this.acceptedBreaks().getOrDefault(groupAndName, ImmutableSet.of())));
+        SortedMap<GroupAndName, SortedSet<AcceptedBreak>> newAcceptedBreaks = new TreeMap<>(acceptedBreaks());
+        newAcceptedBreaks.put(groupAndName, ImmutableSortedSet.<AcceptedBreak>naturalOrder()
+                .addAll(acceptedBreaks().getOrDefault(groupAndName, ImmutableSortedSet.of()))
+                .addAll(acceptedBreaks)
+                .build());
 
         return builder()
                 .putAllAcceptedBreaks(newAcceptedBreaks)

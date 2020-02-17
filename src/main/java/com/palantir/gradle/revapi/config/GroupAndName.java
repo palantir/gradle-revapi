@@ -24,7 +24,7 @@ import java.util.List;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface GroupAndName {
+public interface GroupAndName extends Comparable<GroupAndName> {
     String group();
     String name();
 
@@ -44,6 +44,11 @@ public interface GroupAndName {
                 .group(split.get(0))
                 .name(split.get(1))
                 .build();
+    }
+
+    @Override
+    default int compareTo(GroupAndName other) {
+        return this.asString().compareTo(other.asString());
     }
 
     default GroupNameVersion withVersion(Version version) {

@@ -18,6 +18,8 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Comparators;
+import java.util.Comparator;
 import java.util.Optional;
 import org.immutables.serial.Serial;
 import org.immutables.value.Value;
@@ -25,7 +27,8 @@ import org.immutables.value.Value;
 @Value.Immutable
 @Serial.Structural
 @JsonDeserialize(as = ImmutableAcceptedBreak.class)
-public interface AcceptedBreak {
+public interface AcceptedBreak extends Comparable<AcceptedBreak> {
+    @JsonProperty("code")
     String code();
 
     @JsonProperty("old")
@@ -34,7 +37,20 @@ public interface AcceptedBreak {
     @JsonProperty("new")
     Optional<String> newElement();
 
+    @JsonProperty("justification")
     Justification justification();
+
+    @Value.Lazy
+    default Comparator<AcceptedBreak> comparator() {
+        return Comparator.comparing(AcceptedBreak::code)
+                .thenComparing(AcceptedBreak::oldElement, Comparators.emptiesFirst(Comparator.<String>naturalOrder()))
+                .thenComparing(AcceptedBreak::newElement, Comparators.emptiesFirst(Comparator.<String>naturalOrder()));
+    }
+
+    @Override
+    default int compareTo(AcceptedBreak other) {
+        return comparator().compare(this, other);
+    }
 
     class Builder extends ImmutableAcceptedBreak.Builder {
         public Builder justification(String justification) {

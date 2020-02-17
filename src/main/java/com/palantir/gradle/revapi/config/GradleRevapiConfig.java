@@ -27,14 +27,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutableGradleRevapiConfig.class)
 public abstract class GradleRevapiConfig {
-    protected abstract Map<GroupNameVersion, String> versionOverrides();
-    protected abstract Map<Version, PerProjectAcceptedBreaks> acceptedBreaks();
+    @Value.NaturalOrder
+    protected abstract SortedMap<GroupNameVersion, String> versionOverrides();
+    @Value.NaturalOrder
+    protected abstract SortedMap<Version, PerProjectAcceptedBreaks> acceptedBreaks();
 
     public final Optional<Version> versionOverrideFor(GroupNameVersion groupNameVersion) {
         return Optional.ofNullable(versionOverrides().get(groupNameVersion))

@@ -21,7 +21,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface Version {
+public interface Version extends Comparable<Version> {
+
     @JsonValue
     String asString();
 
@@ -30,6 +31,11 @@ public interface Version {
         return builder()
                 .asString(version)
                 .build();
+    }
+
+    @Override
+    default int compareTo(Version other) {
+        return this.asString().compareTo(other.asString());
     }
 
     class Builder extends ImmutableVersion.Builder { }
