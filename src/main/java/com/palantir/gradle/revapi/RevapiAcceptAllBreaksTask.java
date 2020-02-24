@@ -29,12 +29,15 @@ import org.gradle.api.tasks.options.Option;
 public class RevapiAcceptAllBreaksTask extends DefaultTask {
     public static final String JUSTIFICATION = "justification";
 
-    private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
+    private final Property<ConfigManager> configManager =
+            getProject().getObjects().property(ConfigManager.class);
     private final Property<GroupNameVersion> oldGroupNameVersion =
             getProject().getObjects().property(GroupNameVersion.class);
 
-    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
-    private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
+    private final RegularFileProperty analysisResultsFile =
+            getProject().getObjects().fileProperty();
+    private final Property<Justification> justification =
+            getProject().getObjects().property(Justification.class);
 
     final Property<ConfigManager> getConfigManager() {
         return configManager;
@@ -59,10 +62,11 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
             throw new RuntimeException("Please supply the --" + JUSTIFICATION + " param to this task");
         }
 
-        Set<AcceptedBreak> acceptedBreaks = AnalysisResults.fromFile(analysisResultsFile.getAsFile().get())
-                .toAcceptedBreaks(justification.get());
+        Set<AcceptedBreak> acceptedBreaks =
+                AnalysisResults.fromFile(analysisResultsFile.getAsFile().get()).toAcceptedBreaks(justification.get());
 
-        configManager.get().modifyConfigFile(config ->
-                config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
+        configManager
+                .get()
+                .modifyConfigFile(config -> config.addAcceptedBreaks(oldGroupNameVersion.get(), acceptedBreaks));
     }
 }

@@ -32,11 +32,13 @@ public class RevapiAcceptBreakTask extends DefaultTask {
     private static final String NEW_OPTION = "new";
     private static final String JUSTIFICATION_OPTION = "justification";
 
-    private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
+    private final Property<ConfigManager> configManager =
+            getProject().getObjects().property(ConfigManager.class);
     private final Property<String> code = getProject().getObjects().property(String.class);
     private final Property<String> oldElement = getProject().getObjects().property(String.class);
     private final Property<String> newElement = getProject().getObjects().property(String.class);
-    private final Property<Justification> justification = getProject().getObjects().property(Justification.class);
+    private final Property<Justification> justification =
+            getProject().getObjects().property(Justification.class);
 
     final Property<ConfigManager> getConfigManager() {
         return configManager;
@@ -67,14 +69,16 @@ public class RevapiAcceptBreakTask extends DefaultTask {
         ensurePresent(code, CODE_OPTION);
         ensurePresent(justification, JUSTIFICATION_OPTION);
 
-        configManager.get().modifyConfigFile(revapiConfig ->
-                revapiConfig.addAcceptedBreaks(oldGroupNameVersion(), Collections.singleton(AcceptedBreak.builder()
-                        .code(code.get())
-                        .oldElement(Optional.ofNullable(oldElement.getOrNull()))
-                        .newElement(Optional.ofNullable(newElement.getOrNull()))
-                        .justification(justification.get())
-                        .build()
-        )));
+        configManager
+                .get()
+                .modifyConfigFile(revapiConfig -> revapiConfig.addAcceptedBreaks(
+                        oldGroupNameVersion(),
+                        Collections.singleton(AcceptedBreak.builder()
+                                .code(code.get())
+                                .oldElement(Optional.ofNullable(oldElement.getOrNull()))
+                                .newElement(Optional.ofNullable(newElement.getOrNull()))
+                                .justification(justification.get())
+                                .build())));
     }
 
     private void ensurePresent(Property<?> prop, String option) {

@@ -45,8 +45,6 @@ public interface Justification {
     }
 
     static Justification fromString(String justification) {
-        return builder()
-                .asString(justification)
-                .build();
+        return builder().asString(justification).build();
     }
 }

@@ -26,6 +26,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface GroupAndName extends Comparable<GroupAndName> {
     String group();
+
     String name();
 
     @JsonValue
@@ -37,13 +38,9 @@ public interface GroupAndName extends Comparable<GroupAndName> {
     static GroupAndName fromString(String groupAndName) {
         List<String> split = Splitter.on(':').splitToList(groupAndName);
 
-        Preconditions.checkArgument(split.size() == 2,
-                "%s could not be split into group and name", groupAndName);
+        Preconditions.checkArgument(split.size() == 2, "%s could not be split into group and name", groupAndName);
 
-        return builder()
-                .group(split.get(0))
-                .name(split.get(1))
-                .build();
+        return builder().group(split.get(0)).name(split.get(1)).build();
     }
 
     @Override
@@ -52,13 +49,10 @@ public interface GroupAndName extends Comparable<GroupAndName> {
     }
 
     default GroupNameVersion withVersion(Version version) {
-        return GroupNameVersion.builder()
-                .groupAndName(this)
-                .version(version)
-                .build();
+        return GroupNameVersion.builder().groupAndName(this).version(version).build();
     }
 
-    class Builder extends ImmutableGroupAndName.Builder { }
+    class Builder extends ImmutableGroupAndName.Builder {}
 
     static Builder builder() {
         return new Builder();

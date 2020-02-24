@@ -26,19 +26,21 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface GroupNameVersion extends Comparable<GroupNameVersion> {
     GroupAndName groupAndName();
+
     Version version();
 
     @JsonValue
     default String asString() {
-        return String.join(":", groupAndName().group(), groupAndName().name(), version().asString());
+        return String.join(
+                ":", groupAndName().group(), groupAndName().name(), version().asString());
     }
 
     @JsonCreator
     static GroupNameVersion fromString(String groupNameVersionString) {
         List<String> split = Splitter.on(':').splitToList(groupNameVersionString);
 
-        Preconditions.checkArgument(split.size() == 3,
-                "%s could not be split into group name and version", groupNameVersionString);
+        Preconditions.checkArgument(
+                split.size() == 3, "%s could not be split into group name and version", groupNameVersionString);
 
         return builder()
                 .groupAndName(GroupAndName.builder()
@@ -54,7 +56,7 @@ public interface GroupNameVersion extends Comparable<GroupNameVersion> {
         return this.asString().compareTo(other.asString());
     }
 
-    class Builder extends ImmutableGroupNameVersion.Builder { }
+    class Builder extends ImmutableGroupNameVersion.Builder {}
 
     static Builder builder() {
         return new Builder();

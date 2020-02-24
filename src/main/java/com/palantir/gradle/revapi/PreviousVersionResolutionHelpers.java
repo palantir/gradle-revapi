@@ -19,7 +19,7 @@ package com.palantir.gradle.revapi;
 import org.gradle.api.Project;
 
 final class PreviousVersionResolutionHelpers {
-    private PreviousVersionResolutionHelpers() { }
+    private PreviousVersionResolutionHelpers() {}
 
     private static final class GroupThreadLocal extends ThreadLocal<Object> {
         private final Object defaultGroup;
@@ -66,8 +66,7 @@ final class PreviousVersionResolutionHelpers {
      * while resolving these dependencies so the switching out doesnt happen.
      */
     public static <T, E extends Exception> T withRenamedGroupForCurrentThread(
-            Project project,
-            CheckedSupplier<T, E> action) throws E {
+            Project project, CheckedSupplier<T, E> action) throws E {
         Object group = project.getGroup();
         project.setGroup(new ThreadLocalGroup(group, "revapi.changed.group." + group));
         try {

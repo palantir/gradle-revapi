@@ -22,7 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 
 final class GradleUtils {
-    private GradleUtils() { }
+    private GradleUtils() {}
 
     public static <T> Provider<T> memoisedProvider(Project project, Supplier<T> supplier) {
         Supplier<T> memoised = Suppliers.memoize(supplier::get);

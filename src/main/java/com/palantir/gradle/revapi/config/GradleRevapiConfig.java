@@ -36,12 +36,12 @@ import org.immutables.value.Value;
 public abstract class GradleRevapiConfig {
     @Value.NaturalOrder
     protected abstract SortedMap<GroupNameVersion, String> versionOverrides();
+
     @Value.NaturalOrder
     protected abstract SortedMap<Version, PerProjectAcceptedBreaks> acceptedBreaks();
 
     public final Optional<Version> versionOverrideFor(GroupNameVersion groupNameVersion) {
-        return Optional.ofNullable(versionOverrides().get(groupNameVersion))
-                .map(Version::fromString);
+        return Optional.ofNullable(versionOverrides().get(groupNameVersion)).map(Version::fromString);
     }
 
     public final GradleRevapiConfig addVersionOverride(GroupNameVersion groupNameVersion, String versionOverride) {
@@ -59,15 +59,13 @@ public abstract class GradleRevapiConfig {
     }
 
     public final GradleRevapiConfig addAcceptedBreaks(
-            GroupNameVersion groupNameVersion,
-            Set<AcceptedBreak> acceptedBreaks) {
+            GroupNameVersion groupNameVersion, Set<AcceptedBreak> acceptedBreaks) {
 
         PerProjectAcceptedBreaks existingAcceptedBreaks =
                 acceptedBreaks().getOrDefault(groupNameVersion.version(), PerProjectAcceptedBreaks.empty());
 
-        PerProjectAcceptedBreaks newPerProjectAcceptedBreaks = existingAcceptedBreaks.merge(
-                groupNameVersion.groupAndName(),
-                acceptedBreaks);
+        PerProjectAcceptedBreaks newPerProjectAcceptedBreaks =
+                existingAcceptedBreaks.merge(groupNameVersion.groupAndName(), acceptedBreaks);
 
         Map<Version, PerProjectAcceptedBreaks> newAcceptedBreaks = new HashMap<>(acceptedBreaks());
         newAcceptedBreaks.put(groupNameVersion.version(), newPerProjectAcceptedBreaks);
@@ -78,7 +76,7 @@ public abstract class GradleRevapiConfig {
                 .build();
     }
 
-    public static class Builder extends ImmutableGradleRevapiConfig.Builder { }
+    public static class Builder extends ImmutableGradleRevapiConfig.Builder {}
 
     public static Builder builder() {
         return new Builder();
@@ -89,18 +87,15 @@ public abstract class GradleRevapiConfig {
     }
 
     public static ObjectMapper newYamlObjectMapper() {
-        return configureObjectMapper(new ObjectMapper(new YAMLFactory()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)));
+        return configureObjectMapper(
+                new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)));
     }
 
     public static ObjectMapper newJsonObjectMapper() {
-        return configureObjectMapper(new ObjectMapper())
-                .enable(JsonParser.Feature.ALLOW_TRAILING_COMMA);
+        return configureObjectMapper(new ObjectMapper()).enable(JsonParser.Feature.ALLOW_TRAILING_COMMA);
     }
 
     private static ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
-        return objectMapper
-                .registerModule(new GuavaModule())
-                .registerModule(new Jdk8Module());
+        return objectMapper.registerModule(new GuavaModule()).registerModule(new Jdk8Module());
     }
 }

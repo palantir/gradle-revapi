@@ -37,6 +37,7 @@ public abstract class AnalysisResults {
             .enable(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature());
 
     public abstract String archiveNames();
+
     public abstract List<AnalysisResult> results();
 
     final Set<AcceptedBreak> toAcceptedBreaks(Justification justification) {
@@ -53,7 +54,7 @@ public abstract class AnalysisResults {
         }
     }
 
-    static class Builder extends ImmutableAnalysisResults.Builder { }
+    static class Builder extends ImmutableAnalysisResults.Builder {}
 
     public static Builder builder() {
         return new Builder();

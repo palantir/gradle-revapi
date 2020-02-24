@@ -19,5 +19,5 @@ package com.palantir.gradle.revapi;
 public final class TestConstants {
     public static final String PLUGIN_NAME = "com.palantir.revapi";
 
-    private TestConstants() { }
+    private TestConstants() {}
 }

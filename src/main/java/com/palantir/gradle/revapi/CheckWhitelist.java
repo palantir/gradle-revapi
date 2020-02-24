@@ -31,7 +31,7 @@ import org.revapi.java.spi.JavaElement;
 public final class CheckWhitelist implements DifferenceTransform<JavaElement> {
     public static final String EXTENSION_ID = "gradle-revapi.check.whitelist";
 
-    private static final Pattern[] EVERYTHING = {Pattern.compile(".*") };
+    private static final Pattern[] EVERYTHING = {Pattern.compile(".*")};
 
     private boolean enabled = false;
     private Set<String> whitelistedChecks;
@@ -63,9 +63,7 @@ public final class CheckWhitelist implements DifferenceTransform<JavaElement> {
     @Nullable
     @Override
     public Difference transform(
-            @Nullable JavaElement _oldElement,
-            @Nullable JavaElement _newElement,
-            @Nonnull Difference difference) {
+            @Nullable JavaElement _oldElement, @Nullable JavaElement _newElement, @Nonnull Difference difference) {
 
         if (!enabled) {
             return difference;
@@ -85,5 +83,5 @@ public final class CheckWhitelist implements DifferenceTransform<JavaElement> {
     }
 
     @Override
-    public void close() { }
+    public void close() {}
 }
