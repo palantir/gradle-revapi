@@ -27,7 +27,7 @@ final class ConjureProjectFilters {
             .add("java.method.parameterTypeChanged");
     private static final ArrayNode SKIP_ALL_CHECKS = RevapiConfig.createArrayNode();
 
-    private ConjureProjectFilters() { }
+    private ConjureProjectFilters() {}
 
     public static RevapiConfig forProject(Project project) {
         boolean isConjure = Optional.ofNullable(project.getParent())

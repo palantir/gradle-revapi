@@ -25,8 +25,10 @@ import org.gradle.api.tasks.options.Option;
 public class RevapiVersionOverrideTask extends DefaultTask {
     public static final String REPLACEMENT_VERSION_OPTION = "replacement-version";
 
-    private final Property<ConfigManager> configManager = getProject().getObjects().property(ConfigManager.class);
-    private final Property<String> replacementVersion = getProject().getObjects().property(String.class);
+    private final Property<ConfigManager> configManager =
+            getProject().getObjects().property(ConfigManager.class);
+    private final Property<String> replacementVersion =
+            getProject().getObjects().property(String.class);
 
     final Property<ConfigManager> getConfigManager() {
         return configManager;
@@ -43,8 +45,9 @@ public class RevapiVersionOverrideTask extends DefaultTask {
             throw new RuntimeException("Please supply the --" + REPLACEMENT_VERSION_OPTION + " param this task");
         }
 
-        configManager.get().modifyConfigFile(config ->
-                config.addVersionOverride(oldGroupNameVersion(), replacementVersion.get()));
+        configManager
+                .get()
+                .modifyConfigFile(config -> config.addVersionOverride(oldGroupNameVersion(), replacementVersion.get()));
     }
 
     private GroupNameVersion oldGroupNameVersion() {

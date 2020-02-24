@@ -52,8 +52,7 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         ConfigManager configManager = new ConfigManager(configFile(project));
 
-        Provider<Optional<OldApi>> maybeOldApi =
-                ResolveOldApi.oldApiProvider(project, extension, configManager);
+        Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
 
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
@@ -69,12 +68,10 @@ public final class RevapiPlugin implements Plugin<Project> {
                     Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
                     task.getNewApiJars().set(jarTask.getOutputs().getFiles());
                     task.getNewApiDependencyJars().set(revapiNewApi);
-                    task.getOldApiJars().set(
-                            maybeOldApi.map(oldApi ->
-                                    oldApi.map(OldApi::jars).orElseGet(Collections::emptySet)));
-                    task.getOldApiDependencyJars().set(
-                            maybeOldApi.map(oldApi ->
-                                    oldApi.map(OldApi::dependencyJars).orElseGet(Collections::emptySet)));
+                    task.getOldApiJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::jars)
+                            .orElseGet(Collections::emptySet)));
+                    task.getOldApiDependencyJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::dependencyJars)
+                            .orElseGet(Collections::emptySet)));
 
                     task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
 
@@ -110,34 +107,30 @@ public final class RevapiPlugin implements Plugin<Project> {
     }
 
     private Provider<Set<AcceptedBreak>> acceptedBreaks(
-            Project project,
-            ConfigManager configManager,
-            Provider<GroupAndName> oldGroupAndNameProvider) {
+            Project project, ConfigManager configManager, Provider<GroupAndName> oldGroupAndNameProvider) {
 
-        return GradleUtils.memoisedProvider(project, () ->
-                configManager.fromFileOrEmptyIfDoesNotExist()
-                        .acceptedBreaksFor(oldGroupAndNameProvider.get()));
-
+        return GradleUtils.memoisedProvider(
+                project,
+                () -> configManager.fromFileOrEmptyIfDoesNotExist().acceptedBreaksFor(oldGroupAndNameProvider.get()));
     }
 
     @VisibleForTesting
     static Provider<Set<Jar>> allJarTasksIncludingDependencies(Project project, Configuration configuration) {
         // Provider so that we don't resolve the configuration at compile time, which is bad for gradle performance
-        return project.getProviders().provider(() -> configuration
-                .getIncoming()
-                .getResolutionResult()
-                .getAllComponents()
-                .stream()
-                .map(ComponentResult::getId)
-                .filter(resolvedComponentResult -> resolvedComponentResult instanceof ProjectComponentIdentifier)
-                .map(resolvedComponentResult -> (ProjectComponentIdentifier) resolvedComponentResult)
-                .map(ProjectComponentIdentifier::getProjectPath)
-                .map(project.getRootProject()::project)
-                .flatMap(dependentProject -> dependentProject.getTasks()
-                        .withType(Jar.class)
-                        .matching(jar -> jar.getName().equals(JavaPlugin.JAR_TASK_NAME))
-                        .stream())
-                .collect(Collectors.toSet()));
+        return project.getProviders()
+                .provider(() -> configuration.getIncoming().getResolutionResult().getAllComponents().stream()
+                        .map(ComponentResult::getId)
+                        .filter(resolvedComponentResult ->
+                                resolvedComponentResult instanceof ProjectComponentIdentifier)
+                        .map(resolvedComponentResult -> (ProjectComponentIdentifier) resolvedComponentResult)
+                        .map(ProjectComponentIdentifier::getProjectPath)
+                        .map(project.getRootProject()::project)
+                        .flatMap(dependentProject -> dependentProject
+                                .getTasks()
+                                .withType(Jar.class)
+                                .matching(jar -> jar.getName().equals(JavaPlugin.JAR_TASK_NAME))
+                                .stream())
+                        .collect(Collectors.toSet()));
     }
 
     private static File configFile(Project project) {
@@ -146,9 +139,7 @@ public final class RevapiPlugin implements Plugin<Project> {
 
     private File junitOutput(Project project) {
         Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
-        File reportsDir = circleReportsDir
-                .map(File::new)
-                .orElseGet(project::getBuildDir);
+        File reportsDir = circleReportsDir.map(File::new).orElseGet(project::getBuildDir);
         return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
     }
 }

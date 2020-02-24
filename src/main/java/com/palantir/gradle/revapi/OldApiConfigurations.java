@@ -46,18 +46,15 @@ final class OldApiConfigurations {
         });
         oldApiConfiguration.setTransitive(transitive);
 
-        return PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(project, () ->
-                resolveConfigurationUnlessMissingJars(
-                        groupNameVersion.version(),
-                        oldApiConfiguration));
+        return PreviousVersionResolutionHelpers.withRenamedGroupForCurrentThread(
+                project, () -> resolveConfigurationUnlessMissingJars(groupNameVersion.version(), oldApiConfiguration));
     }
 
     private static Set<File> resolveConfigurationUnlessMissingJars(Version oldVersion, Configuration configuration)
             throws CouldNotResolveOldApiException {
 
-        Set<? extends DependencyResult> allDependencies = configuration.getIncoming()
-                .getResolutionResult()
-                .getAllDependencies();
+        Set<? extends DependencyResult> allDependencies =
+                configuration.getIncoming().getResolutionResult().getAllDependencies();
 
         List<Throwable> resolutionFailures = allDependencies.stream()
                 .filter(dependencyResult -> dependencyResult instanceof UnresolvedDependencyResult)
@@ -76,9 +73,7 @@ final class OldApiConfigurations {
         private final Version version;
         private final List<Throwable> resolutionFailures;
 
-        CouldNotResolveOldApiException(
-                Version version,
-                List<Throwable> resolutionFailures) {
+        CouldNotResolveOldApiException(Version version, List<Throwable> resolutionFailures) {
             this.version = version;
             this.resolutionFailures = resolutionFailures;
         }

@@ -33,14 +33,19 @@ public abstract class AnalysisResult {
     // Using @Nullable instead of Optionals as freemarker templating does not not support Optionals
     @Nullable
     public abstract String oldElement();
+
     @Nullable
     public abstract String newElement();
+
     @Nullable
     public abstract String description();
+
     @Nullable
     public abstract String oldArchiveName();
+
     @Nullable
     public abstract String newArchiveName();
+
     public abstract Map<CompatibilityType, DifferenceSeverity> classification();
 
     final AcceptedBreak toAcceptedBreak(Justification justification) {
@@ -52,7 +57,7 @@ public abstract class AnalysisResult {
                 .build();
     }
 
-    static class Builder extends ImmutableAnalysisResult.Builder { }
+    static class Builder extends ImmutableAnalysisResult.Builder {}
 
     public static Builder builder() {
         return new Builder();

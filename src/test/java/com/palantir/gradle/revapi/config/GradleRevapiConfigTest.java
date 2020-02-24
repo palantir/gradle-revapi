@@ -37,17 +37,19 @@ class GradleRevapiConfigTest {
                 .addAcceptedBreaks(FOO_BAR_312, ImmutableSet.of(acceptedBreak3))
                 .addAcceptedBreaks(QUUX_BAZ_10, ImmutableSet.of(acceptedBreak4));
 
-        assertThat(gradleRevapiConfig.acceptedBreaksFor(FOO_BAR_312.groupAndName())).containsOnly(
-                acceptedBreak1, acceptedBreak2, acceptedBreak3);
+        assertThat(gradleRevapiConfig.acceptedBreaksFor(FOO_BAR_312.groupAndName()))
+                .containsOnly(acceptedBreak1, acceptedBreak2, acceptedBreak3);
 
-        assertThat(gradleRevapiConfig.acceptedBreaksFor(QUUX_BAZ_10.groupAndName())).containsOnly(acceptedBreak4);
-        assertThat(gradleRevapiConfig.acceptedBreaksFor(GroupAndName.fromString("doesnot:exist"))).isEmpty();
+        assertThat(gradleRevapiConfig.acceptedBreaksFor(QUUX_BAZ_10.groupAndName()))
+                .containsOnly(acceptedBreak4);
+        assertThat(gradleRevapiConfig.acceptedBreaksFor(GroupAndName.fromString("doesnot:exist")))
+                .isEmpty();
     }
 
     @Test
     void can_get_version_override_for() {
-        GradleRevapiConfig gradleRevapiConfig = GradleRevapiConfig.empty()
-                .addVersionOverride(FOO_BAR_312, "some_version_override");
+        GradleRevapiConfig gradleRevapiConfig =
+                GradleRevapiConfig.empty().addVersionOverride(FOO_BAR_312, "some_version_override");
 
         assertThat(gradleRevapiConfig.versionOverrideFor(FOO_BAR_312))
                 .hasValue(Version.fromString("some_version_override"));

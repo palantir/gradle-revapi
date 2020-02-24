@@ -41,8 +41,7 @@ import org.revapi.Archive;
 
 @Value.Immutable
 abstract class RevapiConfig {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModule(new Jdk8Module());
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new Jdk8Module());
 
     protected abstract List<JsonNode> config();
 
@@ -55,11 +54,14 @@ abstract class RevapiConfig {
     }
 
     public RevapiConfig withTextReporter(String templateName, File outputPath) {
-        return withExtension("revapi.reporter.text", OBJECT_MAPPER.createObjectNode()
-                .put("minSeverity", "BREAKING")
-                .put("template", templateName)
-                .put("output", outputPath.getAbsolutePath())
-                .put("append", false));
+        return withExtension(
+                "revapi.reporter.text",
+                OBJECT_MAPPER
+                        .createObjectNode()
+                        .put("minSeverity", "BREAKING")
+                        .put("template", templateName)
+                        .put("output", outputPath.getAbsolutePath())
+                        .put("append", false));
     }
 
     public RevapiConfig withIgnoredBreaks(Set<AcceptedBreak> acceptedBreaks) {
@@ -67,9 +69,8 @@ abstract class RevapiConfig {
     }
 
     public RevapiConfig withExtension(String extensionId, JsonNode configuration) {
-        JsonNode extension = OBJECT_MAPPER.createObjectNode()
-                .put("extension", extensionId)
-                .set("configuration", configuration);
+        JsonNode extension =
+                OBJECT_MAPPER.createObjectNode().put("extension", extensionId).set("configuration", configuration);
 
         return fromJsonNodes(ImmutableList.<JsonNode>builder()
                 .addAll(config())
@@ -78,22 +79,19 @@ abstract class RevapiConfig {
     }
 
     public RevapiConfig mergeWith(RevapiConfig other) {
-        return new Builder()
-                .from(this)
-                .addAllConfig(other.config())
-                .build();
+        return new Builder().from(this).addAllConfig(other.config()).build();
     }
 
     public static RevapiConfig defaults(API oldApi, API newApi) {
         try {
-            String template = Resources.toString(
-                    Resources.getResource(
-                            "revapi-configuration.json"),
-                    StandardCharsets.UTF_8);
+            String template =
+                    Resources.toString(Resources.getResource("revapi-configuration.json"), StandardCharsets.UTF_8);
 
-            return fromString(template
-                    .replace("{{ARCHIVE_INCLUDE_REGEXES}}", Stream.of(newApi, oldApi)
-                            .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
+            return fromString(template.replace(
+                    "{{ARCHIVE_INCLUDE_REGEXES}}",
+                    Stream.of(newApi, oldApi)
+                            .flatMap(api ->
+                                    StreamSupport.stream(api.getArchives().spliterator(), false))
                             .map(Archive::getName)
                             .collect(Collectors.joining("\", \""))));
         } catch (IOException e) {
@@ -102,11 +100,10 @@ abstract class RevapiConfig {
     }
 
     public static RevapiConfig mergeAll(RevapiConfig... revapiConfigs) {
-        return Arrays.stream(revapiConfigs)
-                .reduce(empty(), RevapiConfig::mergeWith);
+        return Arrays.stream(revapiConfigs).reduce(empty(), RevapiConfig::mergeWith);
     }
 
-    static final class Builder extends ImmutableRevapiConfig.Builder { }
+    static final class Builder extends ImmutableRevapiConfig.Builder {}
 
     public static RevapiConfig empty() {
         return fromJsonNodes(Collections.emptyList());
@@ -121,9 +118,7 @@ abstract class RevapiConfig {
     }
 
     private static RevapiConfig fromJsonNodes(List<JsonNode> jsonNodes) {
-        return new Builder()
-                .config(jsonNodes)
-                .build();
+        return new Builder().config(jsonNodes).build();
     }
 
     public static ArrayNode createArrayNode() {

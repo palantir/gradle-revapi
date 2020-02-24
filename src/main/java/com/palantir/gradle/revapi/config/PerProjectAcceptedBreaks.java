@@ -39,17 +39,17 @@ abstract class PerProjectAcceptedBreaks {
 
     public PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
         SortedMap<GroupAndName, SortedSet<AcceptedBreak>> newAcceptedBreaks = new TreeMap<>(acceptedBreaks());
-        newAcceptedBreaks.put(groupAndName, ImmutableSortedSet.<AcceptedBreak>naturalOrder()
-                .addAll(acceptedBreaks().getOrDefault(groupAndName, ImmutableSortedSet.of()))
-                .addAll(acceptedBreaks)
-                .build());
+        newAcceptedBreaks.put(
+                groupAndName,
+                ImmutableSortedSet.<AcceptedBreak>naturalOrder()
+                        .addAll(acceptedBreaks().getOrDefault(groupAndName, ImmutableSortedSet.of()))
+                        .addAll(acceptedBreaks)
+                        .build());
 
-        return builder()
-                .putAllAcceptedBreaks(newAcceptedBreaks)
-                .build();
+        return builder().putAllAcceptedBreaks(newAcceptedBreaks).build();
     }
 
-    static final class Builder extends ImmutablePerProjectAcceptedBreaks.Builder { }
+    static final class Builder extends ImmutablePerProjectAcceptedBreaks.Builder {}
 
     public static Builder builder() {
         return new Builder();

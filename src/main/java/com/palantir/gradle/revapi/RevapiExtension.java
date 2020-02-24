@@ -35,21 +35,19 @@ public class RevapiExtension {
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
-        this.oldGroup.set(project.getProviders().provider(() -> project.getGroup().toString()));
+        this.oldGroup.set(
+                project.getProviders().provider(() -> project.getGroup().toString()));
 
         this.oldName = project.getObjects().property(String.class);
         this.oldName.set(project.getProviders().provider(project::getName));
 
         this.oldVersions = project.getObjects().listProperty(String.class);
-        this.oldVersions.set(project.getProviders().provider(() ->
-                GitVersionUtils.previousGitTags(project)
-                        .limit(3)
-                        .collect(Collectors.toList())));
+        this.oldVersions.set(project.getProviders()
+                .provider(
+                        () -> GitVersionUtils.previousGitTags(project).limit(3).collect(Collectors.toList())));
 
-        this.oldGroupAndName = project.provider(() -> GroupAndName.builder()
-                .group(oldGroup.get())
-                .name(oldName.get())
-                .build());
+        this.oldGroupAndName = project.provider(() ->
+                GroupAndName.builder().group(oldGroup.get()).name(oldName.get()).build());
     }
 
     public Property<String> getOldGroup() {
@@ -69,7 +67,9 @@ public class RevapiExtension {
     }
 
     GroupNameVersion oldGroupNameVersion() {
-        return oldGroupAndName().get().withVersion(Version.fromString(oldVersions.get().get(0)));
+        return oldGroupAndName()
+                .get()
+                .withVersion(Version.fromString(oldVersions.get().get(0)));
     }
 
     Provider<GroupAndName> oldGroupAndName() {

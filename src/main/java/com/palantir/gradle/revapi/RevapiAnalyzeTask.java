@@ -47,10 +47,13 @@ public class RevapiAnalyzeTask extends DefaultTask {
     private final SetProperty<AcceptedBreak> acceptedBreaks =
             getProject().getObjects().setProperty(AcceptedBreak.class);
     private final SetProperty<File> newApiJars = getProject().getObjects().setProperty(File.class);
-    private final SetProperty<File> newApiDependencyJars = getProject().getObjects().setProperty(File.class);
+    private final SetProperty<File> newApiDependencyJars =
+            getProject().getObjects().setProperty(File.class);
     private final SetProperty<File> oldApiJars = getProject().getObjects().setProperty(File.class);
-    private final SetProperty<File> oldApiDependencyJars = getProject().getObjects().setProperty(File.class);
-    private final RegularFileProperty analysisResultsFile = getProject().getObjects().fileProperty();
+    private final SetProperty<File> oldApiDependencyJars =
+            getProject().getObjects().setProperty(File.class);
+    private final RegularFileProperty analysisResultsFile =
+            getProject().getObjects().fileProperty();
 
     @Input
     public final SetProperty<AcceptedBreak> getAcceptedBreaks() {
@@ -101,7 +104,9 @@ public class RevapiAnalyzeTask extends DefaultTask {
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(oldApi, newApi),
                 RevapiConfig.empty()
-                        .withTextReporter("gradle-revapi-results.ftl", analysisResultsFile.getAsFile().get()),
+                        .withTextReporter(
+                                "gradle-revapi-results.ftl",
+                                analysisResultsFile.getAsFile().get()),
                 revapiIgnores(),
                 ConjureProjectFilters.forProject(getProject()));
 
@@ -118,8 +123,7 @@ public class RevapiAnalyzeTask extends DefaultTask {
     }
 
     private RevapiConfig revapiIgnores() {
-        return RevapiConfig.empty()
-                .withIgnoredBreaks(acceptedBreaks.get());
+        return RevapiConfig.empty().withIgnoredBreaks(acceptedBreaks.get());
     }
 
     private API api(SetProperty<File> apiJars, SetProperty<File> dependencyJars) {

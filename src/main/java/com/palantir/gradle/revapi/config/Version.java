@@ -28,9 +28,7 @@ public interface Version extends Comparable<Version> {
 
     @JsonCreator
     static Version fromString(String version) {
-        return builder()
-                .asString(version)
-                .build();
+        return builder().asString(version).build();
     }
 
     @Override
@@ -38,7 +36,7 @@ public interface Version extends Comparable<Version> {
         return this.asString().compareTo(other.asString());
     }
 
-    class Builder extends ImmutableVersion.Builder { }
+    class Builder extends ImmutableVersion.Builder {}
 
     static Builder builder() {
         return new Builder();

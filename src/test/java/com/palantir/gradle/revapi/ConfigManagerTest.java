@@ -52,55 +52,59 @@ class ConfigManagerTest {
     }
 
     @Test
-    void withConfig_reads_the_existing_config_file_and_writes_back_the_transformed_one()
-            throws IOException {
+    void withConfig_reads_the_existing_config_file_and_writes_back_the_transformed_one() throws IOException {
 
         File oldConfigFile = new File(tempDir, "revapi.yml");
         ConfigManager configManager = new ConfigManager(oldConfigFile);
 
-        Files.write(oldConfigFile.toPath(), String.join("\n",
-                "versionOverrides:",
-                "  foo:bar:3.12: \"1.0\"",
-                "acceptedBreaks:",
-                "  1.2.3:",
-                "    foo:bar:",
-                "      - code: blah",
-                "        old: old",
-                "        new: new",
-                "        justification: \"I don't care about my users\""
-                        )
-                .getBytes(StandardCharsets.UTF_8));
+        Files.write(
+                oldConfigFile.toPath(),
+                String.join(
+                                "\n",
+                                "versionOverrides:",
+                                "  foo:bar:3.12: \"1.0\"",
+                                "acceptedBreaks:",
+                                "  1.2.3:",
+                                "    foo:bar:",
+                                "      - code: blah",
+                                "        old: old",
+                                "        new: new",
+                                "        justification: \"I don't care about my users\"")
+                        .getBytes(StandardCharsets.UTF_8));
 
         configManager.modifyConfigFile(revapiConfig -> {
-            assertThat(revapiConfig.acceptedBreaksFor(GroupAndName.fromString("doesnt:exist"))).isEmpty();
+            assertThat(revapiConfig.acceptedBreaksFor(GroupAndName.fromString("doesnt:exist")))
+                    .isEmpty();
             return revapiConfig
                     .addVersionOverride(GroupNameVersion.fromString("quux:baz:2.0"), "3.6")
-                    .addAcceptedBreaks(GroupNameVersion.fromString("quux:baz:1.2.3"), ImmutableSet.of(AcceptedBreak
-                            .builder()
-                            .code("something")
-                            .oldElement("old2")
-                            .newElement("new2")
-                            .justification("j")
-                            .build()));
+                    .addAcceptedBreaks(
+                            GroupNameVersion.fromString("quux:baz:1.2.3"),
+                            ImmutableSet.of(AcceptedBreak.builder()
+                                    .code("something")
+                                    .oldElement("old2")
+                                    .newElement("new2")
+                                    .justification("j")
+                                    .build()));
         });
 
-        assertThat(oldConfigFile).hasContent(String.join("\n",
-                "versionOverrides:",
-                "  foo:bar:3.12: \"1.0\"",
-                "  quux:baz:2.0: \"3.6\"",
-                "acceptedBreaks:",
-                "  \"1.2.3\":",
-                "    foo:bar:",
-                "    - code: \"blah\"",
-                "      old: \"old\"",
-                "      new: \"new\"",
-                "      justification: \"I don't care about my users\"",
-                "    quux:baz:",
-                "    - code: \"something\"",
-                "      old: \"old2\"",
-                "      new: \"new2\"",
-                "      justification: \"j\""));
-
+        assertThat(oldConfigFile)
+                .hasContent(String.join(
+                        "\n",
+                        "versionOverrides:",
+                        "  foo:bar:3.12: \"1.0\"",
+                        "  quux:baz:2.0: \"3.6\"",
+                        "acceptedBreaks:",
+                        "  \"1.2.3\":",
+                        "    foo:bar:",
+                        "    - code: \"blah\"",
+                        "      old: \"old\"",
+                        "      new: \"new\"",
+                        "      justification: \"I don't care about my users\"",
+                        "    quux:baz:",
+                        "    - code: \"something\"",
+                        "      old: \"old2\"",
+                        "      new: \"new2\"",
+                        "      justification: \"j\""));
     }
 
     @Test
@@ -108,10 +112,10 @@ class ConfigManagerTest {
         File oldConfigFile = new File(tempDir, "revapi.yml");
         ConfigManager configManager = new ConfigManager(oldConfigFile);
 
-        Files.write(oldConfigFile.toPath(), String.join("\n",
-                "versionOverrides:",
-                "  foo:bar:3.12: \"1.0\"")
-                .getBytes(StandardCharsets.UTF_8));
+        Files.write(
+                oldConfigFile.toPath(),
+                String.join("\n", "versionOverrides:", "  foo:bar:3.12: \"1.0\"")
+                        .getBytes(StandardCharsets.UTF_8));
 
         GradleRevapiConfig gradleRevapiConfig = configManager.fromFileOrEmptyIfDoesNotExist();
 

@@ -25,10 +25,8 @@ class GroupNameVersionTest {
     @Test
     void parses_from_string_properly() {
         GroupNameVersion groupNameVersion = GroupNameVersion.fromString("foo:bar:4.5.6");
-        assertThat(groupNameVersion.groupAndName()).isEqualTo(GroupAndName.builder()
-                .group("foo")
-                .name("bar")
-                .build());
+        assertThat(groupNameVersion.groupAndName())
+                .isEqualTo(GroupAndName.builder().group("foo").name("bar").build());
         assertThat(groupNameVersion.version()).isEqualTo(Version.fromString("4.5.6"));
     }
 
@@ -37,8 +35,7 @@ class GroupNameVersionTest {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> GroupNameVersion.fromString("foo:bar"));
 
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> GroupNameVersion.fromString("eeep"));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> GroupNameVersion.fromString("eeep"));
 
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> GroupNameVersion.fromString("too:many:colons:yo"));

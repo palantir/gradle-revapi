@@ -28,7 +28,7 @@ import org.gradle.api.Project;
 final class ExceptionMessages {
     private static final String OLD_API_FAILED_TO_RESOLVE = "revapi-old-api-failed-to-resolve.txt";
 
-    private ExceptionMessages() { }
+    private ExceptionMessages() {}
 
     public static String failedToResolve(Project project, String errors) {
         try {
@@ -42,10 +42,12 @@ final class ExceptionMessages {
             return errorTemplate
                     .replace("{{versionOverrideTaskName}}", RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
                     .replace("{{replacementVersionOption}}", RevapiVersionOverrideTask.REPLACEMENT_VERSION_OPTION)
-                    .replace("{{taskPath}}", project.getTasks()
-                            .withType(RevapiVersionOverrideTask.class)
-                            .getByName(RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
-                            .getPath())
+                    .replace(
+                            "{{taskPath}}",
+                            project.getTasks()
+                                    .withType(RevapiVersionOverrideTask.class)
+                                    .getByName(RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
+                                    .getPath())
                     .replace("{{projectDisplayName}}", project.getDisplayName())
                     .replace("{{errors}}", errors);
         } catch (IOException e) {
@@ -54,8 +56,6 @@ final class ExceptionMessages {
     }
 
     public static String joined(Collection<? extends Throwable> throwables) {
-        return throwables.stream()
-                    .map(Throwable::getMessage)
-                    .collect(Collectors.joining("\n\n"));
+        return throwables.stream().map(Throwable::getMessage).collect(Collectors.joining("\n\n"));
     }
 }

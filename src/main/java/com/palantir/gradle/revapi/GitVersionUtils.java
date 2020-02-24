@@ -30,7 +30,7 @@ import org.gradle.process.ExecResult;
 import org.immutables.value.Value;
 
 final class GitVersionUtils {
-    private GitVersionUtils() { }
+    private GitVersionUtils() {}
 
     public static Stream<String> previousGitTags(Project project) {
         return StreamSupport.stream(new PreviousGitTags(project), false)
@@ -96,8 +96,11 @@ final class GitVersionUtils {
     @Value.Immutable
     interface GitResult {
         int exitCode();
+
         String stdout();
+
         String stderr();
+
         List<String> command();
 
         default String stdoutOrThrowIfNonZero() {
@@ -112,7 +115,7 @@ final class GitVersionUtils {
                     + "\tStderr:" + stderr() + "\n");
         }
 
-        class Builder extends ImmutableGitResult.Builder { }
+        class Builder extends ImmutableGitResult.Builder {}
 
         static Builder builder() {
             return new Builder();
