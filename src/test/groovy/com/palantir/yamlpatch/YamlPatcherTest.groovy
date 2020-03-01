@@ -259,4 +259,38 @@ class YamlPatcherTest {
           # end
         '''.stripIndent()
     }
+
+    @Test
+    void 'replace a number with an array into a deeply nested level object'() {
+        // language=yaml
+        String input = '''
+          # comment
+          one:
+            two:
+              three: 3 #trailing
+              # another
+              somethingElse: 4
+          # end
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(input, ObjectNode, { ObjectNode json ->
+            ((ObjectNode) json.get("one").get("two")).replace("three", OBJECT_MAPPER.createArrayNode()
+                    .add(1).add(2).add(3))
+            return json
+        } as UnaryOperator<ObjectNode>)
+
+        // language=yaml
+        assertThat(output).isEqualTo '''
+          # comment
+          one:
+            two:
+              three:
+              - 1
+              - 2
+              - 3
+              # another
+              somethingElse: 4
+          # end
+        '''.stripIndent()
+    }
 }
