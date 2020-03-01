@@ -37,9 +37,9 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
 @JsonSubTypes({
-        @JsonSubTypes.Type(JsonPatch.Replace.class),
-        @JsonSubTypes.Type(JsonPatch.Add.class),
-        @JsonSubTypes.Type(JsonPatch.Remove.class)
+    @JsonSubTypes.Type(JsonPatch.Replace.class),
+    @JsonSubTypes.Type(JsonPatch.Add.class),
+    @JsonSubTypes.Type(JsonPatch.Remove.class)
 })
 public interface JsonPatch {
     JsonPointer path();
@@ -53,28 +53,31 @@ public interface JsonPatch {
         JsonNode value();
 
         @Override
-        default Patch patchFor(
-                ObjectMapper yamlObjectMapper,
-                String input,
-                Node jsonDocument) {
+        default Patch patchFor(ObjectMapper yamlObjectMapper, String input, Node jsonDocument) {
             NodeTuple replacementInsertionPoint = path().narrowDownToKeyIn(jsonDocument);
             Node nodeToReplace = replacementInsertionPoint.getValueNode();
 
+            boolean isNested = value().isObject() || value().isArray();
+
             String replacementAsYaml = replacementAsYaml(yamlObjectMapper);
-            String newlinePrefixed = (value().isObject() ? "\n" : "") + replacementAsYaml;
+            String newlinePrefixed = (isNested ? "\n" : "") + replacementAsYaml;
             String linePrefixed = newlinePrefixed.replace(
                     "\n",
-                    "\n  " + JsonPatch.sameWhitespaceAs(replacementInsertionPoint.getKeyNode()));
+                    "\n" + (value().isObject() ? "  " : "")
+                            + JsonPatch.sameWhitespaceAs(replacementInsertionPoint.getKeyNode()));
 
-            int whitespaceBefore = !value().isObject() ? 0 : (int) charsBefore(input,
-                    nodeToReplace.getStartMark().getIndex())
-                    .takeWhile(Character::isWhitespace)
-                    .count();
+            int whitespaceBefore = !isNested
+                    ? 0
+                    : (int) charsBefore(input, nodeToReplace.getStartMark().getIndex())
+                            .takeWhile(Character::isWhitespace)
+                            .count();
+
+            int endIndex = nodeToReplace.getEndMark().getIndex();
 
             return Patch.builder()
                     .range(Range.builder()
                             .startIndex(nodeToReplace.getStartMark().getIndex() - whitespaceBefore)
-                            .endIndex(nodeToReplace.getEndMark().getIndex())
+                            .endIndex(isNested ? Remove.withPossibleTrailingComment(input, endIndex) : endIndex)
                             .build())
                     .replacement(linePrefixed)
                     .build();
@@ -96,10 +99,7 @@ public interface JsonPatch {
         String value();
 
         @Override
-        default Patch patchFor(
-                ObjectMapper yamlObjectMapper,
-                String input,
-                Node jsonDocument) {
+        default Patch patchFor(ObjectMapper yamlObjectMapper, String input, Node jsonDocument) {
             JsonPointer parent =
                     path().parent().orElseThrow(() -> new IllegalArgumentException("Cannot add item at root node"));
             Node nodeToInsertInto = parent.narrowDownToValueIn(jsonDocument);
@@ -111,6 +111,7 @@ public interface JsonPatch {
             return Patch.of(endIndex, endIndex, replacement);
         }
     }
+
     static String sameWhitespaceAs(Node nodeToInsertInto) {
         int whitespaceDepth = nodeToInsertInto.getStartMark().getColumn();
         if (whitespaceDepth == 0) {
@@ -127,23 +128,10 @@ public interface JsonPatch {
         Pattern ONLY_WHITESPACE = Pattern.compile("\\s*");
 
         @Override
-        default Patch patchFor(
-                ObjectMapper yamlObjectMapper,
-                String input,
-                Node jsonDocument) {
+        default Patch patchFor(ObjectMapper yamlObjectMapper, String input, Node jsonDocument) {
             NodeTuple nodeTupleToReplace = path().narrowDownToKeyIn(jsonDocument);
 
             int startIndex = nodeTupleToReplace.getKeyNode().getStartMark().getIndex();
-            int endIndex = nodeTupleToReplace.getValueNode().getEndMark().getIndex();
-
-            try {
-                String restOfLine = lineAfter(input, endIndex);
-                if (JUST_WHITESPACE_AND_COMMENT_AFTER_LINE.matcher(restOfLine).matches()) {
-                    endIndex += restOfLine.length();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
 
             int whitespaceDepth = nodeTupleToReplace.getKeyNode().getStartMark().getColumn();
             int startOfLine = startIndex - whitespaceDepth;
@@ -153,19 +141,36 @@ public interface JsonPatch {
                 int howFar = StreamUtils.takeWhile(linesBefore(input, startOfLine - 1), line -> line.startsWith(prefix))
                         .mapToInt(String::length)
                         .sum();
-                startIndex -= whitespaceDepth + howFar;
+                startIndex -= whitespaceDepth + howFar + 1;
             }
 
             return Patch.builder()
                     .range(Range.builder()
                             .startIndex(startIndex)
-                            .endIndex(endIndex)
+                            .endIndex(withPossibleTrailingComment(
+                                    input,
+                                    nodeTupleToReplace
+                                            .getValueNode()
+                                            .getEndMark()
+                                            .getIndex()))
                             .build())
                     .replacement("")
                     .build();
         }
 
-        default String lineAfter(String input, int endIndex) throws IOException {
+        static int withPossibleTrailingComment(String input, int endIndex) {
+            try {
+                String restOfLine = lineAfter(input, endIndex);
+                if (JUST_WHITESPACE_AND_COMMENT_AFTER_LINE.matcher(restOfLine).matches()) {
+                    endIndex += restOfLine.length();
+                }
+                return endIndex - 1;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        static String lineAfter(String input, int endIndex) throws IOException {
             StringReader stringReader = new StringReader(input);
             stringReader.skip(endIndex);
             BufferedReader bufferedReader = new BufferedReader(stringReader);
@@ -188,8 +193,7 @@ public interface JsonPatch {
                 return Optional.empty();
             });
 
-            return StreamUtils.takeWhile(previousLines, Optional::isPresent)
-                    .map(Optional::get);
+            return StreamUtils.takeWhile(previousLines, Optional::isPresent).map(Optional::get);
         }
     }
 

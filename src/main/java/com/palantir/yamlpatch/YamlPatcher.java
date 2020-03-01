@@ -50,7 +50,7 @@ public final class YamlPatcher {
         try {
             JsonNode inputJsonNode = yamlObjectMapper.readTree(input);
             JsonNode usedInputJsonNode = inputJsonNode;
-            if (clazz.isAssignableFrom(JsonNode.class)) {
+            if (JsonNode.class.isAssignableFrom(clazz)) {
                 usedInputJsonNode = inputJsonNode.deepCopy();
             }
             T inputType = yamlObjectMapper.convertValue(usedInputJsonNode, clazz);

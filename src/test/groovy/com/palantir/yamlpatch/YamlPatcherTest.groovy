@@ -35,7 +35,7 @@ class YamlPatcherTest {
     })
 
     @Test
-    void 'can patch a simple string value replacement'() {
+    void 'patch a simple string value replacement'() {
         // language=yaml
         String input = """
             # a comment
@@ -61,7 +61,7 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can patch multi string value replacements'() {
+    void 'patch multi string value replacements'() {
         // language=yaml
         String input = """
             # a comment
@@ -89,7 +89,7 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can patch remove a mapping from an object'() {
+    void 'patch remove a mapping from an object'() {
         // language=yaml
         String input = """
             # a comment
@@ -118,7 +118,7 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can add a mapping to an object'() {
+    void 'add a mapping to an object'() {
         // language=yaml
         String input = '''
           # a comment
@@ -146,7 +146,7 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can insert a complex object with one key value mapping into an existing object'() {
+    void 'insert a complex object with one key value mapping into an existing object'() {
         // language=yaml
         String input = '''
           # comment
@@ -173,7 +173,7 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can insert a complex object with multiple key value mappings into an existing object'() {
+    void 'insert a complex object with multiple key value mappings into an existing object'() {
         // language=yaml
         String input = '''
           # comment
@@ -202,13 +202,13 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can insert a complex object into an already nested object'() {
+    void 'replace a value with a complex object into an already nested object'() {
         // language=yaml
         String input = '''
           one:
             two:
               # comment
-              three: 3
+              three: 3 # trailing
               # other comment
               threePrime: 3'
         '''.stripIndent()
@@ -231,6 +231,32 @@ class YamlPatcherTest {
                 b: 2
               # other comment
               threePrime: 3\'
+        '''.stripIndent()
+    }
+
+    @Test
+    void 'replace a number with an array into a top level object'() {
+        // language=yaml
+        String input = '''
+          # comment
+          item: 4 # trailing
+          # end
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(input, ObjectNode, { ObjectNode json ->
+            json.replace("item", OBJECT_MAPPER.createArrayNode()
+                    .add(1).add(2).add(3))
+            return json
+        } as UnaryOperator<ObjectNode>)
+
+        // language=yaml
+        assertThat(output).isEqualTo '''
+          # comment
+          item:
+          - 1
+          - 2
+          - 3
+          # end
         '''.stripIndent()
     }
 }
