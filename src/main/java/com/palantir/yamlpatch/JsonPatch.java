@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import one.util.streamex.StreamEx;
 import org.immutables.value.Value;
 import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
@@ -54,19 +55,28 @@ public interface JsonPatch {
         @Override
         default Patch patchFor(
                 ObjectMapper yamlObjectMapper,
-                String _input,
+                String input,
                 Node jsonDocument) {
-            Node nodeToReplace = path().narrowDownToValueIn(jsonDocument);
+            NodeTuple replacementInsertionPoint = path().narrowDownToKeyIn(jsonDocument);
+            Node nodeToReplace = replacementInsertionPoint.getValueNode();
 
             String replacementAsYaml = replacementAsYaml(yamlObjectMapper);
-            String newlinePrefix = value().isObject() ? "\n  " : "";
+            String newlinePrefixed = (value().isObject() ? "\n" : "") + replacementAsYaml;
+            String linePrefixed = newlinePrefixed.replace(
+                    "\n",
+                    "\n  " + JsonPatch.sameWhitespaceAs(replacementInsertionPoint.getKeyNode()));
+
+            int whitespaceBefore = !value().isObject() ? 0 : (int) charsBefore(input,
+                    nodeToReplace.getStartMark().getIndex())
+                    .takeWhile(Character::isWhitespace)
+                    .count();
 
             return Patch.builder()
                     .range(Range.builder()
-                            .startIndex(nodeToReplace.getStartMark().getIndex())
+                            .startIndex(nodeToReplace.getStartMark().getIndex() - whitespaceBefore)
                             .endIndex(nodeToReplace.getEndMark().getIndex())
                             .build())
-                    .replacement(newlinePrefix + replacementAsYaml)
+                    .replacement(linePrefixed)
                     .build();
         }
 
@@ -94,13 +104,19 @@ public interface JsonPatch {
                     path().parent().orElseThrow(() -> new IllegalArgumentException("Cannot add item at root node"));
             Node nodeToInsertInto = parent.narrowDownToValueIn(jsonDocument);
 
-            int whitespaceDepth = nodeToInsertInto.getStartMark().getColumn();
-            String whitespace = String.format("%1$" + whitespaceDepth + "s", "");
+            String whitespace = sameWhitespaceAs(nodeToInsertInto);
             String replacement = whitespace + path().mostSpecificPart().get() + ": " + value() + "\n";
 
             int endIndex = nodeToInsertInto.getEndMark().getIndex();
             return Patch.of(endIndex, endIndex, replacement);
         }
+    }
+    static String sameWhitespaceAs(Node nodeToInsertInto) {
+        int whitespaceDepth = nodeToInsertInto.getStartMark().getColumn();
+        if (whitespaceDepth == 0) {
+            return "";
+        }
+        return String.format("%1$" + whitespaceDepth + "s", "");
     }
 
     @Value.Immutable
@@ -175,5 +191,10 @@ public interface JsonPatch {
             return StreamUtils.takeWhile(previousLines, Optional::isPresent)
                     .map(Optional::get);
         }
+    }
+
+    static StreamEx<Character> charsBefore(String string, int startingIndex) {
+        return StreamEx.iterate(startingIndex - 1, index -> index >= 0, index -> index - 1)
+                .map(string::charAt);
     }
 }

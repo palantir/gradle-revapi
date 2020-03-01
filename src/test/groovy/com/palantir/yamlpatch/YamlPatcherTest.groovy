@@ -16,15 +16,20 @@
 
 package com.palantir.yamlpatch
 
+import static org.assertj.core.api.Assertions.assertThat
+
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import groovy.transform.CompileStatic
 import java.util.function.UnaryOperator
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
 @CompileStatic
 class YamlPatcherTest {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+
     private final YamlPatcher yamlPatcher = new YamlPatcher({ ObjectMapper objectMapper ->
         objectMapper.registerModule(new Jdk8Module());
     })
@@ -47,7 +52,7 @@ class YamlPatcherTest {
                         { quux -> Optional.empty() }))
 
         // language=yaml
-        Assertions.assertThat(output).isEqualTo """
+        assertThat(output).isEqualTo """
             # a comment
             foo:
               # another comment
@@ -74,7 +79,7 @@ class YamlPatcherTest {
                         { quux -> Optional.of("abcdef") }))
 
         // language=yaml
-        Assertions.assertThat(output).isEqualTo """
+        assertThat(output).isEqualTo """
             # a comment
             foo:
               # another comment
@@ -104,7 +109,7 @@ class YamlPatcherTest {
                         { quux -> Optional.empty() }))
 
         // language=yaml
-        Assertions.assertThat(output).isEqualTo """
+        assertThat(output).isEqualTo """
             # a comment
             foo:
               # another comment
@@ -130,7 +135,7 @@ class YamlPatcherTest {
                         { quux -> Optional.of("now exists") }))
 
         // language=yaml
-        Assertions.assertThat(output).isEqualTo '''
+        assertThat(output).isEqualTo '''
           # a comment
           foo:
             # before
@@ -141,7 +146,7 @@ class YamlPatcherTest {
     }
 
     @Test
-    void 'can insert a complex object into an existing object'() {
+    void 'can insert a complex object with one key value mapping into an existing object'() {
         // language=yaml
         String input = '''
           # comment
@@ -159,11 +164,73 @@ class YamlPatcherTest {
                         .build() })
 
         // language=yaml
-        Assertions.assertThat(output).isEqualTo '''
+        assertThat(output).isEqualTo '''
           # comment
           foo:
             bar: baz
           # comment
+        '''.stripIndent()
+    }
+
+    @Test
+    void 'can insert a complex object with multiple key value mappings into an existing object'() {
+        // language=yaml
+        String input = '''
+          # comment
+          foo:
+          # comment
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(
+                input,
+                TestObjects.Foo,
+                (UnaryOperator<TestObjects.Foo>) { foo -> ImmutableFoo.builder()
+                        .foo(ImmutableBar.builder()
+                                .bar("baz")
+                                .quux("goop")
+                                .build())
+                        .build() })
+
+        // language=yaml
+        assertThat(output).isEqualTo '''
+          # comment
+          foo:
+            bar: baz
+            quux: goop
+          # comment
+        '''.stripIndent()
+    }
+
+    @Test
+    void 'can insert a complex object into an already nested object'() {
+        // language=yaml
+        String input = '''
+          one:
+            two:
+              # comment
+              three: 3
+              # other comment
+              threePrime: 3'
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(input, JsonNode.class, { JsonNode json ->
+            ((ObjectNode) json.get("one").get("two"))
+                    .replace('three', OBJECT_MAPPER.createObjectNode()
+                            .put("a", 1)
+                            .put("b", 2))
+            return json
+        } as UnaryOperator<JsonNode>)
+
+        // language=yaml
+        assertThat(output).isEqualTo '''
+          one:
+            two:
+              # comment
+              three:
+                a: 1
+                b: 2
+              # other comment
+              threePrime: 3\'
         '''.stripIndent()
     }
 }

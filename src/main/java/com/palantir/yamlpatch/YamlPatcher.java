@@ -49,7 +49,11 @@ public final class YamlPatcher {
     public <T> String patchYaml(String input, Class<T> clazz, UnaryOperator<T> modifier) {
         try {
             JsonNode inputJsonNode = yamlObjectMapper.readTree(input);
-            T inputType = yamlObjectMapper.convertValue(inputJsonNode, clazz);
+            JsonNode usedInputJsonNode = inputJsonNode;
+            if (clazz.isAssignableFrom(JsonNode.class)) {
+                usedInputJsonNode = inputJsonNode.deepCopy();
+            }
+            T inputType = yamlObjectMapper.convertValue(usedInputJsonNode, clazz);
             T outputType = modifier.apply(inputType);
             JsonNode outputJsonNode = jsonObjectMapper.convertValue(outputType, JsonNode.class);
 

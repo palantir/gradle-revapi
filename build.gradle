@@ -55,6 +55,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     implementation 'org.snakeyaml:snakeyaml-engine'
     implementation 'com.flipkart.zjsonpatch:zjsonpatch'
+    implementation 'one.util:streamex'
 
     testCompile platform('org.junit:junit-bom')
     testImplementation 'com.netflix.nebula:nebula-test'
