@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Guava dependency is entirely removed to remove dependency conflicts.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/214
