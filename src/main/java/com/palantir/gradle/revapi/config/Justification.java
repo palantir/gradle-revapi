@@ -18,7 +18,6 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.base.Preconditions;
 import org.immutables.serial.Serial;
 import org.immutables.value.Value;
 
@@ -33,9 +32,10 @@ public interface Justification {
 
     @Value.Check
     default void check() {
-        Preconditions.checkArgument(
-                !asString().equals(YOU_MUST_ENTER_JUSTIFICATION),
-                "You must enter a justification other than " + YOU_MUST_ENTER_JUSTIFICATION);
+        if (asString().equals(YOU_MUST_ENTER_JUSTIFICATION)) {
+            throw new IllegalArgumentException(
+                    "You must enter a justification other than " + YOU_MUST_ENTER_JUSTIFICATION);
+        }
     }
 
     class Builder extends ImmutableJustification.Builder {}

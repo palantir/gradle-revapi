@@ -28,6 +28,11 @@ class Utils {
     public static String resourceToString(Class<?> clazz, String resourcePath) {
         InputStream resourceAsStream = clazz.getClassLoader().getResourceAsStream(resourcePath);
 
+        if (resourceAsStream == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Could not load resource '%s' for class '%s'", resourcePath, clazz.getCanonicalName()));
+        }
+
         return new BufferedReader(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));
