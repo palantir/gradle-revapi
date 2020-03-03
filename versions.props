@@ -6,6 +6,6 @@ org.revapi:revapi-reporter-text = 0.10.1
 org.freemarker:freemarker = 2.3.29
 com.google.guava:guava = 23.1-jre
 org.immutables:* = 2.8.3
-com.fasterxml.jackson.*:jackson-* = 2.10.2
+com.fasterxml.jackson.*:jackson-* = 2.10.3
 org.mockito:mockito-core = 3.3.1
 org.assertj:assertj-core = 3.15.0
