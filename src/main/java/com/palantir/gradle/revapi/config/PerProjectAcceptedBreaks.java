@@ -18,6 +18,7 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.palantir.gradle.revapi.ImmutableStyle;
 import java.util.Collections;
 import java.util.Set;
 import java.util.SortedMap;
@@ -27,6 +28,7 @@ import java.util.TreeSet;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutableStyle
 @JsonDeserialize(as = ImmutablePerProjectAcceptedBreaks.class)
 abstract class PerProjectAcceptedBreaks {
     @JsonValue

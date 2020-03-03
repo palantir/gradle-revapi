@@ -37,6 +37,7 @@ import org.revapi.API;
 import org.revapi.Archive;
 
 @Value.Immutable
+@ImmutableStyle
 abstract class RevapiConfig {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new Jdk8Module());
 

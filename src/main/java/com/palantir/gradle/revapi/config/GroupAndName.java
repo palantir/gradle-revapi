@@ -18,9 +18,11 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.palantir.gradle.revapi.ImmutableStyle;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutableStyle
 public interface GroupAndName extends Comparable<GroupAndName> {
     String group();
 

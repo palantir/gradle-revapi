@@ -18,12 +18,14 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.palantir.gradle.revapi.ImmutableStyle;
 import java.util.Comparator;
 import java.util.Optional;
 import org.immutables.serial.Serial;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutableStyle
 @Serial.Structural
 @JsonDeserialize(as = ImmutableAcceptedBreak.class)
 public interface AcceptedBreak extends Comparable<AcceptedBreak> {
