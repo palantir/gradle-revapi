@@ -18,7 +18,6 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.Comparators;
 import java.util.Comparator;
 import java.util.Optional;
 import org.immutables.serial.Serial;
@@ -42,9 +41,12 @@ public interface AcceptedBreak extends Comparable<AcceptedBreak> {
 
     @Value.Lazy
     default Comparator<AcceptedBreak> comparator() {
+        Comparator<Optional<String>> comparingEmptiesFirst =
+                Comparator.comparing(element -> element.orElse(null), Comparator.nullsFirst(Comparator.naturalOrder()));
+
         return Comparator.comparing(AcceptedBreak::code)
-                .thenComparing(AcceptedBreak::oldElement, Comparators.emptiesFirst(Comparator.<String>naturalOrder()))
-                .thenComparing(AcceptedBreak::newElement, Comparators.emptiesFirst(Comparator.<String>naturalOrder()));
+                .thenComparing(AcceptedBreak::oldElement, comparingEmptiesFirst)
+                .thenComparing(AcceptedBreak::newElement, comparingEmptiesFirst);
     }
 
     @Override
