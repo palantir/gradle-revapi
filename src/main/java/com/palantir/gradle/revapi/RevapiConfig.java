@@ -22,12 +22,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.Resources;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -72,10 +69,8 @@ abstract class RevapiConfig {
         JsonNode extension =
                 OBJECT_MAPPER.createObjectNode().put("extension", extensionId).set("configuration", configuration);
 
-        return fromJsonNodes(ImmutableList.<JsonNode>builder()
-                .addAll(config())
-                .add(extension)
-                .build());
+        return fromJsonNodes(
+                Stream.concat(config().stream(), Stream.of(extension)).collect(Collectors.toList()));
     }
 
     public RevapiConfig mergeWith(RevapiConfig other) {
@@ -83,20 +78,14 @@ abstract class RevapiConfig {
     }
 
     public static RevapiConfig defaults(API oldApi, API newApi) {
-        try {
-            String template =
-                    Resources.toString(Resources.getResource("revapi-configuration.json"), StandardCharsets.UTF_8);
+        String template = Utils.resourceToString(RevapiConfig.class, "revapi-configuration.json");
 
-            return fromString(template.replace(
-                    "{{ARCHIVE_INCLUDE_REGEXES}}",
-                    Stream.of(newApi, oldApi)
-                            .flatMap(api ->
-                                    StreamSupport.stream(api.getArchives().spliterator(), false))
-                            .map(Archive::getName)
-                            .collect(Collectors.joining("\", \""))));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return fromString(template.replace(
+                "{{ARCHIVE_INCLUDE_REGEXES}}",
+                Stream.of(newApi, oldApi)
+                        .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
+                        .map(Archive::getName)
+                        .collect(Collectors.joining("\", \""))));
     }
 
     public static RevapiConfig mergeAll(RevapiConfig... revapiConfigs) {

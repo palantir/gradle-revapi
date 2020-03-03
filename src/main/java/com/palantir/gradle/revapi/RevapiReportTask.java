@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.collect.ImmutableMap;
 import com.palantir.gradle.revapi.config.Justification;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
@@ -25,6 +24,7 @@ import freemarker.template.Template;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
@@ -54,25 +54,24 @@ public class RevapiReportTask extends DefaultTask {
                 AnalysisResults.fromFile(analysisResultsFile.getAsFile().get());
 
         Configuration freeMarkerConfiguration = createFreeMarkerConfiguration();
-        Map<String, Object> templateData = ImmutableMap.of(
-                "results",
-                results,
+        Map<String, Object> templateData = new HashMap<>();
+        templateData.put("results", results);
+        templateData.put(
                 "acceptBreakTask",
                 getProject()
                         .getTasks()
                         .withType(RevapiAcceptBreakTask.class)
                         .getByName(RevapiPlugin.ACCEPT_BREAK_TASK_NAME)
-                        .getPath(),
+                        .getPath());
+        templateData.put(
                 "acceptAllBreaksProjectTask",
                 getProject()
                         .getTasks()
                         .withType(RevapiAcceptAllBreaksTask.class)
                         .getByName(RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME)
-                        .getPath(),
-                "acceptAllBreaksEverywhereTask",
-                RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME,
-                "explainWhy",
-                Justification.YOU_MUST_ENTER_JUSTIFICATION);
+                        .getPath());
+        templateData.put("acceptAllBreaksEverywhereTask", RevapiPlugin.ACCEPT_ALL_BREAKS_TASK_NAME);
+        templateData.put("explainWhy", Justification.YOU_MUST_ENTER_JUSTIFICATION);
 
         Template junitTemplate = freeMarkerConfiguration.getTemplate("gradle-revapi-junit-template.ftl");
         junitTemplate.process(

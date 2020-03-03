@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
@@ -114,7 +113,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                 () -> configManager.fromFileOrEmptyIfDoesNotExist().acceptedBreaksFor(oldGroupAndNameProvider.get()));
     }
 
-    @VisibleForTesting
+    // visible for testing
     static Provider<Set<Jar>> allJarTasksIncludingDependencies(Project project, Configuration configuration) {
         // Provider so that we don't resolve the configuration at compile time, which is bad for gradle performance
         return project.getProviders()

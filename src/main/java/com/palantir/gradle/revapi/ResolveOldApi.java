@@ -16,12 +16,12 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.OldApiConfigurations.CouldNotResolveOldApiException;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +90,8 @@ final class ResolveOldApi {
         Set<File> oldOnlyJar = OldApiConfigurations.resolveOldConfiguration(project, groupNameVersion, false);
         Set<File> oldWithDeps = OldApiConfigurations.resolveOldConfiguration(project, groupNameVersion, true);
 
-        Set<File> oldJustDeps = Sets.difference(oldWithDeps, oldOnlyJar);
+        Set<File> oldJustDeps = new HashSet<>(oldWithDeps);
+        oldJustDeps.removeAll(oldWithDeps);
 
         return OldApi.builder().jars(oldOnlyJar).dependencyJars(oldJustDeps).build();
     }
