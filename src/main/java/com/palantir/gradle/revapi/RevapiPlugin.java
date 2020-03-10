@@ -59,7 +59,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
-                                project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME));
+                                project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
                     });
 
                     task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
