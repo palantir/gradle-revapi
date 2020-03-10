@@ -83,6 +83,50 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapi")
     }
 
+    def 'doesnt explode when project code depends on compileOnly dependency'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java-library'
+            apply plugin: 'maven-publish'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            dependencies {
+                implementation 'junit:junit:4.13'
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        writeToFile 'src/main/java/foo/Foo.java', '''
+            public class Foo extends org.junit.rules.ExternalResource { }
+        '''.stripIndent()
+
+        println runTasksSuccessfully("publish").standardOutput
+
+        and:
+        buildFile.text = buildFile.text.replace('implementation', 'compileOnly')
+
+        then:
+
+        def executionResult = runTasks('revapi')
+        println executionResult.standardOutput
+        println executionResult.standardError
+        executionResult.rethrowFailure()
+    }
+
     def 'revapiAcceptAllBreaks succeeds when there are no breaking changes'() {
         when:
         buildFile << """
