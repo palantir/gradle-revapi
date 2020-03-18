@@ -38,20 +38,14 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.util.GradleVersion;
 
 public final class RevapiPlugin implements Plugin<Project> {
-    private static final GradleVersion MINIMUM_GRADLE_VERSION = GradleVersion.version("5.6");
     public static final String VERSION_OVERRIDE_TASK_NAME = "revapiVersionOverride";
     public static final String ACCEPT_BREAK_TASK_NAME = "revapiAcceptBreak";
     public static final String ACCEPT_ALL_BREAKS_TASK_NAME = "revapiAcceptAllBreaks";
 
     @Override
     public void apply(Project project) {
-        if (GradleVersion.current().compareTo(MINIMUM_GRADLE_VERSION) < 0) {
-            throw new RuntimeException("Too old gradle, minimum supported: " + MINIMUM_GRADLE_VERSION);
-        }
-
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
