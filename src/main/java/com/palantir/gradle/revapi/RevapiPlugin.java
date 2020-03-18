@@ -30,6 +30,8 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentResult;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
@@ -55,19 +57,17 @@ public final class RevapiPlugin implements Plugin<Project> {
         Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
 
+        Configuration compileClasspath =
+                project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
-                    Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
-                        conf.extendsFrom(
-                                project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
-                        conf.setCanBeConsumed(false);
-                    });
-
                     Configuration revapiNewApiElements = project.getConfigurations()
                             .create("revapiNewApiElements", conf -> {
                                 conf.extendsFrom(project.getConfigurations()
                                         .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
                                 conf.setCanBeConsumed(false);
+                                // In order to ensure we resolve the right variants with usage Usage.JAVA_API
+                                conf.attributes(attrs -> copyAttributesFrom(attrs, compileClasspath.getAttributes()));
                             });
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
@@ -89,7 +89,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                         return thisJarFile.plus(otherProjectsOutputs);
                     }));
                     task.getNewApiDependencyJars()
-                            .set(revapiNewApi.minus(task.getNewApiJars().get()));
+                            .set(compileClasspath.minus(task.getNewApiJars().get()));
                     task.getOldApiJars()
                             .set(maybeOldApi.map(oldApi ->
                                     oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));
@@ -127,6 +127,13 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
             task.getConfigManager().set(configManager);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void copyAttributesFrom(AttributeContainer attrs, AttributeContainer targetAttributes) {
+        targetAttributes.keySet().forEach(attr -> {
+            attrs.attribute((Attribute<Object>) attr, targetAttributes.getAttribute(attr));
         });
     }
 
