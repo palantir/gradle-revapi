@@ -417,7 +417,7 @@ class RevapiSpec extends IntegrationSpec {
 
     }
 
-    def 'moving a class from one project to a dependent project is not a break'() {
+    def 'moving a class from one project to a dependent project is not a break (only if it is in the api configuration)'() {
         buildFile << """
             allprojects {
                 apply plugin: 'java-library'
@@ -456,8 +456,15 @@ class RevapiSpec extends IntegrationSpec {
         writeToFile two, 'src/main/java/foo/Foo.java', originalJavaFile.text
         originalJavaFile.delete()
 
+        and:
+        println runTasksSuccessfully("revapi").standardOutput
+
+        and:
+        def oneBuildGradle = new File(one, 'build.gradle')
+        oneBuildGradle.text = oneBuildGradle.text.replace('api project', 'implementation project')
+
         then:
-        runTasksSuccessfully("revapi")
+        assert runRevapiExpectingFailure().contains('java.class.removed')
     }
 
     def 'ignores scala classes'() {

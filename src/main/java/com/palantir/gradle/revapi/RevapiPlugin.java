@@ -61,21 +61,40 @@ public final class RevapiPlugin implements Plugin<Project> {
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
                                 project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+                        conf.setCanBeConsumed(false);
                     });
 
-                    Provider<Set<Jar>> allJarTasks = allJarTasksIncludingDependencies(project, revapiNewApi);
+                    Configuration revapiNewApiElements = project.getConfigurations()
+                            .create("revapiNewApiElements", conf -> {
+                                conf.extendsFrom(project.getConfigurations()
+                                        .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
+                                conf.setCanBeConsumed(false);
+                            });
 
-                    Provider<Set<File>> allProjectJars =
-                            GradleUtils.memoisedProvider(project, () -> allJarTasks.get().stream()
-                                    .flatMap(jar -> jar.getOutputs().getFiles().getFiles().stream())
-                                    .collect(Collectors.toSet()));
+                    Provider<Set<Jar>> allJarTasks = allJarTasksIncludingDependencies(project, revapiNewApi);
 
                     task.dependsOn(allJarTasks);
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
-                    task.getNewApiJars().set(allProjectJars);
+                    task.getNewApiJars().set(GradleUtils.memoisedProvider(project, () -> {
+                        File thisJarFile = project.getTasks()
+                                .withType(Jar.class)
+                                .getByName(JavaPlugin.JAR_TASK_NAME)
+                                .getOutputs()
+                                .getFiles()
+                                .getSingleFile();
+
+                        Set<File> allJarFiles = allJarTasks.get().stream()
+                                .flatMap(jar -> jar.getOutputs().getFiles().getFiles().stream())
+                                .collect(Collectors.toSet());
+
+                        return Sets.union(
+                                Collections.singleton(thisJarFile),
+                                Sets.intersection(revapiNewApiElements.resolve(), allJarFiles));
+                    }));
                     task.getNewApiDependencyJars()
-                            .set(project.provider(() -> Sets.difference(revapiNewApi.resolve(), allProjectJars.get())));
+                            .set(project.provider(() -> Sets.difference(
+                                    revapiNewApi.resolve(), task.getNewApiJars().get())));
                     task.getOldApiJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::jars)
                             .orElseGet(Collections::emptySet)));
                     task.getOldApiDependencyJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::dependencyJars)
