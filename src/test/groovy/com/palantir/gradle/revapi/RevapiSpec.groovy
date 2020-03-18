@@ -875,4 +875,24 @@ class RevapiSpec extends IntegrationSpec {
         new XmlParser().parse(junitOutput)
         assert junitOutput.text.contains("java.class.removed")
     }
+
+    @Override
+    ExecutionResult runTasksSuccessfully(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.failure) {
+            println result.standardOutput
+            result.rethrowFailure()
+        }
+        result
+    }
+
+    @Override
+    ExecutionResult runTasksWithFailure(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.success) {
+            println result.standardOutput
+            assert false
+        }
+        result
+    }
 }
