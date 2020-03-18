@@ -16,8 +16,8 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.base.Preconditions;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
@@ -139,9 +139,7 @@ public class RevapiAnalyzeTask extends DefaultTask {
     }
 
     private static List<FileArchive> toFileArchives(Provider<FileCollection> property) {
-        return property.get().getFiles().stream()
-                .peek(file -> Preconditions.checkArgument(
-                        file.isFile(), "Expected to be given only jars but found non-file: %s", file))
+        return property.get().filter(File::isFile).getFiles().stream()
                 .map(FileArchive::new)
                 .collect(Collectors.toList());
     }
