@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
@@ -39,14 +40,20 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.util.GradleVersion;
 
 public final class RevapiPlugin implements Plugin<Project> {
+    private static final GradleVersion MINIMUM_GRADLE_VERSION = GradleVersion.version("5.6");
     public static final String VERSION_OVERRIDE_TASK_NAME = "revapiVersionOverride";
     public static final String ACCEPT_BREAK_TASK_NAME = "revapiAcceptBreak";
     public static final String ACCEPT_ALL_BREAKS_TASK_NAME = "revapiAcceptAllBreaks";
 
     @Override
     public void apply(Project project) {
+        if (GradleVersion.current().compareTo(MINIMUM_GRADLE_VERSION) < 0) {
+            throw new RuntimeException("Too old gradle, minimum supported: " + MINIMUM_GRADLE_VERSION);
+        }
+
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
@@ -67,7 +74,14 @@ public final class RevapiPlugin implements Plugin<Project> {
                                         .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
                                 conf.setCanBeConsumed(false);
                                 // In order to ensure we resolve the right variants with usage Usage.JAVA_API
-                                conf.attributes(attrs -> copyAttributesFrom(attrs, compileClasspath.getAttributes()));
+                                conf.attributes(attrs -> {
+                                    copyAttributesFrom(attrs, compileClasspath.getAttributes());
+                                    // Rev-api needs jars not classes directories, so ensure we select jars
+                                    // This functionality exists in its current public form only since 5.6
+                                    attrs.attribute(
+                                            LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                                            project.getObjects().named(LibraryElements.class, LibraryElements.JAR));
+                                });
                             });
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
@@ -89,7 +103,8 @@ public final class RevapiPlugin implements Plugin<Project> {
                         return thisJarFile.plus(otherProjectsOutputs);
                     }));
                     task.getNewApiDependencyJars()
-                            .set(compileClasspath.minus(task.getNewApiJars().get()));
+                            .set(project.provider(() ->
+                                    compileClasspath.minus(task.getNewApiJars().get())));
                     task.getOldApiJars()
                             .set(maybeOldApi.map(oldApi ->
                                     oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));
