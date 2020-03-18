@@ -17,6 +17,7 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
@@ -62,12 +63,19 @@ public final class RevapiPlugin implements Plugin<Project> {
                                 project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
                     });
 
-                    task.dependsOn(allJarTasksIncludingDependencies(project, revapiNewApi));
+                    Provider<Set<Jar>> allJarTasks = allJarTasksIncludingDependencies(project, revapiNewApi);
+
+                    Provider<Set<File>> allProjectJars =
+                            GradleUtils.memoisedProvider(project, () -> allJarTasks.get().stream()
+                                    .flatMap(jar -> jar.getOutputs().getFiles().getFiles().stream())
+                                    .collect(Collectors.toSet()));
+
+                    task.dependsOn(allJarTasks);
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
-                    Jar jarTask = project.getTasks().withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME);
-                    task.getNewApiJars().set(jarTask.getOutputs().getFiles());
-                    task.getNewApiDependencyJars().set(revapiNewApi);
+                    task.getNewApiJars().set(allProjectJars);
+                    task.getNewApiDependencyJars()
+                            .set(project.provider(() -> Sets.difference(revapiNewApi.resolve(), allProjectJars.get())));
                     task.getOldApiJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::jars)
                             .orElseGet(Collections::emptySet)));
                     task.getOldApiDependencyJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::dependencyJars)
@@ -117,8 +125,8 @@ public final class RevapiPlugin implements Plugin<Project> {
     @VisibleForTesting
     static Provider<Set<Jar>> allJarTasksIncludingDependencies(Project project, Configuration configuration) {
         // Provider so that we don't resolve the configuration at compile time, which is bad for gradle performance
-        return project.getProviders()
-                .provider(() -> configuration.getIncoming().getResolutionResult().getAllComponents().stream()
+        return GradleUtils.memoisedProvider(
+                project, () -> configuration.getIncoming().getResolutionResult().getAllComponents().stream()
                         .map(ComponentResult::getId)
                         .filter(resolvedComponentResult ->
                                 resolvedComponentResult instanceof ProjectComponentIdentifier)
