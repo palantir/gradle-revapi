@@ -86,24 +86,21 @@ public final class RevapiPlugin implements Plugin<Project> {
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
-                    // TODO(dsanduleac): probably not necessary to have provider anymore
-                    // Note: this should propagate the dependency on the necessary tasks to build the other projects
-                    task.getNewApiJars().set(GradleUtils.memoisedProvider(project, () -> {
-                        FileCollection thisJarFile = project.getTasks()
-                                .withType(Jar.class)
-                                .getByName(JavaPlugin.JAR_TASK_NAME)
-                                .getOutputs()
-                                .getFiles();
+                    FileCollection thisJarFile = project.getTasks()
+                            .withType(Jar.class)
+                            .getByName(JavaPlugin.JAR_TASK_NAME)
+                            .getOutputs()
+                            .getFiles();
 
-                        FileCollection otherProjectsOutputs = revapiNewApiElements
-                                .getIncoming()
-                                .artifactView(vc -> vc.componentFilter(ci -> ci instanceof ProjectComponentIdentifier))
-                                .getFiles();
-                        return thisJarFile.plus(otherProjectsOutputs);
-                    }));
+                    FileCollection otherProjectsOutputs = revapiNewApiElements
+                            .getIncoming()
+                            .artifactView(vc -> vc.componentFilter(ci -> ci instanceof ProjectComponentIdentifier))
+                            .getFiles();
+
+                    // Note: this should propagate the dependency on the necessary tasks to build the other projects
+                    task.getNewApiJars().set(thisJarFile.plus(otherProjectsOutputs));
                     task.getNewApiDependencyJars()
-                            .set(project.provider(() ->
-                                    revapiNewApi.minus(task.getNewApiJars().get())));
+                            .set(revapiNewApi.minus(task.getNewApiJars().get()));
                     task.getOldApiJars()
                             .set(maybeOldApi.map(oldApi ->
                                     oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));
