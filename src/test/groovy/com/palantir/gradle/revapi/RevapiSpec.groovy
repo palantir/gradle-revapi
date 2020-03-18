@@ -417,6 +417,49 @@ class RevapiSpec extends IntegrationSpec {
 
     }
 
+    def 'moving a class from one project to a dependent project is not a break'() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+
+                group = 'revapi.test'
+                version = '1.0.0'
+                ${mavenRepoGradle()}
+
+                ${testMavenPublication()}
+            }
+        """.stripIndent()
+
+        def one = addSubproject 'one', """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            
+            dependencies {
+                api project(':two')
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+        """.stripIndent()
+
+        def two = addSubproject 'two'
+
+        def originalJavaFile = writeToFile one, 'src/main/java/foo/Foo.java', '''
+            package foo;
+            public interface Foo {}
+        '''.stripIndent()
+
+        when:
+        println runTasksSuccessfully("publish").standardOutput
+
+        writeToFile two, 'src/main/java/foo/Foo.java', originalJavaFile.text
+        originalJavaFile.delete()
+
+        then:
+        runTasksSuccessfully("revapi")
+    }
+
     def 'ignores scala classes'() {
         when:
         buildFile << """
