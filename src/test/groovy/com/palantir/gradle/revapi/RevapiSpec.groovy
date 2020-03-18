@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import spock.util.environment.RestoreSystemProperties
 
 class RevapiSpec extends IntegrationSpec {
     private Git git
@@ -671,6 +672,7 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
 
+    @RestoreSystemProperties
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
         rootProjectNameIs('api')
@@ -757,7 +759,9 @@ class RevapiSpec extends IntegrationSpec {
  - The configuration :api-jersey:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
  - The configuration :api-retrofit:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
         */
-        runTasksSuccessfully('--warning-mode=none', 'compileConjure', 'publish')
+        System.setProperty('ignoreMutableProjectStateWarnings', 'true')
+        System.setProperty('ignoreDeprecations', 'true')
+        runTasksSuccessfully('compileConjure', 'publish')
 
         and:
         writeToFile conjureYml, """
