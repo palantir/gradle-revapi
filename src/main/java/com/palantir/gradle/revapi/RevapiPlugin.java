@@ -62,19 +62,26 @@ public final class RevapiPlugin implements Plugin<Project> {
         Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
 
-        Configuration compileClasspath =
-                project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
+                    // Creating a new configuration instead of using compileClasspath in order to ensure that we
+                    // resolve jars and not classes directories (which is the default unless you set the LibraryElements
+                    // attribute)
+                    Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
+                        conf.extendsFrom(
+                                project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+                        configureApiUsage(project, conf);
+                        conf.setCanBeConsumed(false);
+                        conf.setVisible(false);
+                    });
+
                     Configuration revapiNewApiElements = project.getConfigurations()
                             .create("revapiNewApiElements", conf -> {
                                 conf.extendsFrom(project.getConfigurations()
                                         .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
+                                configureApiUsage(project, conf);
                                 conf.setCanBeConsumed(false);
-                                // In order to ensure we resolve the right variants with usage Usage.JAVA_API
-                                conf.attributes(attrs -> attrs.attribute(
-                                        Usage.USAGE_ATTRIBUTE,
-                                        project.getObjects().named(Usage.class, Usage.JAVA_API)));
+                                conf.setVisible(false);
                             });
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
@@ -82,7 +89,6 @@ public final class RevapiPlugin implements Plugin<Project> {
                     // TODO(dsanduleac): probably not necessary to have provider anymore
                     // Note: this should propagate the dependency on the necessary tasks to build the other projects
                     task.getNewApiJars().set(GradleUtils.memoisedProvider(project, () -> {
-                        // TODO(dsanduleac): don't necessarily want jar, could also get classes dir (cheaper)
                         FileCollection thisJarFile = project.getTasks()
                                 .withType(Jar.class)
                                 .getByName(JavaPlugin.JAR_TASK_NAME)
@@ -97,7 +103,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                     }));
                     task.getNewApiDependencyJars()
                             .set(project.provider(() ->
-                                    compileClasspath.minus(task.getNewApiJars().get())));
+                                    revapiNewApi.minus(task.getNewApiJars().get())));
                     task.getOldApiJars()
                             .set(maybeOldApi.map(oldApi ->
                                     oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));
@@ -136,6 +142,12 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
             task.getConfigManager().set(configManager);
         });
+    }
+
+    /** In order to ensure we resolve the right variants with usage {@link Usage.JAVA_API}. */
+    private static void configureApiUsage(Project project, Configuration conf) {
+        conf.attributes(attrs ->
+                attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_API)));
     }
 
     private Provider<Set<AcceptedBreak>> acceptedBreaks(
