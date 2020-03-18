@@ -30,9 +30,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentResult;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
@@ -74,14 +72,9 @@ public final class RevapiPlugin implements Plugin<Project> {
                                         .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
                                 conf.setCanBeConsumed(false);
                                 // In order to ensure we resolve the right variants with usage Usage.JAVA_API
-                                conf.attributes(attrs -> {
-                                    copyAttributesFrom(attrs, compileClasspath.getAttributes());
-                                    // Rev-api needs jars not classes directories, so ensure we select jars
-                                    // This functionality exists in its current public form only since 5.6
-                                    attrs.attribute(
-                                            LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                                            project.getObjects().named(LibraryElements.class, LibraryElements.JAR));
-                                });
+                                conf.attributes(attrs -> attrs.attribute(
+                                        Usage.USAGE_ATTRIBUTE,
+                                        project.getObjects().named(Usage.class, Usage.JAVA_API)));
                             });
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
@@ -142,13 +135,6 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
             task.getConfigManager().set(configManager);
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    private void copyAttributesFrom(AttributeContainer attrs, AttributeContainer targetAttributes) {
-        targetAttributes.keySet().forEach(attr -> {
-            attrs.attribute((Attribute<Object>) attr, targetAttributes.getAttribute(attr));
         });
     }
 
