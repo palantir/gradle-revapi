@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Moving a java class from a project to a dependency of that project
+    is allowed, so long as the dependent project is at the `api` level.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/221

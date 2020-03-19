@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import spock.util.environment.RestoreSystemProperties
 
 class RevapiSpec extends IntegrationSpec {
     private Git git
@@ -417,6 +418,56 @@ class RevapiSpec extends IntegrationSpec {
 
     }
 
+    def 'moving a class from one project to a dependent project is not a break (only if it is in the api configuration)'() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+
+                group = 'revapi.test'
+                version = '1.0.0'
+                ${mavenRepoGradle()}
+
+                ${testMavenPublication()}
+            }
+        """.stripIndent()
+
+        def one = addSubproject 'one', """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            
+            dependencies {
+                api project(':two')
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+        """.stripIndent()
+
+        def two = addSubproject 'two'
+
+        def originalJavaFile = writeToFile one, 'src/main/java/foo/Foo.java', '''
+            package foo;
+            public interface Foo {}
+        '''.stripIndent()
+
+        when:
+        println runTasksSuccessfully("publish").standardOutput
+
+        writeToFile two, 'src/main/java/foo/Foo.java', originalJavaFile.text
+        originalJavaFile.delete()
+
+        and:
+        println runTasksSuccessfully("revapi").standardOutput
+
+        and:
+        def oneBuildGradle = new File(one, 'build.gradle')
+        oneBuildGradle.text = oneBuildGradle.text.replace('api project', 'implementation project')
+
+        then:
+        assert runRevapiExpectingFailure().contains('java.class.removed')
+    }
+
     def 'ignores scala classes'() {
         when:
         buildFile << """
@@ -621,6 +672,7 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
 
+    @RestoreSystemProperties
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
         rootProjectNameIs('api')
@@ -699,6 +751,16 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
 
         and:
+        /*
+        Ignore warnings because:
+
+        java.lang.IllegalArgumentException: Mutable Project State warnings were found (Set the ignoreMutableProjectStateWarnings system property during the test to ignore):
+ - The configuration :api-objects:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+ - The configuration :api-jersey:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+ - The configuration :api-retrofit:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+        */
+        System.setProperty('ignoreMutableProjectStateWarnings', 'true')
+        System.setProperty('ignoreDeprecations', 'true')
         runTasksSuccessfully('compileConjure', 'publish')
 
         and:
@@ -812,5 +874,25 @@ class RevapiSpec extends IntegrationSpec {
         File junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml")
         new XmlParser().parse(junitOutput)
         assert junitOutput.text.contains("java.class.removed")
+    }
+
+    @Override
+    ExecutionResult runTasksSuccessfully(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.failure) {
+            println result.standardOutput
+            result.rethrowFailure()
+        }
+        result
+    }
+
+    @Override
+    ExecutionResult runTasksWithFailure(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.success) {
+            println result.standardOutput
+            assert false
+        }
+        result
     }
 }
