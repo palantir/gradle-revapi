@@ -331,7 +331,9 @@ class RevapiSpec extends IntegrationSpec {
         writeHelloWorld()
 
         then:
-        runTasksSuccessfully('revapi')
+        def executionResult = runTasksSuccessfully('revapi')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapi')
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
