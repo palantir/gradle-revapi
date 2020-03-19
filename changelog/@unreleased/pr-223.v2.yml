@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: If there are no published versions of the library to check against,
+    the analysis tasks will be skipped. This allows you to apply the revapi plugin
+    to new Gradle projects.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/223
