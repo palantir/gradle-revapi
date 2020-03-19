@@ -311,6 +311,29 @@ class RevapiSpec extends IntegrationSpec {
         assert standardError.contains('willBeRemoved')
     }
 
+    def 'if there are no published versions of the library at all, dont error out'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java-library'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'does.not'
+                oldName = 'exist'
+                oldVersion = '1.0.0'
+            }
+        """.stripIndent()
+
+        writeHelloWorld()
+
+        then:
+        runTasksSuccessfully('revapi')
+    }
+
     def 'handles the output of extra source sets being added to compile configuration'() {
         when:
         buildFile << """
