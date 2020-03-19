@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import spock.util.environment.RestoreSystemProperties
 
 class RevapiSpec extends IntegrationSpec {
     private Git git
@@ -671,6 +672,7 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
 
+    @RestoreSystemProperties
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
         rootProjectNameIs('api')
@@ -749,6 +751,16 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
 
         and:
+        /*
+        Ignore warnings because:
+
+        java.lang.IllegalArgumentException: Mutable Project State warnings were found (Set the ignoreMutableProjectStateWarnings system property during the test to ignore):
+ - The configuration :api-objects:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+ - The configuration :api-jersey:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+ - The configuration :api-retrofit:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+        */
+        System.setProperty('ignoreMutableProjectStateWarnings', 'true')
+        System.setProperty('ignoreDeprecations', 'true')
         runTasksSuccessfully('compileConjure', 'publish')
 
         and:
@@ -862,5 +874,25 @@ class RevapiSpec extends IntegrationSpec {
         File junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml")
         new XmlParser().parse(junitOutput)
         assert junitOutput.text.contains("java.class.removed")
+    }
+
+    @Override
+    ExecutionResult runTasksSuccessfully(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.failure) {
+            println result.standardOutput
+            result.rethrowFailure()
+        }
+        result
+    }
+
+    @Override
+    ExecutionResult runTasksWithFailure(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.success) {
+            println result.standardOutput
+            assert false
+        }
+        result
     }
 }

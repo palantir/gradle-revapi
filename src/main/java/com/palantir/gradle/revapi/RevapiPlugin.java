@@ -17,12 +17,10 @@
 package com.palantir.gradle.revapi;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
 import com.palantir.gradle.revapi.ResolveOldApi.OldApi;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.GroupAndName;
 import java.io.File;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +30,8 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentResult;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -58,47 +58,49 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
+                    // Creating a new configuration instead of using compileClasspath in order to ensure that we
+                    // resolve jars and not classes directories (which is the default unless you set the LibraryElements
+                    // attribute)
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
                                 project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+                        configureApiUsage(project, conf);
                         conf.setCanBeConsumed(false);
+                        conf.setVisible(false);
                     });
 
                     Configuration revapiNewApiElements = project.getConfigurations()
                             .create("revapiNewApiElements", conf -> {
                                 conf.extendsFrom(project.getConfigurations()
                                         .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
+                                configureApiUsage(project, conf);
                                 conf.setCanBeConsumed(false);
+                                conf.setVisible(false);
                             });
 
-                    Provider<Set<Jar>> allJarTasks = allJarTasksIncludingDependencies(project, revapiNewApi);
-
-                    task.dependsOn(allJarTasks);
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
-                    task.getNewApiJars().set(GradleUtils.memoisedProvider(project, () -> {
-                        File thisJarFile = project.getTasks()
-                                .withType(Jar.class)
-                                .getByName(JavaPlugin.JAR_TASK_NAME)
-                                .getOutputs()
-                                .getFiles()
-                                .getSingleFile();
+                    FileCollection thisJarFile = project.getTasks()
+                            .withType(Jar.class)
+                            .getByName(JavaPlugin.JAR_TASK_NAME)
+                            .getOutputs()
+                            .getFiles();
 
-                        Set<File> allJarFiles = allJarTasks.get().stream()
-                                .flatMap(jar -> jar.getOutputs().getFiles().getFiles().stream())
-                                .collect(Collectors.toSet());
+                    FileCollection otherProjectsOutputs = revapiNewApiElements
+                            .getIncoming()
+                            .artifactView(vc -> vc.componentFilter(ci -> ci instanceof ProjectComponentIdentifier))
+                            .getFiles();
 
-                        return Sets.union(
-                                Collections.singleton(thisJarFile),
-                                Sets.intersection(revapiNewApiElements.resolve(), allJarFiles));
-                    }));
+                    // Note: this should propagate the dependency on the necessary tasks to build the other projects
+                    task.getNewApiJars().set(thisJarFile.plus(otherProjectsOutputs));
                     task.getNewApiDependencyJars()
-                            .set(project.provider(() -> Sets.difference(
-                                    revapiNewApi.resolve(), task.getNewApiJars().get())));
-                    task.getOldApiJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::jars)
-                            .orElseGet(Collections::emptySet)));
+                            .set(revapiNewApi.minus(task.getNewApiJars().get()));
+                    task.getOldApiJars()
+                            .set(maybeOldApi.map(oldApi ->
+                                    oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));
                     task.getOldApiDependencyJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::dependencyJars)
-                            .orElseGet(Collections::emptySet)));
+                            .map(project::files)
+                            .orElseGet(project::files)));
 
                     task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
 
@@ -131,6 +133,12 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getTasks().register(ACCEPT_BREAK_TASK_NAME, RevapiAcceptBreakTask.class, task -> {
             task.getConfigManager().set(configManager);
         });
+    }
+
+    /** In order to ensure we resolve the right variants with usage {@link Usage.JAVA_API}. */
+    private static void configureApiUsage(Project project, Configuration conf) {
+        conf.attributes(attrs ->
+                attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_API)));
     }
 
     private Provider<Set<AcceptedBreak>> acceptedBreaks(
