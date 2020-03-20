@@ -493,6 +493,57 @@ class RevapiSpec extends IntegrationSpec {
         assert runRevapiExpectingFailure().contains('java.class.removed')
     }
 
+    def 'ignores breaks in dependent projects'() {
+        when:
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+
+                group = 'revapi.test'
+                version = '1.0.0'
+                ${mavenRepoGradle()}
+
+                ${testMavenPublication()}
+            }
+        """.stripIndent()
+
+        def one = addSubproject 'one', """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            
+            dependencies {
+                api project(':two')
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+        """.stripIndent()
+
+        writeToFile one, 'src/main/java/foo/Bar.java', '''
+            package foo;
+            public interface Bar {
+                Foo bar();
+            }
+        '''.stripIndent()
+
+        def two = addSubproject 'two'
+
+        def javaFileInDependentProject = writeToFile two, 'src/main/java/foo/Foo.java', '''
+            package foo;
+            public interface Foo {
+            }
+        '''.stripIndent()
+
+        and:
+        println runTasksSuccessfully("publish").standardOutput
+
+        javaFileInDependentProject.text = javaFileInDependentProject.text.replace('}', 'void foo();\n}')
+
+        then:
+        println runTasksSuccessfully("revapi").standardOutput
+    }
+
     def 'ignores scala classes'() {
         when:
         buildFile << """
