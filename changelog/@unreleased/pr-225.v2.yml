@@ -1,5 +1,5 @@
-type: improvement
-improvement:
+type: fix
+fix:
   description: '`gradle-revapi` will not raise errors about breaks from code in dependent
     Gradle projects.'
   links:
