@@ -95,6 +95,9 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.getNewApiJars().set(thisJarFile.plus(otherProjectsOutputs));
                     task.getNewApiDependencyJars()
                             .set(revapiNewApi.minus(task.getNewApiJars().get()));
+                    task.getJarsToReportBreaks()
+                            .set(project.provider(
+                                    () -> thisJarFile.plus(task.getOldApiJars().get())));
                     task.getOldApiJars()
                             .set(maybeOldApi.map(oldApi ->
                                     oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));

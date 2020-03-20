@@ -33,11 +33,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import org.gradle.api.file.FileCollection;
 import org.immutables.value.Value;
-import org.revapi.API;
-import org.revapi.Archive;
 
 @Value.Immutable
 abstract class RevapiConfig {
@@ -82,18 +79,14 @@ abstract class RevapiConfig {
         return new Builder().from(this).addAllConfig(other.config()).build();
     }
 
-    public static RevapiConfig defaults(API oldApi, API newApi) {
+    public static RevapiConfig defaults(FileCollection jarsToReportBreaks) {
         try {
             String template =
                     Resources.toString(Resources.getResource("revapi-configuration.json"), StandardCharsets.UTF_8);
 
             return fromString(template.replace(
                     "{{ARCHIVE_INCLUDE_REGEXES}}",
-                    Stream.of(newApi, oldApi)
-                            .flatMap(api ->
-                                    StreamSupport.stream(api.getArchives().spliterator(), false))
-                            .map(Archive::getName)
-                            .collect(Collectors.joining("\", \""))));
+                    jarsToReportBreaks.getFiles().stream().map(File::getName).collect(Collectors.joining("\", \""))));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

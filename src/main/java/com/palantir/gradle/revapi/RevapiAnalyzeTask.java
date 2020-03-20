@@ -53,6 +53,8 @@ public class RevapiAnalyzeTask extends DefaultTask {
             getProject().getObjects().property(FileCollection.class);
     private final Property<FileCollection> newApiDependencyJars =
             getProject().getObjects().property(FileCollection.class);
+    private final Property<FileCollection> jarsToReportBreaks =
+            getProject().getObjects().property(FileCollection.class);
     private final Property<FileCollection> oldApiJars =
             getProject().getObjects().property(FileCollection.class);
     private final Property<FileCollection> oldApiDependencyJars =
@@ -73,6 +75,11 @@ public class RevapiAnalyzeTask extends DefaultTask {
     @CompileClasspath
     public final Property<FileCollection> getNewApiDependencyJars() {
         return newApiDependencyJars;
+    }
+
+    @CompileClasspath
+    public final Property<FileCollection> getJarsToReportBreaks() {
+        return jarsToReportBreaks;
     }
 
     @CompileClasspath
@@ -107,7 +114,7 @@ public class RevapiAnalyzeTask extends DefaultTask {
                 .build();
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
-                RevapiConfig.defaults(oldApi, newApi),
+                RevapiConfig.defaults(jarsToReportBreaks.get()),
                 RevapiConfig.empty()
                         .withTextReporter(
                                 "gradle-revapi-results.ftl",
