@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.revapi.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -96,6 +97,9 @@ public abstract class GradleRevapiConfig {
     }
 
     private static ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
-        return objectMapper.registerModule(new GuavaModule()).registerModule(new Jdk8Module());
+        return objectMapper
+                .registerModule(new GuavaModule())
+                .registerModule(new Jdk8Module())
+                .setSerializationInclusion(Include.NON_EMPTY);
     }
 }
