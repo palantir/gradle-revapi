@@ -311,8 +311,40 @@ class RevapiSpec extends IntegrationSpec {
         assert standardError.contains('willBeRemoved')
     }
 
-    def 'if there are no published versions of the library at all, dont error out'() {
+    def 'if there are no published versions of the library at all, ./gradlew revapi doesnt fail'() {
         when:
+        setupUnpublishedLibrary()
+        writeHelloWorld()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapi')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapi')
+    }
+
+    def 'if there are no published versions of the library at all, ./gradlew revapiAcceptAllBreaks is a no-op'() {
+        when:
+        setupUnpublishedLibrary()
+        writeHelloWorld()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapiAcceptAllBreaks')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapiAcceptAllBreaks')
+    }
+
+    def 'if there are no published versions of the library at all, ./gradlew revapiAcceptBreak is a no-op'() {
+        when:
+        setupUnpublishedLibrary()
+        writeHelloWorld()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapiAcceptBreak')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapiAcceptBreak')
+    }
+
+    private File setupUnpublishedLibrary() {
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
             apply plugin: 'java-library'
@@ -327,13 +359,6 @@ class RevapiSpec extends IntegrationSpec {
                 oldVersion = '1.0.0'
             }
         """.stripIndent()
-
-        writeHelloWorld()
-
-        then:
-        def executionResult = runTasksSuccessfully('revapi')
-        executionResult.wasSkipped(':revapiAnalyze')
-        executionResult.wasSkipped(':revapi')
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
