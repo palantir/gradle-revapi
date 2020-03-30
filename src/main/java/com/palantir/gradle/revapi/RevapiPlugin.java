@@ -127,13 +127,7 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.getOldGroupNameVersion().set(project.getProviders().provider(extension::oldGroupNameVersion));
             task.getConfigManager().set(configManager);
             task.getAnalysisResultsFile().set(analyzeTask.flatMap(RevapiAnalyzeTask::getAnalysisResultsFile));
-            task.onlyIf(new Spec<Task>() {
-                @Override
-                public boolean isSatisfiedBy(Task _task) {
-                    File file = analyzeTask.get().getAnalysisResultsFile().get().getAsFile();
-                    return file.exists();
-                }
-            });
+            task.onlyIf(oldApiIsPresent);
         });
 
         project.getTasks().register(VERSION_OVERRIDE_TASK_NAME, RevapiVersionOverrideTask.class, task -> {
