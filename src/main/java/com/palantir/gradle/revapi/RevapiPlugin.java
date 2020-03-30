@@ -130,7 +130,8 @@ public final class RevapiPlugin implements Plugin<Project> {
             task.onlyIf(new Spec<Task>() {
                 @Override
                 public boolean isSatisfiedBy(Task _task) {
-                    return analyzeTask.get().getAnalysisResultsFile().get().getAsFile().exists();
+                    File file = analyzeTask.get().getAnalysisResultsFile().get().getAsFile();
+                    return file.exists();
                 }
             });
         });

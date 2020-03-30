@@ -333,7 +333,7 @@ class RevapiSpec extends IntegrationSpec {
         executionResult.wasSkipped(':revapiAcceptAllBreaks')
     }
 
-    def 'if there are no published versions of the library at all, ./gradlew revapiAcceptBreak is a no-op'() {
+    def 'if there are no published versions of the library at all, ./gradlew revapiAcceptBreak doesnt fail'() {
         when:
         setupUnpublishedLibrary()
         writeHelloWorld()
@@ -341,7 +341,7 @@ class RevapiSpec extends IntegrationSpec {
         then:
         def executionResult = runTasksSuccessfully('revapiAcceptBreak', '--justification', 'foo', '--code', 'bar',
                 '--old', 'old', '--new', 'new')
-        executionResult.wasSkipped(':revapiAcceptBreak')
+        executionResult.wasExecuted(':revapiAcceptBreak')
     }
 
     private File setupUnpublishedLibrary() {
