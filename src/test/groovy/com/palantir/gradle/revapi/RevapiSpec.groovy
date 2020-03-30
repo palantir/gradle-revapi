@@ -339,8 +339,8 @@ class RevapiSpec extends IntegrationSpec {
         writeHelloWorld()
 
         then:
-        def executionResult = runTasksSuccessfully('revapiAcceptBreak')
-        executionResult.wasSkipped(':revapiAnalyze')
+        def executionResult = runTasksSuccessfully('revapiAcceptBreak', '--justification', 'foo', '--code', 'bar',
+                '--old', 'old', '--new', 'new')
         executionResult.wasSkipped(':revapiAcceptBreak')
     }
 

@@ -66,21 +66,21 @@ error message `gradle-revapi` produces.
 * To accept a single break, run:
   ```
   ./gradlew revapiAcceptBreak --justification "{why this is ok}" \
-          --code "{reavpi check code}" \
+          --code "{revapi check code}" \
           --old "{optional revapi description of old element}" \
           --new "{optional revapi description of new element}"
-  ``` 
-  
+  ```
+
 * To accept all the breaks in a gradle project run:
   ```
   ./gradlew :project:revapiAcceptAllBreaks
   ```
-  
+
 * To accept all the breaks in all gradle projects run:
   ```
   ./gradlew revapiAcceptAllBreaks
   ```
-  
+
 Running any of these tasks will add the breaks to the `.palantir/revapi.yml` file in the format"
 
 ```yml
@@ -97,7 +97,7 @@ acceptedBreaks:
 
 Sometimes the previous release will have a successfully applied a git tag but a failed publish build. In this
 case `gradle-revapi` will fail as it cannot resolve the previous API to compare against. To resolve this, you can
-possible to set a *version override* that will use a different version instead of the last git tag. To do so, 
+possible to set a *version override* that will use a different version instead of the last git tag. To do so,
 use the
 
 ```
