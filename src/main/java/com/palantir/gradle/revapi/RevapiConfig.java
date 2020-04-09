@@ -25,6 +25,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -32,9 +33,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.gradle.api.file.FileCollection;
 import org.immutables.value.Value;
-import org.revapi.API;
-import org.revapi.Archive;
 
 @Value.Immutable
 @ImmutableStyle
@@ -78,15 +78,12 @@ abstract class RevapiConfig {
         return new Builder().from(this).addAllConfig(other.config()).build();
     }
 
-    public static RevapiConfig defaults(API oldApi, API newApi) {
+    public static RevapiConfig defaults(FileCollection jarsToReportBreaks) {
         String template = Utils.resourceToString(RevapiConfig.class, "revapi-configuration.json");
 
         return fromString(template.replace(
                 "{{ARCHIVE_INCLUDE_REGEXES}}",
-                Stream.of(newApi, oldApi)
-                        .flatMap(api -> StreamSupport.stream(api.getArchives().spliterator(), false))
-                        .map(Archive::getName)
-                        .collect(Collectors.joining("\", \""))));
+                jarsToReportBreaks.getFiles().stream().map(File::getName).collect(Collectors.joining("\", \""))));
     }
 
     public static RevapiConfig mergeAll(RevapiConfig... revapiConfigs) {

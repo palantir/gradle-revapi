@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Revapi properly handles moving dependencies to `compileOnly` without
+    claiming a break has occurred.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/219

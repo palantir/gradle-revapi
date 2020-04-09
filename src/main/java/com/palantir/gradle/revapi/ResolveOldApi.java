@@ -18,6 +18,7 @@ package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.revapi.OldApiConfigurations.CouldNotResolveOldApiException;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
+import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.io.File;
@@ -57,10 +58,12 @@ final class ResolveOldApi {
             return Optional.empty();
         }
 
+        GroupAndName oldGroupAndName = extension.oldGroupAndName().get();
+
         Map<Version, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String oldVersionString : oldVersionStrings) {
             GroupNameVersion oldGroupNameVersion = possiblyReplacedOldVersionFor(
-                    config, extension.oldGroupAndName().get().withVersion(Version.fromString(oldVersionString)));
+                    config, oldGroupAndName.withVersion(Version.fromString(oldVersionString)));
 
             try {
                 OldApi oldApi = resolveOldApiWithVersion(project, oldGroupNameVersion);
@@ -78,6 +81,14 @@ final class ResolveOldApi {
             } catch (CouldNotResolveOldApiException e) {
                 exceptionsPerVersion.put(oldGroupNameVersion.version(), e);
             }
+        }
+
+        try {
+            OldApiConfigurations.resolveOldConfiguration(
+                    project, oldGroupAndName.withVersion(Version.fromString("+")), false);
+        } catch (CouldNotResolveOldApiException e) {
+            // Since there are no published versions *at all*, skip running revapi
+            return Optional.empty();
         }
 
         throw new IllegalStateException(

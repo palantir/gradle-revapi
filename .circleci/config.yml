@@ -161,6 +161,7 @@ jobs:
       - checkout
       - run: /liche -d . -r . -v
 
+
 workflows:
   version: 2
   build:
@@ -184,7 +185,8 @@ workflows:
 
       - trial-publish:
           requires: [ compile ]
+          filters: { branches: { ignore: develop } }
 
       - publish:
-          requires: [ unit-test, unit-test-11, check ]
+          requires: [ unit-test, unit-test-11, check, trial-publish ]
           filters: { tags: { only: /.*/ }, branches: { only: develop } }

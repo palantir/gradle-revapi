@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import spock.util.environment.RestoreSystemProperties
 
 class RevapiSpec extends IntegrationSpec {
     private Git git
@@ -81,6 +82,50 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         runTasksSuccessfully("revapi")
+    }
+
+    def 'doesnt explode when project code depends on compileOnly dependency'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java-library'
+            apply plugin: 'maven-publish'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            dependencies {
+                implementation 'junit:junit:4.13'
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        writeToFile 'src/main/java/foo/Foo.java', '''
+            public class Foo extends org.junit.rules.ExternalResource { }
+        '''.stripIndent()
+
+        println runTasksSuccessfully("publish").standardOutput
+
+        and:
+        buildFile.text = buildFile.text.replace('implementation', 'compileOnly')
+
+        then:
+
+        def executionResult = runTasks('revapi')
+        println executionResult.standardOutput
+        println executionResult.standardError
+        executionResult.rethrowFailure()
     }
 
     def 'revapiAcceptAllBreaks succeeds when there are no breaking changes'() {
@@ -266,6 +311,56 @@ class RevapiSpec extends IntegrationSpec {
         assert standardError.contains('willBeRemoved')
     }
 
+    def 'if there are no published versions of the library at all, ./gradlew revapi doesnt fail'() {
+        when:
+        setupUnpublishedLibrary()
+        writeHelloWorld()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapi')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapi')
+    }
+
+    def 'if there are no published versions of the library at all, ./gradlew revapiAcceptAllBreaks is a no-op'() {
+        when:
+        setupUnpublishedLibrary()
+        writeHelloWorld()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapiAcceptAllBreaks')
+        executionResult.wasSkipped(':revapiAnalyze')
+        executionResult.wasSkipped(':revapiAcceptAllBreaks')
+    }
+
+    def 'if there are no published versions of the library at all, ./gradlew revapiAcceptBreak doesnt fail'() {
+        when:
+        setupUnpublishedLibrary()
+        writeHelloWorld()
+
+        then:
+        def executionResult = runTasksSuccessfully('revapiAcceptBreak', '--justification', 'foo', '--code', 'bar',
+                '--old', 'old', '--new', 'new')
+        executionResult.wasExecuted(':revapiAcceptBreak')
+    }
+
+    private File setupUnpublishedLibrary() {
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java-library'
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            revapi {
+                oldGroup = 'does.not'
+                oldName = 'exist'
+                oldVersion = '1.0.0'
+            }
+        """.stripIndent()
+    }
+
     def 'handles the output of extra source sets being added to compile configuration'() {
         when:
         buildFile << """
@@ -371,6 +466,107 @@ class RevapiSpec extends IntegrationSpec {
         assert revapiYml.contains('new: "new3"')
         assert revapiYml.contains('justification: "j3"')
 
+    }
+
+    def 'moving a class from one project to a dependent project is not a break (only if it is in the api configuration)'() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+
+                group = 'revapi.test'
+                version = '1.0.0'
+                ${mavenRepoGradle()}
+
+                ${testMavenPublication()}
+            }
+        """.stripIndent()
+
+        def one = addSubproject 'one', """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            
+            dependencies {
+                api project(':two')
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+        """.stripIndent()
+
+        def two = addSubproject 'two'
+
+        def originalJavaFile = writeToFile one, 'src/main/java/foo/Foo.java', '''
+            package foo;
+            public interface Foo {}
+        '''.stripIndent()
+
+        when:
+        println runTasksSuccessfully("publish").standardOutput
+
+        writeToFile two, 'src/main/java/foo/Foo.java', originalJavaFile.text
+        originalJavaFile.delete()
+
+        and:
+        println runTasksSuccessfully("revapi").standardOutput
+
+        and:
+        def oneBuildGradle = new File(one, 'build.gradle')
+        oneBuildGradle.text = oneBuildGradle.text.replace('api project', 'implementation project')
+
+        then:
+        assert runRevapiExpectingFailure().contains('java.class.removed')
+    }
+
+    def 'ignores breaks in dependent projects'() {
+        when:
+        buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+                apply plugin: 'maven-publish'
+
+                group = 'revapi.test'
+                version = '1.0.0'
+                ${mavenRepoGradle()}
+
+                ${testMavenPublication()}
+            }
+        """.stripIndent()
+
+        def one = addSubproject 'one', """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            
+            dependencies {
+                api project(':two')
+            }
+            
+            revapi {
+                oldVersion = project.version
+            }
+        """.stripIndent()
+
+        writeToFile one, 'src/main/java/foo/Bar.java', '''
+            package foo;
+            public interface Bar {
+                Foo bar();
+            }
+        '''.stripIndent()
+
+        def two = addSubproject 'two'
+
+        def javaFileInDependentProject = writeToFile two, 'src/main/java/foo/Foo.java', '''
+            package foo;
+            public interface Foo {
+            }
+        '''.stripIndent()
+
+        and:
+        println runTasksSuccessfully("publish").standardOutput
+
+        javaFileInDependentProject.text = javaFileInDependentProject.text.replace('}', 'void foo();\n}')
+
+        then:
+        println runTasksSuccessfully("revapi").standardOutput
     }
 
     def 'ignores scala classes'() {
@@ -577,6 +773,7 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
 
+    @RestoreSystemProperties
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
         rootProjectNameIs('api')
@@ -655,6 +852,16 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
 
         and:
+        /*
+        Ignore warnings because:
+
+        java.lang.IllegalArgumentException: Mutable Project State warnings were found (Set the ignoreMutableProjectStateWarnings system property during the test to ignore):
+ - The configuration :api-objects:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+ - The configuration :api-jersey:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+ - The configuration :api-retrofit:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
+        */
+        System.setProperty('ignoreMutableProjectStateWarnings', 'true')
+        System.setProperty('ignoreDeprecations', 'true')
         runTasksSuccessfully('compileConjure', 'publish')
 
         and:
@@ -768,5 +975,25 @@ class RevapiSpec extends IntegrationSpec {
         File junitOutput = new File(projectDir, "build/junit-reports/revapi/revapi-${projectName}.xml")
         new XmlParser().parse(junitOutput)
         assert junitOutput.text.contains("java.class.removed")
+    }
+
+    @Override
+    ExecutionResult runTasksSuccessfully(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.failure) {
+            println result.standardOutput
+            result.rethrowFailure()
+        }
+        result
+    }
+
+    @Override
+    ExecutionResult runTasksWithFailure(String... tasks) {
+        ExecutionResult result = runTasks(tasks)
+        if (result.success) {
+            println result.standardOutput
+            assert false
+        }
+        result
     }
 }

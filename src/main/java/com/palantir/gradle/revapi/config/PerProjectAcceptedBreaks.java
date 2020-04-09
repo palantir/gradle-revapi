@@ -40,6 +40,10 @@ abstract class PerProjectAcceptedBreaks {
     }
 
     public PerProjectAcceptedBreaks merge(GroupAndName groupAndName, Set<AcceptedBreak> acceptedBreaks) {
+        if (acceptedBreaks.isEmpty()) {
+            return this;
+        }
+
         SortedMap<GroupAndName, SortedSet<AcceptedBreak>> mergedAcceptedBreaks = new TreeMap<>(acceptedBreaks());
 
         SortedSet<AcceptedBreak> newAcceptedBreaks =
