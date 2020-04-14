@@ -45,14 +45,12 @@ apply from: "$rootDir/gradle/publish-jar.gradle"
 sourceCompatibility = 1.8
 
 dependencies {
-    implementation 'com.google.guava:guava'
     implementation 'org.revapi:revapi-basic-features'
     implementation 'org.revapi:revapi-java'
     implementation 'org.revapi:revapi-reporter-text'
     implementation 'org.freemarker:freemarker'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
 
     testCompile platform('org.junit:junit-bom')

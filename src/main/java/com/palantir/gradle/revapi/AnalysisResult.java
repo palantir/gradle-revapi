@@ -27,6 +27,7 @@ import org.revapi.CompatibilityType;
 import org.revapi.DifferenceSeverity;
 
 @Value.Immutable
+@ImmutableStyle
 @JsonDeserialize(as = ImmutableAnalysisResult.class)
 public abstract class AnalysisResult {
     public abstract String code();

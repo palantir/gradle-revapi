@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.palantir.gradle.revapi.ImmutableStyle;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutableStyle
 @JsonDeserialize(as = ImmutableGradleRevapiConfig.class)
 public abstract class GradleRevapiConfig {
     @Value.NaturalOrder
@@ -97,9 +98,6 @@ public abstract class GradleRevapiConfig {
     }
 
     private static ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
-        return objectMapper
-                .registerModule(new GuavaModule())
-                .registerModule(new Jdk8Module())
-                .setSerializationInclusion(Include.NON_EMPTY);
+        return objectMapper.registerModule(new Jdk8Module()).setSerializationInclusion(Include.NON_EMPTY);
     }
 }

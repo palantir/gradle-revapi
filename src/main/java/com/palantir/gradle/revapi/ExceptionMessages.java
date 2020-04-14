@@ -16,12 +16,7 @@
 
 package com.palantir.gradle.revapi;
 
-import com.google.common.io.Resources;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 
@@ -31,28 +26,19 @@ final class ExceptionMessages {
     private ExceptionMessages() {}
 
     public static String failedToResolve(Project project, String errors) {
-        try {
-            URL errorMessageTemplateUrl = Optional.ofNullable(
-                            ExceptionMessages.class.getClassLoader().getResource(OLD_API_FAILED_TO_RESOLVE))
-                    .orElseThrow(() -> new RuntimeException(
-                            "Could not find template for error message for " + OLD_API_FAILED_TO_RESOLVE));
+        String errorTemplate = Utils.resourceToString(ExceptionMessages.class, OLD_API_FAILED_TO_RESOLVE);
 
-            String errorTemplate = Resources.toString(errorMessageTemplateUrl, StandardCharsets.UTF_8);
-
-            return errorTemplate
-                    .replace("{{versionOverrideTaskName}}", RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
-                    .replace("{{replacementVersionOption}}", RevapiVersionOverrideTask.REPLACEMENT_VERSION_OPTION)
-                    .replace(
-                            "{{taskPath}}",
-                            project.getTasks()
-                                    .withType(RevapiVersionOverrideTask.class)
-                                    .getByName(RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
-                                    .getPath())
-                    .replace("{{projectDisplayName}}", project.getDisplayName())
-                    .replace("{{errors}}", errors);
-        } catch (IOException e) {
-            throw new RuntimeException("Couldn't read template", e);
-        }
+        return errorTemplate
+                .replace("{{versionOverrideTaskName}}", RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
+                .replace("{{replacementVersionOption}}", RevapiVersionOverrideTask.REPLACEMENT_VERSION_OPTION)
+                .replace(
+                        "{{taskPath}}",
+                        project.getTasks()
+                                .withType(RevapiVersionOverrideTask.class)
+                                .getByName(RevapiPlugin.VERSION_OVERRIDE_TASK_NAME)
+                                .getPath())
+                .replace("{{projectDisplayName}}", project.getDisplayName())
+                .replace("{{errors}}", errors);
     }
 
     public static String joined(Collection<? extends Throwable> throwables) {

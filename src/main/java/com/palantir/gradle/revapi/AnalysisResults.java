@@ -19,7 +19,6 @@ package com.palantir.gradle.revapi;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import com.palantir.gradle.revapi.config.Justification;
 import java.io.File;
@@ -30,11 +29,11 @@ import java.util.stream.Collectors;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@ImmutableStyle
 @JsonDeserialize(as = ImmutableAnalysisResults.class)
 public abstract class AnalysisResults {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .registerModule(new GuavaModule())
-            .enable(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature());
+    private static final ObjectMapper OBJECT_MAPPER =
+            new ObjectMapper().enable(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature());
 
     public abstract String archiveNames();
 
