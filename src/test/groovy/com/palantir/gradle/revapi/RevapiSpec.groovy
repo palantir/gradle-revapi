@@ -569,6 +569,47 @@ class RevapiSpec extends IntegrationSpec {
         println runTasksSuccessfully("revapi").standardOutput
     }
 
+    def 'should not say there are breaks in api dependencies when nothing has changed'() {
+        when:
+        rootProjectNameIs('test')
+
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java-library'
+            apply plugin: 'maven-publish'
+
+            group = 'revapi'
+            version = '1.0.0'
+            
+            repositories {
+                mavenCentral()
+            }
+            ${mavenRepoGradle()}
+
+            ${testMavenPublication()}
+
+            dependencies {
+                api 'junit:junit:4.12'
+            }
+
+            revapi {
+                oldVersion = project.version
+            }
+        """.stripIndent()
+
+        writeToFile 'src/main/java/foo/Foo.java', '''
+            package foo;
+            // Use an junit interface in our public api so revapi cares about it 
+            public interface Foo extends org.junit.rules.TestRule { }
+        '''
+
+        and:
+        println runTasksSuccessfully("publish").standardOutput
+
+        then:
+        println runTasksSuccessfully("revapi").standardOutput
+    }
+
     def 'ignores scala classes'() {
         when:
         buildFile << """
