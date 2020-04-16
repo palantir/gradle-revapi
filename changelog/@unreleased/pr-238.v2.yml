@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Fixes a bug introduced in 1.3.2 where breaks for `api` dependencies
+    would be spuriously reported.
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/238
