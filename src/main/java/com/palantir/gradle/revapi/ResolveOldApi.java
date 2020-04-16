@@ -102,7 +102,7 @@ final class ResolveOldApi {
         Set<File> oldWithDeps = OldApiConfigurations.resolveOldConfiguration(project, groupNameVersion, true);
 
         Set<File> oldJustDeps = new HashSet<>(oldWithDeps);
-        oldJustDeps.removeAll(oldOnlyJar);
+        oldJustDeps.removeAll(oldWithDeps);
 
         return OldApi.builder().jars(oldOnlyJar).dependencyJars(oldJustDeps).build();
     }
