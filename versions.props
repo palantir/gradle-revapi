@@ -8,4 +8,4 @@ com.google.guava:guava = 23.1-jre
 org.immutables:* = 2.8.7
 com.fasterxml.jackson.*:jackson-* = 2.11.0
 org.mockito:mockito-core = 3.3.3
-org.assertj:assertj-core = 3.15.0
+org.assertj:assertj-core = 3.16.0
