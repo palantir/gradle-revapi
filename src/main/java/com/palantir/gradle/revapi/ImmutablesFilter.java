@@ -39,7 +39,8 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
                     Code.METHOD_ABSTRACT_METHOD_ADDED,
                     Code.METHOD_RETURN_TYPE_CHANGED,
                     Code.METHOD_VISIBILITY_REDUCED,
-                    Code.METHOD_NOW_ABSTRACT)
+                    Code.METHOD_NOW_ABSTRACT,
+                    Code.METHOD_REMOVED)
             .map(Code::code)
             .map(Pattern::compile)
             .toArray(Pattern[]::new);
@@ -78,6 +79,9 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
             case METHOD_RETURN_TYPE_CHANGED:
             case METHOD_VISIBILITY_REDUCED:
                 return inImmutablesClass(oldElement) && inImmutablesClass(newElement) && abstractNonPublic(oldElement);
+
+            case METHOD_REMOVED:
+                return inImmutablesClass(oldElement) && abstractNonPublic(oldElement);
 
             case METHOD_NOW_ABSTRACT:
                 return inImmutablesClass(newElement) && inImmutablesClass(newElement);

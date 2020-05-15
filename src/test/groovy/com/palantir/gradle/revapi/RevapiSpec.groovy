@@ -899,12 +899,15 @@ class RevapiSpec extends IntegrationSpec {
                 public abstract long reducedVisibilityPublicParam();
                 protected abstract long reducedVisibilityProtectedParam();
                 public abstract long noLongerAbstractPublicParam();
+                protected abstract long removedProtectedParam();
                 
                 public long nowAbstractPublicMethod() { return 3L; }
                 
                 public String returnTypeChangedPublicMethod() {
                     return null;
                 }
+                
+                public void removedPublicMethod() {}
             }
         '''.stripIndent()
 
@@ -927,6 +930,10 @@ class RevapiSpec extends IntegrationSpec {
                 .replace(
                         'public long nowAbstractPublicMethod() { return 3L; }',
                         'public abstract long nowAbstractPublicMethod();')
+                .replace(
+                        'protected abstract long removedProtectedParam();',
+                        '')
+                .replace('public void removedPublicMethod() {}', '')
 
         then:
         def executionResult = runTasks('revapi')
@@ -940,11 +947,13 @@ class RevapiSpec extends IntegrationSpec {
         !errorMessage.contains('reducedVisibilityProtectedParam()')
         !errorMessage.contains('noLongerAbstractPublicParam()')
         !errorMessage.contains('nowAbstractPublicMethod()')
+        !errorMessage.contains('removedProtectedParam()')
 
         errorMessage.contains('returnTypeChangedPublicParam()')
         errorMessage.contains('returnTypeChangedPublicMethod()')
         errorMessage.contains('removedPublicParam()')
         errorMessage.contains('reducedVisibilityPublicParam()')
+        errorMessage.contains('removedPublicMethod()')
 
     }
 
