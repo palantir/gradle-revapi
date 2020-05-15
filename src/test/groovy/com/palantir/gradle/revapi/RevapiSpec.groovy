@@ -835,7 +835,7 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """
+        """.stripIndent()
 
         def shadowedClass = 'src/main/java/shadow/com/palantir/foo/Bar.java'
         writeToFile shadowedClass, '''
@@ -850,6 +850,76 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         println runTasksSuccessfully('revapi').standardOutput
+    }
+
+    def 'changing a protected method in an immutables class is not a break'() {
+        when:
+        rootProjectNameIs('root')
+
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            version = '1.0.0'
+            
+            revapi {
+                oldVersion = project.version
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                annotationProcessor "org.immutables:value:2.8.8"
+                compileOnly "org.immutables:value:2.8.8:annotations"  
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        def immutablesClass = writeToFile 'src/main/java/foo/Foo.java', '''
+            package foo;
+            
+            import org.immutables.value.Value;
+            
+            @Value.Immutable
+            @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
+            public abstract class Foo {
+                protected abstract String protectedParam();
+                public abstract String publicParam();
+                // add new public param here
+                
+                public String publicMethod() {
+                    return null;
+                }
+            }
+        '''.stripIndent()
+
+        and:
+        runTasksSuccessfully('publish')
+
+        immutablesClass.text = immutablesClass.text
+                .replaceAll('String', 'Integer')
+                .replaceAll('// add new public param here', 'public abstract String newPublicParam();')
+
+        then:
+        def executionResult = runTasks('revapi')
+        println executionResult.standardError
+        !executionResult.success
+
+        def errorMessage = executionResult.failure.cause.cause.message
+        !errorMessage.contains('protectedParam')
+        !errorMessage.contains('newPublicParam')
+        errorMessage.contains('publicParam')
+        errorMessage.contains('publicMethod')
+
     }
 
     @RestoreSystemProperties
@@ -1019,7 +1089,7 @@ class RevapiSpec extends IntegrationSpec {
         """
     }
 
-    private void writeToFile(String filename, String content) {
+    private File writeToFile(String filename, String content) {
         writeToFile(projectDir, filename, content)
     }
 
