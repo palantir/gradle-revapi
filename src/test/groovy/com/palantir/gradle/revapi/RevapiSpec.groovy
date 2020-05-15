@@ -814,6 +814,44 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
 
+    def 'compatible with gradle-shadow-jar'() {
+        when:
+        rootProjectNameIs('root')
+
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            version = '1.0.0'
+            
+            revapi {
+                oldVersion = project.version
+            }
+            
+            ${testMavenPublication()}
+        """
+
+        def shadowedClass = 'src/main/java/shadow/com/palantir/foo/Bar.java'
+        writeToFile shadowedClass, '''
+            package shadow.com.palantir.foo;
+            public class Bar {}
+        '''.stripIndent()
+
+        and:
+        println runTasksSuccessfully('publish').standardOutput
+
+        file(shadowedClass).delete()
+
+        then:
+        println runTasksSuccessfully('revapi').standardOutput
+    }
+
     @RestoreSystemProperties
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
