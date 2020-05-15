@@ -17,6 +17,7 @@
 package com.palantir.gradle.revapi
 
 
+import java.util.regex.Pattern
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.util.environment.RestoreSystemProperties
@@ -884,7 +885,7 @@ class RevapiSpec extends IntegrationSpec {
             ${testMavenPublication()}
         """.stripIndent()
 
-        def methods = [
+        def methodChanges = [
                 new MethodChange(
                         'protected abstract String returnTypeChangedProtectedParam();',
                         'protected abstract int returnTypeChangedProtectedParam();',
@@ -898,12 +899,12 @@ class RevapiSpec extends IntegrationSpec {
                         'public abstract String newPublicParam();',
                         false),
                 new MethodChange(
-                        'public abstract long removedPublicParam()',
+                        'public abstract long removedPublicParam();',
                         '',
                         true),
                 new MethodChange(
-                        'public abstract long reducedVisibilityPublicParam()',
-                        'protected abstract long reducedVisibilityPublicParam()',
+                        'public abstract long reducedVisibilityPublicParam();',
+                        'protected abstract long reducedVisibilityPublicParam();',
                         true),
                 new MethodChange(
                         'protected abstract long reducedVisibilityProtectedParam();',
@@ -911,14 +912,18 @@ class RevapiSpec extends IntegrationSpec {
                         false),
                 new MethodChange(
                         'public abstract long noLongerAbstractPublicParam();',
-                        'public long noLongerAbstractPublicParam();',
+                        'public long noLongerAbstractPublicParam() { return 3; }',
                         false),
                 new MethodChange(
                         'protected abstract long removedProtectedParam();',
                         '',
                         false),
                 new MethodChange(
-                        'public long nowAbstractPublicMethod() { return 3L; }',
+                        'protected abstract long increasedVisibilityProtectedParam();',
+                        'public abstract long increasedVisibilityProtectedParam();',
+                        false),
+                new MethodChange(
+                        'public long nowAbstractPublicMethod() { return 3; }',
                         'public abstract long nowAbstractPublicMethod();',
                         false),
                 new MethodChange(
@@ -931,58 +936,36 @@ class RevapiSpec extends IntegrationSpec {
                         true),
         ]
 
-        def immutablesClass = writeToFile 'src/main/java/foo/Foo.java', '''
-            package foo;
-            
-            import org.immutables.value.Value;
-            
-            @Value.Immutable
-            @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
-            public abstract class Foo {
-                protected abstract String returnTypeChangedProtectedParam();
-                public abstract String returnTypeChangedPublicParam();
-                // add new public param here
-                public abstract long removedPublicParam();
-                public abstract long reducedVisibilityPublicParam();
-                protected abstract long reducedVisibilityProtectedParam();
-                public abstract long noLongerAbstractPublicParam();
-                protected abstract long removedProtectedParam();
-                protected abstract long increasedVisibilityProtectedParam();
+        def writeOutImmutablesClass = { Closure selector ->
+            StringBuilder immutablesClassText = new StringBuilder()
+            immutablesClassText.append '''
+                package foo;
                 
-                public long nowAbstractPublicMethod() { return 3L; }
+                import org.immutables.value.Value;
                 
-                public String returnTypeChangedPublicMethod() {
-                    return null;
+                @Value.Immutable
+                @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
+                public abstract class Foo {
+            '''.stripIndent()
+
+            methodChanges.forEach({ methodChange -> immutablesClassText
+                    .append('    ')
+                    .append(selector(methodChange))
+                    .append('\n') })
+
+            immutablesClassText.append '''
                 }
-                
-                public void removedPublicMethod() {}
-            }
-        '''.stripIndent()
+            '''.stripIndent()
+
+            writeToFile 'src/main/java/foo/Foo.java', immutablesClassText.toString()
+        }
+
+        writeOutImmutablesClass { it.oldText }
 
         and:
         runTasksSuccessfully('publish')
 
-        immutablesClass.text = immutablesClass.text
-                .replaceAll('String', 'Integer')
-                .replace('// add new public param here', 'public abstract String newPublicParam();')
-                .replace('public abstract long removedPublicParam();', '')
-                .replace(
-                        'public abstract long reducedVisibilityPublicParam();',
-                        'protected abstract long reducedVisibilityPublicParam();')
-                .replace(
-                        'protected abstract long reducedVisibilityProtectedParam();',
-                        'abstract long reducedVisibilityProtectedParam();')
-                .replace(
-                        'public abstract long noLongerAbstractPublicParam()',
-                        'public long noLongerAbstractPublicParam() { return 1L; }')
-                .replace(
-                        'public long nowAbstractPublicMethod() { return 3L; }',
-                        'public abstract long nowAbstractPublicMethod();')
-                .replace(
-                        'protected abstract long removedProtectedParam();',
-                        '')
-                .replace('public void removedPublicMethod() {}', '')
-                .replace('increasedVisibilityProtectedParam')
+        writeOutImmutablesClass { it.newText }
 
         then:
         def executionResult = runTasks('revapi')
@@ -990,20 +973,11 @@ class RevapiSpec extends IntegrationSpec {
         !executionResult.success
 
         def errorMessage = executionResult.failure.cause.cause.message
+        errorMessage.contains 'There were Java public API/ABI breaks reported by revapi:'
 
-        !errorMessage.contains('returnTypeChangedProtectedParam()')
-        !errorMessage.contains('newPublicParam()')
-        !errorMessage.contains('reducedVisibilityProtectedParam()')
-        !errorMessage.contains('noLongerAbstractPublicParam()')
-        !errorMessage.contains('nowAbstractPublicMethod()')
-        !errorMessage.contains('removedProtectedParam()')
-
-        errorMessage.contains('returnTypeChangedPublicParam()')
-        errorMessage.contains('returnTypeChangedPublicMethod()')
-        errorMessage.contains('removedPublicParam()')
-        errorMessage.contains('reducedVisibilityPublicParam()')
-        errorMessage.contains('removedPublicMethod()')
-
+        for (MethodChange methodChange : methodChanges) {
+            assert errorMessage.contains(methodChange.findMethodName()) == methodChange.shouldBreak
+        }
     }
 
     @RestoreSystemProperties
@@ -1155,6 +1129,15 @@ class RevapiSpec extends IntegrationSpec {
             this.oldText = oldText
             this.newText = newText
             this.shouldBreak = shouldBreak
+        }
+
+        String findMethodName() {
+            def text = oldText == '' ? newText : oldText
+            def matcher = Pattern.compile('(\\w+\\(\\))').matcher(text)
+            if (!matcher.find()) {
+                throw new IllegalArgumentException("Couldn't find method name in ${text}")
+            }
+            return matcher.group(1);
         }
     }
 
