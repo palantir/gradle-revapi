@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Shaded classes placed in the top level `shadow` package are no longer
+    identified as breaks (this makes `gradle-revapi` compatible with `gradle-shadow-jar`
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/247
