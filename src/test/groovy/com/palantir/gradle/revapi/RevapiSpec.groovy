@@ -907,7 +907,7 @@ class RevapiSpec extends IntegrationSpec {
 
         immutablesClass.text = immutablesClass.text
                 .replaceAll('String', 'Integer')
-                .replaceAll('// add new public param here', 'public abstract String newPublicParam();')
+                .replaceAll('// add new public param here', 'public abstract String newParamThatIsPublic();')
 
         then:
         def executionResult = runTasks('revapi')
@@ -916,7 +916,7 @@ class RevapiSpec extends IntegrationSpec {
 
         def errorMessage = executionResult.failure.cause.cause.message
         !errorMessage.contains('protectedParam')
-        !errorMessage.contains('newPublicParam')
+        !errorMessage.contains('newParamThatIsPublic')
         errorMessage.contains('publicParam')
         errorMessage.contains('publicMethod')
 

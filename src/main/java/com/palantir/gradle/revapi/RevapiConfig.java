@@ -64,6 +64,10 @@ abstract class RevapiConfig {
         return withExtension("revapi.ignore", OBJECT_MAPPER.convertValue(acceptedBreaks, ArrayNode.class));
     }
 
+    public RevapiConfig withExtension(String extensionId) {
+        return withExtension(extensionId, OBJECT_MAPPER.createObjectNode());
+    }
+
     public RevapiConfig withExtension(String extensionId, JsonNode configuration) {
         JsonNode extension =
                 OBJECT_MAPPER.createObjectNode().put("extension", extensionId).set("configuration", configuration);

@@ -110,7 +110,7 @@ public class RevapiAnalyzeTask extends DefaultTask {
                 .withAllExtensionsFromThreadContextClassLoader()
                 .withAnalyzers(JavaApiAnalyzer.class)
                 .withReporters(TextReporter.class)
-                .withTransforms(CheckWhitelist.class)
+                .withTransforms(CheckWhitelist.class, ImmutablesFilter.class)
                 .build();
 
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
@@ -120,7 +120,8 @@ public class RevapiAnalyzeTask extends DefaultTask {
                                 "gradle-revapi-results.ftl",
                                 analysisResultsFile.getAsFile().get()),
                 revapiIgnores(),
-                ConjureProjectFilters.forProject(getProject()));
+                ConjureProjectFilters.forProject(getProject()),
+                ImmutablesFilter.CONFIG);
 
         log.info("revapi config:\n{}", revapiConfig.configAsString());
 
