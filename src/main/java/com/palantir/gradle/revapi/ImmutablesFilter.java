@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.lang.model.element.Modifier;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
@@ -32,8 +31,10 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
     private static final String EXTENSION_ID = "gradle-revapi.immutables";
     public static final RevapiConfig CONFIG = RevapiConfig.empty().withExtension(EXTENSION_ID);
 
-    private static final Pattern[] DIFFERENCE_CODE_PATTERNS = Stream.of(
-                    "java.method.abstractMethodAdded", "java.method.returnTypeChanged")
+    private static final String ABSTRACT_METHOD_ADDED = "java.method.abstractMethodAdded";
+    private static final String RETURN_TYPE_CHANGED = "java.method.returnTypeChanged";
+
+    private static final Pattern[] DIFFERENCE_CODE_PATTERNS = Stream.of(ABSTRACT_METHOD_ADDED, RETURN_TYPE_CHANGED)
             .map(Pattern::compile)
             .toArray(Pattern[]::new);
 
@@ -55,17 +56,21 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
     @Override
     public Difference transform(
             @Nullable JavaElement oldElement, @Nullable JavaElement newElement, @Nonnull Difference difference) {
-        if (isNonPublicAbstractMethodInImmutablesClass(oldElement)
-                || isNonPublicAbstractMethodInImmutablesClass(newElement)) {
-            // if the element is an immutables class, ignore the difference
-            return null;
+        switch (difference.code) {
+            case ABSTRACT_METHOD_ADDED:
+                if (isMethodInImmutablesClass(oldElement) || isMethodInImmutablesClass(newElement)) {
+                    // if the element is an immutables class, ignore the difference
+                    return null;
+                }
+
+                // otherwise return it as is
+                return difference;
         }
 
-        // otherwise return it as is
         return difference;
     }
 
-    private static boolean isNonPublicAbstractMethodInImmutablesClass(JavaElement javaElement) {
+    private static boolean isMethodInImmutablesClass(JavaElement javaElement) {
         if (javaElement == null) {
             return false;
         }
@@ -76,18 +81,9 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
 
         MethodElement methodElement = (MethodElement) javaElement;
 
-        boolean isImmutable = methodElement.getDeclaringElement().getEnclosingElement().getAnnotationMirrors().stream()
+        return methodElement.getDeclaringElement().getEnclosingElement().getAnnotationMirrors().stream()
                 .anyMatch(annotationMirror ->
                         annotationMirror.toString().equals("@org.immutables.value.Value.Immutable"));
-
-        if (!isImmutable) {
-            return false;
-        }
-
-        boolean isAbstract = methodElement.getDeclaringElement().getModifiers().contains(Modifier.ABSTRACT);
-        boolean isPublic = methodElement.getDeclaringElement().getModifiers().contains(Modifier.PUBLIC);
-
-        return isPublic && !isAbstract;
     }
 
     @Nullable
