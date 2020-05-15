@@ -36,8 +36,10 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
 
     private static final String ABSTRACT_METHOD_ADDED = "java.method.abstractMethodAdded";
     private static final String RETURN_TYPE_CHANGED = "java.method.returnTypeChanged";
+    private static final String VISIBILITY_REDUCED = "java.method.visibilityReduced";
 
-    private static final Pattern[] DIFFERENCE_CODE_PATTERNS = Stream.of(ABSTRACT_METHOD_ADDED, RETURN_TYPE_CHANGED)
+    private static final Pattern[] DIFFERENCE_CODE_PATTERNS = Stream.of(
+                    ABSTRACT_METHOD_ADDED, RETURN_TYPE_CHANGED, VISIBILITY_REDUCED)
             .map(Pattern::compile)
             .toArray(Pattern[]::new);
 
@@ -61,7 +63,7 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
             @Nullable JavaElement oldElement, @Nullable JavaElement newElement, @Nonnull Difference difference) {
         switch (difference.code) {
             case ABSTRACT_METHOD_ADDED:
-                if (isMethodInImmutablesClass(oldElement) || isMethodInImmutablesClass(newElement)) {
+                if (isMethodInImmutablesClass(newElement)) {
                     // if the element is an immutables class, ignore the difference
                     return null;
                 }
@@ -69,6 +71,7 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
                 // otherwise return it as is
                 return difference;
             case RETURN_TYPE_CHANGED:
+            case VISIBILITY_REDUCED:
                 if (isMethodInImmutablesClass(oldElement)
                         && isMethodInImmutablesClass(newElement)
                         && abstractNonPublic(oldElement)) {

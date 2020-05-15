@@ -892,11 +892,14 @@ class RevapiSpec extends IntegrationSpec {
             @Value.Immutable
             @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
             public abstract class Foo {
-                protected abstract String protectedParam();
-                public abstract String publicParam();
+                protected abstract String returnTypeChangedProtectedParam();
+                public abstract String returnTypeChangedPublicParam();
                 // add new public param here
+                public abstract long removedPublicParam();
+                public abstract long reducedVisibilityPublicParam();
+                protected abstract long reducedVisibilityProtectedParam();
                 
-                public String publicMethod() {
+                public String returnTypeChangedPublicMethod() {
                     return null;
                 }
             }
@@ -907,7 +910,14 @@ class RevapiSpec extends IntegrationSpec {
 
         immutablesClass.text = immutablesClass.text
                 .replaceAll('String', 'Integer')
-                .replaceAll('// add new public param here', 'public abstract String newParamThatIsPublic();')
+                .replace('// add new public param here', 'public abstract String newPublicParam();')
+                .replace('public abstract long removedPublicParam();', '')
+                .replace(
+                        'public abstract long reducedVisibilityPublicParam();',
+                        'protected abstract long reducedVisibilityPublicParam();')
+                .replace(
+                        'protected abstract long reducedVisibilityProtectedParam();',
+                        'abstract long reducedVisibilityProtectedParam();')
 
         then:
         def executionResult = runTasks('revapi')
@@ -915,10 +925,15 @@ class RevapiSpec extends IntegrationSpec {
         !executionResult.success
 
         def errorMessage = executionResult.failure.cause.cause.message
-        !errorMessage.contains('protectedParam')
-        !errorMessage.contains('newParamThatIsPublic')
-        errorMessage.contains('publicParam')
-        errorMessage.contains('publicMethod')
+
+        !errorMessage.contains('returnTypeChangedProtectedParam()')
+        !errorMessage.contains('newPublicParam()')
+        !errorMessage.contains('reducedVisibilityProtectedParam()')
+
+        errorMessage.contains('returnTypeChangedPublicParam()')
+        errorMessage.contains('returnTypeChangedPublicMethod()')
+        errorMessage.contains('removedPublicParam()')
+        errorMessage.contains('reducedVisibilityPublicParam()')
 
     }
 
