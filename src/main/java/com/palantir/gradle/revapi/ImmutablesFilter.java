@@ -17,10 +17,13 @@
 package com.palantir.gradle.revapi;
 
 import java.io.Reader;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.lang.model.element.Modifier;
 import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
@@ -65,25 +68,48 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
 
                 // otherwise return it as is
                 return difference;
+            case RETURN_TYPE_CHANGED:
+                if (isMethodInImmutablesClass(oldElement)
+                        && isMethodInImmutablesClass(newElement)
+                        && abstractNonPublic(oldElement)) {
+                    return null;
+                }
+
+                return difference;
         }
 
         return difference;
     }
 
     private static boolean isMethodInImmutablesClass(JavaElement javaElement) {
+        return methodElementFor(javaElement)
+                .map(methodElement ->
+                        methodElement.getDeclaringElement().getEnclosingElement().getAnnotationMirrors().stream()
+                                .anyMatch(annotationMirror ->
+                                        annotationMirror.toString().equals("@org.immutables.value.Value.Immutable")))
+                .orElse(false);
+    }
+
+    private static Optional<MethodElement> methodElementFor(JavaElement javaElement) {
         if (javaElement == null) {
-            return false;
+            return Optional.empty();
         }
 
         if (!(javaElement instanceof MethodElement)) {
-            return false;
+            return Optional.empty();
         }
 
-        MethodElement methodElement = (MethodElement) javaElement;
+        return Optional.of((MethodElement) javaElement);
+    }
 
-        return methodElement.getDeclaringElement().getEnclosingElement().getAnnotationMirrors().stream()
-                .anyMatch(annotationMirror ->
-                        annotationMirror.toString().equals("@org.immutables.value.Value.Immutable"));
+    private static boolean abstractNonPublic(JavaElement javaElement) {
+        return methodElementFor(javaElement)
+                .map(methodElement -> {
+                    Set<Modifier> modifiers =
+                            methodElement.getDeclaringElement().getModifiers();
+                    return modifiers.contains(Modifier.ABSTRACT) && !modifiers.contains(Modifier.PUBLIC);
+                })
+                .orElse(false);
     }
 
     @Nullable
