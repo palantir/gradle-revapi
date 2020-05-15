@@ -22,7 +22,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-class Utils {
+final class Utils {
     private Utils() {}
 
     public static String resourceToString(Class<?> clazz, String resourcePath) {
