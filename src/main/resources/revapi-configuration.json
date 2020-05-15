@@ -6,7 +6,10 @@
       "filter": {
         "classes": {
           "regex": true,
-          "exclude": [".*\\$$"]
+          "exclude": [
+            ".*\\$$",
+            "^shadow.*"
+          ]
         }
       }
     }
