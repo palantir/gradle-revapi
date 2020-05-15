@@ -884,6 +884,53 @@ class RevapiSpec extends IntegrationSpec {
             ${testMavenPublication()}
         """.stripIndent()
 
+        def methods = [
+                new MethodChange(
+                        'protected abstract String returnTypeChangedProtectedParam();',
+                        'protected abstract int returnTypeChangedProtectedParam();',
+                        false),
+                new MethodChange(
+                        'public abstract String returnTypeChangedPublicParam();',
+                        'public abstract int returnTypeChangedPublicParam();',
+                        true),
+                new MethodChange(
+                        '',
+                        'public abstract String newPublicParam();',
+                        false),
+                new MethodChange(
+                        'public abstract long removedPublicParam()',
+                        '',
+                        true),
+                new MethodChange(
+                        'public abstract long reducedVisibilityPublicParam()',
+                        'protected abstract long reducedVisibilityPublicParam()',
+                        true),
+                new MethodChange(
+                        'protected abstract long reducedVisibilityProtectedParam();',
+                        'abstract long reducedVisibilityProtectedParam();',
+                        false),
+                new MethodChange(
+                        'public abstract long noLongerAbstractPublicParam();',
+                        'public long noLongerAbstractPublicParam();',
+                        false),
+                new MethodChange(
+                        'protected abstract long removedProtectedParam();',
+                        '',
+                        false),
+                new MethodChange(
+                        'public long nowAbstractPublicMethod() { return 3L; }',
+                        'public abstract long nowAbstractPublicMethod();',
+                        false),
+                new MethodChange(
+                        'public String returnTypeChangedPublicMethod() { return "foo"; }',
+                        'public int returnTypeChangedPublicMethod() { return 3; }',
+                        true),
+                new MethodChange(
+                        'public void removedPublicMethod() {}',
+                        '',
+                        true),
+        ]
+
         def immutablesClass = writeToFile 'src/main/java/foo/Foo.java', '''
             package foo;
             
@@ -900,6 +947,7 @@ class RevapiSpec extends IntegrationSpec {
                 protected abstract long reducedVisibilityProtectedParam();
                 public abstract long noLongerAbstractPublicParam();
                 protected abstract long removedProtectedParam();
+                protected abstract long increasedVisibilityProtectedParam();
                 
                 public long nowAbstractPublicMethod() { return 3L; }
                 
@@ -934,6 +982,7 @@ class RevapiSpec extends IntegrationSpec {
                         'protected abstract long removedProtectedParam();',
                         '')
                 .replace('public void removedPublicMethod() {}', '')
+                .replace('increasedVisibilityProtectedParam')
 
         then:
         def executionResult = runTasks('revapi')
@@ -1095,6 +1144,18 @@ class RevapiSpec extends IntegrationSpec {
         assert !retrofitJunit.contains('java.annotation.attributeValueChanged')
 
         runTasksSuccessfully(':api-undertow:revapi')
+    }
+
+    static class MethodChange {
+        final String oldText
+        final String newText
+        final boolean shouldBreak
+
+        MethodChange(String oldText, String newText, boolean shouldBreak) {
+            this.oldText = oldText
+            this.newText = newText
+            this.shouldBreak = shouldBreak
+        }
     }
 
     private String testMavenPublication() {
