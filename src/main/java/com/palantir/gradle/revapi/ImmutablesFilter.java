@@ -28,18 +28,19 @@ import org.revapi.AnalysisContext;
 import org.revapi.Difference;
 import org.revapi.DifferenceTransform;
 import org.revapi.java.model.MethodElement;
+import org.revapi.java.spi.Code;
 import org.revapi.java.spi.JavaElement;
 
 public final class ImmutablesFilter implements DifferenceTransform<JavaElement> {
     private static final String EXTENSION_ID = "gradle-revapi.immutables";
     public static final RevapiConfig CONFIG = RevapiConfig.empty().withExtension(EXTENSION_ID);
 
-    private static final String ABSTRACT_METHOD_ADDED = "java.method.abstractMethodAdded";
-    private static final String RETURN_TYPE_CHANGED = "java.method.returnTypeChanged";
-    private static final String VISIBILITY_REDUCED = "java.method.visibilityReduced";
-
     private static final Pattern[] DIFFERENCE_CODE_PATTERNS = Stream.of(
-                    ABSTRACT_METHOD_ADDED, RETURN_TYPE_CHANGED, VISIBILITY_REDUCED)
+                    Code.METHOD_ABSTRACT_METHOD_ADDED,
+                    Code.METHOD_RETURN_TYPE_CHANGED,
+                    Code.METHOD_VISIBILITY_REDUCED,
+                    Code.METHOD_NOW_ABSTRACT)
+            .map(Code::code)
             .map(Pattern::compile)
             .toArray(Pattern[]::new);
 
@@ -61,30 +62,31 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
     @Override
     public Difference transform(
             @Nullable JavaElement oldElement, @Nullable JavaElement newElement, @Nonnull Difference difference) {
-        switch (difference.code) {
-            case ABSTRACT_METHOD_ADDED:
-                if (isMethodInImmutablesClass(newElement)) {
-                    // if the element is an immutables class, ignore the difference
-                    return null;
-                }
-
-                // otherwise return it as is
-                return difference;
-            case RETURN_TYPE_CHANGED:
-            case VISIBILITY_REDUCED:
-                if (isMethodInImmutablesClass(oldElement)
-                        && isMethodInImmutablesClass(newElement)
-                        && abstractNonPublic(oldElement)) {
-                    return null;
-                }
-
-                return difference;
+        if (shouldIgnore(oldElement, newElement, difference)) {
+            return null;
         }
 
         return difference;
     }
 
-    private static boolean isMethodInImmutablesClass(JavaElement javaElement) {
+    private static boolean shouldIgnore(
+            @Nullable JavaElement oldElement, @Nullable JavaElement newElement, @Nonnull Difference difference) {
+        switch (Code.fromCode(difference.code)) {
+            case METHOD_ABSTRACT_METHOD_ADDED:
+                return inImmutablesClass(newElement);
+
+            case METHOD_RETURN_TYPE_CHANGED:
+            case METHOD_VISIBILITY_REDUCED:
+                return inImmutablesClass(oldElement) && inImmutablesClass(newElement) && abstractNonPublic(oldElement);
+
+            case METHOD_NOW_ABSTRACT:
+                return inImmutablesClass(newElement) && inImmutablesClass(newElement);
+        }
+
+        return false;
+    }
+
+    private static boolean inImmutablesClass(JavaElement javaElement) {
         return methodElementFor(javaElement)
                 .map(methodElement ->
                         methodElement.getDeclaringElement().getEnclosingElement().getAnnotationMirrors().stream()
