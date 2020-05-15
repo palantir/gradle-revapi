@@ -57,7 +57,7 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
     }
 
     @Override
-    public void initialize(@Nonnull AnalysisContext analysisContext) {}
+    public void initialize(@Nonnull AnalysisContext _analysisContext) {}
 
     @Nullable
     @Override
@@ -84,7 +84,7 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
                 return inImmutablesClass(oldElement) && abstractNonPublic(oldElement);
 
             case METHOD_NOW_ABSTRACT:
-                return inImmutablesClass(newElement) && inImmutablesClass(newElement);
+                return inImmutablesClass(oldElement) && inImmutablesClass(newElement);
         }
 
         return false;
