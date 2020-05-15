@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: '`gradle-revapi` understands [`immutables`](https://immutables.github.io/)
+    classes and will not raise a break if an abstract method has been added to an
+    immutables class, or a protected abstract method changed.'
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/248
