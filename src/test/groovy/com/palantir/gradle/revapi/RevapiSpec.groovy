@@ -17,6 +17,7 @@
 package com.palantir.gradle.revapi
 
 
+import java.util.regex.Pattern
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.util.environment.RestoreSystemProperties
@@ -835,7 +836,7 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """
+        """.stripIndent()
 
         def shadowedClass = 'src/main/java/shadow/com/palantir/foo/Bar.java'
         writeToFile shadowedClass, '''
@@ -850,6 +851,133 @@ class RevapiSpec extends IntegrationSpec {
 
         then:
         println runTasksSuccessfully('revapi').standardOutput
+    }
+
+    def 'changing a protected method in an immutables class is not a break'() {
+        when:
+        rootProjectNameIs('root')
+
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java'
+            apply plugin: 'maven-publish'
+            
+            allprojects {
+                group = 'revapi.test'
+                ${mavenRepoGradle()}
+            }
+            
+            version = '1.0.0'
+            
+            revapi {
+                oldVersion = project.version
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                annotationProcessor "org.immutables:value:2.8.8"
+                compileOnly "org.immutables:value:2.8.8:annotations"  
+            }
+            
+            ${testMavenPublication()}
+        """.stripIndent()
+
+        def methodChanges = [
+                new MethodChange(
+                        'protected abstract String returnTypeChangedProtectedParam();',
+                        'protected abstract int returnTypeChangedProtectedParam();',
+                        false),
+                new MethodChange(
+                        'public abstract String returnTypeChangedPublicParam();',
+                        'public abstract int returnTypeChangedPublicParam();',
+                        true),
+                new MethodChange(
+                        '',
+                        'public abstract String newPublicParam();',
+                        false),
+                new MethodChange(
+                        'public abstract long removedPublicParam();',
+                        '',
+                        true),
+                new MethodChange(
+                        'public abstract long reducedVisibilityPublicParam();',
+                        'protected abstract long reducedVisibilityPublicParam();',
+                        true),
+                new MethodChange(
+                        'protected abstract long reducedVisibilityProtectedParam();',
+                        'abstract long reducedVisibilityProtectedParam();',
+                        false),
+                new MethodChange(
+                        'public abstract long noLongerAbstractPublicParam();',
+                        'public long noLongerAbstractPublicParam() { return 3; }',
+                        false),
+                new MethodChange(
+                        'protected abstract long removedProtectedParam();',
+                        '',
+                        false),
+                new MethodChange(
+                        'protected abstract long increasedVisibilityProtectedParam();',
+                        'public abstract long increasedVisibilityProtectedParam();',
+                        false),
+                new MethodChange(
+                        'public long nowAbstractPublicMethod() { return 3; }',
+                        'public abstract long nowAbstractPublicMethod();',
+                        false),
+                new MethodChange(
+                        'public String returnTypeChangedPublicMethod() { return "foo"; }',
+                        'public int returnTypeChangedPublicMethod() { return 3; }',
+                        true),
+                new MethodChange(
+                        'public void removedPublicMethod() {}',
+                        '',
+                        true),
+        ]
+
+        def writeOutImmutablesClass = { Closure selector ->
+            StringBuilder immutablesClassText = new StringBuilder()
+            immutablesClassText.append '''
+                package foo;
+                
+                import org.immutables.value.Value;
+                
+                @Value.Immutable
+                @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
+                public abstract class Foo {
+            '''.stripIndent()
+
+            methodChanges.forEach({ methodChange -> immutablesClassText
+                    .append('    ')
+                    .append(selector(methodChange))
+                    .append('\n') })
+
+            immutablesClassText.append '''
+                }
+            '''.stripIndent()
+
+            writeToFile 'src/main/java/foo/Foo.java', immutablesClassText.toString()
+        }
+
+        writeOutImmutablesClass { it.oldText }
+
+        and:
+        runTasksSuccessfully('publish')
+
+        writeOutImmutablesClass { it.newText }
+
+        then:
+        def executionResult = runTasks('revapi')
+        println executionResult.standardError
+        !executionResult.success
+
+        def errorMessage = executionResult.failure.cause.cause.message
+        errorMessage.contains 'There were Java public API/ABI breaks reported by revapi:'
+
+        for (MethodChange methodChange : methodChanges) {
+            assert errorMessage.contains(methodChange.findMethodName()) == methodChange.shouldBreak
+        }
     }
 
     @RestoreSystemProperties
@@ -992,6 +1120,27 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully(':api-undertow:revapi')
     }
 
+    static class MethodChange {
+        final String oldText
+        final String newText
+        final boolean shouldBreak
+
+        MethodChange(String oldText, String newText, boolean shouldBreak) {
+            this.oldText = oldText
+            this.newText = newText
+            this.shouldBreak = shouldBreak
+        }
+
+        String findMethodName() {
+            def text = oldText == '' ? newText : oldText
+            def matcher = Pattern.compile('(\\w+\\(\\))').matcher(text)
+            if (!matcher.find()) {
+                throw new IllegalArgumentException("Couldn't find method name in ${text}")
+            }
+            return matcher.group(1);
+        }
+    }
+
     private String testMavenPublication() {
         return """
             publishing {
@@ -1019,7 +1168,7 @@ class RevapiSpec extends IntegrationSpec {
         """
     }
 
-    private void writeToFile(String filename, String content) {
+    private File writeToFile(String filename, String content) {
         writeToFile(projectDir, filename, content)
     }
 
