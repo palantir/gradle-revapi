@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import groovy.transform.CompileStatic
@@ -278,6 +279,38 @@ class YamlPatcherTest {
                     .add(1).add(2).add(3))
             return json
         } as UnaryOperator<ObjectNode>)
+
+        // language=yaml
+        assertThat(output).isEqualTo '''
+          # comment
+          one:
+            two:
+              three:
+              - 1
+              - 2
+              - 3
+              # another
+              somethingElse: 4
+          # end
+        '''.stripIndent()
+    }
+
+    @Test
+    void 'replace a number with a number in an array'() {
+        // language=yaml
+        String input = '''
+          # comment
+          - 1
+          # before
+          - 2 # trailing
+          # after
+          - 3
+        '''.stripIndent()
+
+        String output = yamlPatcher.patchYaml(input, ArrayNode, { ArrayNode array ->
+            array.set(2, OBJECT_MAPPER.valueToTree(555));
+            return array
+        } as UnaryOperator<ArrayNode>)
 
         // language=yaml
         assertThat(output).isEqualTo '''
