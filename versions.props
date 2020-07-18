@@ -7,5 +7,5 @@ org.freemarker:freemarker = 2.3.30
 com.google.guava:guava = 23.1-jre
 org.immutables:* = 2.8.8
 com.fasterxml.jackson.*:jackson-* = 2.11.1
-org.mockito:mockito-core = 3.4.3
+org.mockito:mockito-core = 3.4.4
 org.assertj:assertj-core = 3.16.1
