@@ -20,7 +20,6 @@ import java.util.regex.Pattern
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.util.environment.RestoreSystemProperties
-import spock.lang.Ignore
 
 class RevapiSpec extends IntegrationSpec {
     private Git git
@@ -29,7 +28,6 @@ class RevapiSpec extends IntegrationSpec {
         git = new Git(projectDir)
     }
 
-    @Ignore
     def 'fails when comparing produced jar versus some random other jar'() {
         when:
         buildFile << """
@@ -65,7 +63,6 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
-    @Ignore
     def 'revapi task succeeds when there are no breaking changes'() {
         when:
         buildFile << """
@@ -87,7 +84,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapi")
     }
 
-    @Ignore
     def 'doesnt explode when project code depends on compileOnly dependency'() {
         when:
         buildFile << """
@@ -132,7 +128,6 @@ class RevapiSpec extends IntegrationSpec {
         executionResult.rethrowFailure()
     }
 
-    @Ignore
     def 'revapiAcceptAllBreaks succeeds when there are no breaking changes'() {
         when:
         buildFile << """
@@ -154,7 +149,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "fight me")
     }
 
-    @Ignore
     def 'does not error out when project has a version greater than the "old version"'() {
         def revapi = 'revapi'
 
@@ -188,7 +182,6 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences(revapi)
     }
 
-    @Ignore
     def 'errors out when the old api dependency does not exist but then works once you run the version override task'() {
         when:
         buildFile << """
@@ -215,7 +208,6 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
-    @Ignore
     def 'errors out when the target dependency does not exist and we do not give an version override'() {
         when:
         buildFile << """
@@ -239,7 +231,6 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingResolutionFailure()
     }
 
-    @Ignore
     def 'skips revapi tasks when the versions to check is empty list'() {
         when:
         buildFile << """
@@ -263,7 +254,6 @@ class RevapiSpec extends IntegrationSpec {
         executionResult.wasSkipped(':revapi')
     }
 
-    @Ignore
     def 'when the previous git tag has failed to publish, it will look back up to a further git tag'() {
         when:
         git.initWithTestUser()
@@ -321,7 +311,6 @@ class RevapiSpec extends IntegrationSpec {
         assert standardError.contains('willBeRemoved')
     }
 
-    @Ignore
     def 'if there are no published versions of the library at all, ./gradlew revapi doesnt fail'() {
         when:
         setupUnpublishedLibrary()
@@ -333,7 +322,6 @@ class RevapiSpec extends IntegrationSpec {
         executionResult.wasSkipped(':revapi')
     }
 
-    @Ignore
     def 'if there are no published versions of the library at all, ./gradlew revapiAcceptAllBreaks is a no-op'() {
         when:
         setupUnpublishedLibrary()
@@ -345,7 +333,6 @@ class RevapiSpec extends IntegrationSpec {
         executionResult.wasSkipped(':revapiAcceptAllBreaks')
     }
 
-    @Ignore
     def 'if there are no published versions of the library at all, ./gradlew revapiAcceptBreak doesnt fail'() {
         when:
         setupUnpublishedLibrary()
@@ -374,7 +361,6 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
     }
 
-    @Ignore
     def 'handles the output of extra source sets being added to compile configuration'() {
         when:
         buildFile << """
@@ -406,7 +392,6 @@ class RevapiSpec extends IntegrationSpec {
         runRevapiExpectingToFindDifferences("root-project")
     }
 
-    @Ignore
     def 'errors out when there are breaks but then is fine when breaks are accepted'() {
         when:
         buildFile << """
@@ -436,7 +421,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapi")
     }
 
-    @Ignore
     def 'accepting breaks individually should work'() {
         when:
         buildFile << """
@@ -484,7 +468,6 @@ class RevapiSpec extends IntegrationSpec {
 
     }
 
-    @Ignore
     def 'moving a class from one project to a dependent project is not a break (only if it is in the api configuration)'() {
         buildFile << """
             allprojects {
@@ -535,7 +518,6 @@ class RevapiSpec extends IntegrationSpec {
         assert runRevapiExpectingFailure().contains('java.class.removed')
     }
 
-    @Ignore
     def 'ignores breaks in dependent projects'() {
         when:
         buildFile << """
@@ -587,7 +569,6 @@ class RevapiSpec extends IntegrationSpec {
         println runTasksSuccessfully("revapi").standardOutput
     }
 
-    @Ignore
     def 'should not say there are breaks in api dependencies when nothing has changed'() {
         when:
         rootProjectNameIs('test')
@@ -629,7 +610,6 @@ class RevapiSpec extends IntegrationSpec {
         println runTasksSuccessfully("revapi").standardOutput
     }
 
-    @Ignore
     def 'ignores scala classes'() {
         when:
         buildFile << """
@@ -651,7 +631,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapi")
     }
 
-    @Ignore
     def 'ignores magic methods added by groovy when comparing the same groovy class'() {
         when:
         buildFile << """
@@ -688,7 +667,6 @@ class RevapiSpec extends IntegrationSpec {
         println runTasksSuccessfully("revapi").standardOutput
     }
 
-    @Ignore
     def 'detects breaks in groovy code'() {
         when:
         buildFile << """
@@ -739,7 +717,6 @@ class RevapiSpec extends IntegrationSpec {
         assert stderr.contains('method void foo.Foo::setSomeProperty(java.lang.String)')
     }
 
-    @Ignore
     def 'does not throw exception when baseline-circleci is applied before this plugin'() {
         when:
         addSubproject 'subproject',  """
@@ -768,7 +745,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("tasks")
     }
 
-    @Ignore
     def 'is up to date when nothing has changed after running once'() {
         when:
         buildFile << """
@@ -791,7 +767,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasUpToDate('revapiAnalyze')
     }
 
-    @Ignore
     def 'is not up to date when public (not private) api has changed'() {
         when:
         buildFile << """
@@ -839,7 +814,6 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
 
-    @Ignore
     def 'compatible with gradle-shadow-jar'() {
         when:
         rootProjectNameIs('root')
@@ -878,7 +852,6 @@ class RevapiSpec extends IntegrationSpec {
         println runTasksSuccessfully('revapi').standardOutput
     }
 
-    @Ignore
     def 'changing a protected method in an immutables class is not a break'() {
         when:
         rootProjectNameIs('root')
@@ -1006,7 +979,6 @@ class RevapiSpec extends IntegrationSpec {
         }
     }
 
-    @Ignore
     @RestoreSystemProperties
     def 'breaks detected in conjure projects should be limited to those which break java but are not caught by conjure-backcompat'() {
         when:
