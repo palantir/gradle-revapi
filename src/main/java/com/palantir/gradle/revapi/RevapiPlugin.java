@@ -79,10 +79,12 @@ public final class RevapiPlugin implements Plugin<Project> {
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
 
-                    FileCollection thisJarFile = project.getTasks()
-                            .withType(Jar.class)
-                            .getByName(JavaPlugin.JAR_TASK_NAME)
-                            .getOutputs()
+                    // we don't want to just grab the output of the 'jar' task, because peiple using
+                    // 'com.palantir.shadow-jar' actually publish the output of a different task: 'shadowJar'
+                    FileCollection thisJarFile = project.getConfigurations()
+                            .getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+                            .getOutgoing()
+                            .getArtifacts()
                             .getFiles();
 
                     FileCollection otherProjectsOutputs = revapiNewApiElements
