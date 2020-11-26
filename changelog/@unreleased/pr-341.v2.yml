@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: revapi should now work seamlessly in projects that also apply `com.palantir.shadow-jar`
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/341
