@@ -988,8 +988,8 @@ class RevapiSpec extends IntegrationSpec {
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url 'https://dl.bintray.com/palantir/releases/' }
                     mavenCentral()
+                    maven { url 'https://dl.bintray.com/palantir/releases/' }
                 }
             
                 dependencies {
@@ -1002,8 +1002,8 @@ class RevapiSpec extends IntegrationSpec {
                 version = '1.0.0'
                 
                 repositories {
-                    maven { url 'https://dl.bintray.com/palantir/releases/' }
                     mavenCentral()
+                    maven { url 'https://dl.bintray.com/palantir/releases/' }
                 }
             }
 
@@ -1022,9 +1022,9 @@ class RevapiSpec extends IntegrationSpec {
                 }
 
                 dependencies {
-                    implementation 'com.palantir.conjure.java:conjure-lib:4.5.0'
-                    implementation 'com.palantir.conjure.java:conjure-undertow-lib:4.5.0'
-                    implementation 'com.squareup.retrofit2:retrofit:2.6.2'
+                    api 'com.palantir.conjure.java:conjure-lib:4.5.0'
+                    api 'com.palantir.conjure.java:conjure-undertow-lib:4.5.0'
+                    api 'com.squareup.retrofit2:retrofit:2.6.2'
                 }
                 
                 apply plugin: 'maven-publish'
@@ -1059,16 +1059,6 @@ class RevapiSpec extends IntegrationSpec {
         """.stripIndent()
 
         and:
-        /*
-        Ignore warnings because:
-
-        java.lang.IllegalArgumentException: Mutable Project State warnings were found (Set the ignoreMutableProjectStateWarnings system property during the test to ignore):
- - The configuration :api-objects:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
- - The configuration :api-jersey:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
- - The configuration :api-retrofit:compileClasspath was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See https://docs.gradle.org/5.6.4/userguide/troubleshooting_dependency_resolution.html#sub:configuration_resolution_constraints for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 6.0.
-        */
-        System.setProperty('ignoreMutableProjectStateWarnings', 'true')
-        System.setProperty('ignoreDeprecations', 'true')
         runTasksSuccessfully('compileConjure', 'publish')
 
         and:
