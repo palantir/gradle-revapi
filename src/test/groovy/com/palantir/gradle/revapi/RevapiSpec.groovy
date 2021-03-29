@@ -33,14 +33,14 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
             }
             
             dependencies {
-                compile 'one.util:streamex:0.7.0'
+                implementation 'one.util:streamex:0.7.0'
             }
             
             revapi {
@@ -68,7 +68,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -133,7 +133,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
 
             repositories {
                 mavenCentral()
@@ -156,7 +156,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -187,7 +187,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -213,7 +213,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -236,7 +236,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -273,7 +273,7 @@ class RevapiSpec extends IntegrationSpec {
             }
 
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             apply plugin: 'maven-publish'
             
             group = 'group'
@@ -366,7 +366,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             sourceSets {
                 extraStuff
@@ -397,7 +397,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -426,7 +426,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -615,7 +615,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -750,7 +750,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -772,7 +772,7 @@ class RevapiSpec extends IntegrationSpec {
         when:
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             
             repositories {
                 mavenCentral()
@@ -821,7 +821,7 @@ class RevapiSpec extends IntegrationSpec {
 
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             apply plugin: 'maven-publish'
             
             allprojects {
@@ -859,7 +859,7 @@ class RevapiSpec extends IntegrationSpec {
 
         buildFile << """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             apply plugin: 'maven-publish'
             
             allprojects {
@@ -1022,9 +1022,9 @@ class RevapiSpec extends IntegrationSpec {
                 }
 
                 dependencies {
-                    compile 'com.palantir.conjure.java:conjure-lib:4.5.0'
-                    compile 'com.palantir.conjure.java:conjure-undertow-lib:4.5.0'
-                    compile 'com.squareup.retrofit2:retrofit:2.6.2'
+                    implementation 'com.palantir.conjure.java:conjure-lib:4.5.0'
+                    implementation 'com.palantir.conjure.java:conjure-undertow-lib:4.5.0'
+                    implementation 'com.squareup.retrofit2:retrofit:2.6.2'
                 }
                 
                 apply plugin: 'maven-publish'
