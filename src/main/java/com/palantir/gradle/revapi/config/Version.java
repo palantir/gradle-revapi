@@ -19,10 +19,12 @@ package com.palantir.gradle.revapi.config;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.palantir.gradle.revapi.ImmutableStyle;
+import org.immutables.serial.Serial;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @ImmutableStyle
+@Serial.Structural
 public interface Version extends Comparable<Version> {
 
     @JsonValue
