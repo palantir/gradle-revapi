@@ -12,15 +12,13 @@ buildscript {
     }
 
     dependencies {
+        classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:0.4.0'
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:1.1.0'
-        classpath 'com.netflix.nebula:gradle-info-plugin:9.3.0'
-        classpath 'com.netflix.nebula:nebula-publishing-plugin:16.0.0'
     }
 }
 
 plugins {
     id 'com.gradle.plugin-publish' version '0.13.0'
-    id 'com.jfrog.bintray' version '1.8.5' apply false
     id 'com.palantir.baseline' version '3.75.0'
     id 'com.palantir.consistent-versions' version '1.28.0'
     id 'com.palantir.git-version' version '0.12.3'
@@ -37,10 +35,11 @@ repositories {
 group 'com.palantir.gradle.revapi'
 version System.env.CIRCLE_TAG ?: gitVersion()
 
+apply plugin: 'com.palantir.external-publish'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'java-library'
 apply plugin: 'groovy'
-apply from: "$rootDir/gradle/publish-jar.gradle"
+apply plugin: 'com.palantir.external-publish-jar'
 
 sourceCompatibility = 1.8
 
