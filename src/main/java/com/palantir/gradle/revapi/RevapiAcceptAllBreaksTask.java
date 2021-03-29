@@ -23,6 +23,9 @@ import java.util.Set;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
@@ -39,14 +42,21 @@ public class RevapiAcceptAllBreaksTask extends DefaultTask {
     private final Property<Justification> justification =
             getProject().getObjects().property(Justification.class);
 
+    public RevapiAcceptAllBreaksTask() {
+        getOutputs().upToDateWhen(_ignored -> false);
+    }
+
+    @Internal
     final Property<ConfigManager> getConfigManager() {
         return configManager;
     }
 
+    @Input
     final Property<GroupNameVersion> getOldGroupNameVersion() {
         return oldGroupNameVersion;
     }
 
+    @InputFile
     final RegularFileProperty getAnalysisResultsFile() {
         return analysisResultsFile;
     }
