@@ -373,7 +373,7 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             dependencies {
-                compile sourceSets.extraStuff.output
+                implementation sourceSets.extraStuff.output
             }
             
             repositories {
@@ -647,7 +647,7 @@ class RevapiSpec extends IntegrationSpec {
             version = '1.0.0'
             
             dependencies {
-                 compile localGroovy()
+                 implementation localGroovy()
             }
             
             revapi {
@@ -683,7 +683,7 @@ class RevapiSpec extends IntegrationSpec {
             version = '1.0.0'
             
             dependencies {
-                 compile localGroovy()
+                 implementation localGroovy()
             }
             
             revapi {
