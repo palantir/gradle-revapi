@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Optional;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
@@ -40,6 +41,11 @@ public class RevapiAcceptBreakTask extends DefaultTask {
     private final Property<Justification> justification =
             getProject().getObjects().property(Justification.class);
 
+    public RevapiAcceptBreakTask() {
+        getOutputs().upToDateWhen(_ignored -> false);
+    }
+
+    @Internal
     final Property<ConfigManager> getConfigManager() {
         return configManager;
     }

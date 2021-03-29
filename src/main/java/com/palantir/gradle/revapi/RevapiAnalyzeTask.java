@@ -30,8 +30,6 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.revapi.API;
 import org.revapi.AnalysisContext;
@@ -93,7 +91,6 @@ public class RevapiAnalyzeTask extends DefaultTask {
     }
 
     @OutputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
     public final RegularFileProperty getAnalysisResultsFile() {
         return analysisResultsFile;
     }
