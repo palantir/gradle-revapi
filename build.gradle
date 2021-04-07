@@ -2,13 +2,10 @@ import java.util.stream.Collectors
 
 buildscript {
     repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven { url 'https://palantir.bintray.com/releases' }
         jcenter()
-        maven {
-            url 'https://dl.bintray.com/palantir/releases/'
-        }
-        maven {
-            url 'https://plugins.gradle.org/m2/'
-        }
     }
 
     dependencies {
@@ -28,10 +25,9 @@ plugins {
 }
 
 repositories {
+    mavenCentral()
+    maven { url 'https://palantir.bintray.com/releases' }
     jcenter()
-    maven {
-        url 'https://dl.bintray.com/palantir/releases/'
-    }
 }
 
 group 'com.palantir.gradle.revapi'
