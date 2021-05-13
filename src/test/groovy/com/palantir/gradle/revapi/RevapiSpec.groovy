@@ -727,7 +727,6 @@ class RevapiSpec extends IntegrationSpec {
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url "https://palantir.bintray.com/releases" }
                     mavenCentral()
                     gradlePluginPortal()
                 }
@@ -989,7 +988,6 @@ class RevapiSpec extends IntegrationSpec {
             buildscript {
                 repositories {
                     mavenCentral()
-                    maven { url 'https://dl.bintray.com/palantir/releases/' }
                 }
             
                 dependencies {
@@ -1003,7 +1001,6 @@ class RevapiSpec extends IntegrationSpec {
                 
                 repositories {
                     mavenCentral()
-                    maven { url 'https://dl.bintray.com/palantir/releases/' }
                 }
             }
 
