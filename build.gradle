@@ -4,7 +4,6 @@ buildscript {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        jcenter()
     }
 
     dependencies {
@@ -23,7 +22,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 group 'com.palantir.gradle.revapi'
