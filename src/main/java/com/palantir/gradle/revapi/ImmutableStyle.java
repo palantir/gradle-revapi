@@ -17,11 +17,14 @@
 package com.palantir.gradle.revapi;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Style.BuilderVisibility;
 import org.immutables.value.Value.Style.ImplementationVisibility;
 
+@Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 @Value.Style(
         jdkOnly = true,
