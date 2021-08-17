@@ -43,8 +43,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    implementation 'com.google.guava:guava'
 
-    testCompile platform('org.junit:junit-bom')
+    testImplementation platform('org.junit:junit-bom')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation 'org.mockito:mockito-core'
@@ -55,6 +56,10 @@ dependencies {
     annotationProcessor "org.immutables:serial"
     compileOnly "org.immutables:value::annotations"
     compileOnly "org.immutables:serial"
+}
+
+allprojects {
+    apply plugin: 'com.palantir.java-format'
 }
 
 test {
@@ -83,9 +88,10 @@ pluginBundle {
             displayName = 'API/ABI backwards compatibility for Java libraries using Revapi'
         }
     }
-allprojects {
-    apply plugin: 'com.palantir.java-format'
 }
+
+tasks.named('processResources').configure {
+    duplicatesStrategy 'include'
 }
 
 tasks.publish.dependsOn tasks.publishPlugins

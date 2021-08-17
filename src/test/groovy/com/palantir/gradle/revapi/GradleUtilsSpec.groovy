@@ -28,16 +28,16 @@ class GradleUtilsSpec extends AbstractProjectSpec {
         def subproject = addSubproject('subproject')
         subproject.pluginManager.apply(JavaPlugin)
         subproject.dependencies {
-            compile project.project(":${subsubproject.name}")
+            implementation project.project(":${subsubproject.name}")
         }
 
         project.pluginManager.apply(JavaPlugin)
         project.dependencies {
-            compile project.project(":${subproject.name}")
+            implementation project.project(":${subproject.name}")
         }
 
         then:
-        def jarTasks = RevapiPlugin.allJarTasksIncludingDependencies(project, project.configurations.named('compile').get())
+        def jarTasks = RevapiPlugin.allJarTasksIncludingDependencies(project, project.configurations.named('runtimeClasspath').get())
         assert jarTasks.get() == [
                 project.getTasks().getByName('jar'),
                 subproject.getTasks().getByName('jar'),
