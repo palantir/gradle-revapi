@@ -44,7 +44,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
 
-    testCompile platform('org.junit:junit-bom')
+    testImplementation platform('org.junit:junit-bom')
     testImplementation 'com.netflix.nebula:nebula-test'
     testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation 'org.mockito:mockito-core'
