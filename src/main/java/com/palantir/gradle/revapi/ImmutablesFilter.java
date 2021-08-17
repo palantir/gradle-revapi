@@ -85,9 +85,10 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
 
             case METHOD_NOW_ABSTRACT:
                 return inImmutablesClass(oldElement) && inImmutablesClass(newElement);
-        }
 
-        return false;
+            default:
+                return false;
+        }
     }
 
     private static boolean inImmutablesClass(JavaElement javaElement) {

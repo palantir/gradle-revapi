@@ -18,7 +18,9 @@ package com.palantir.gradle.revapi.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.common.base.Splitter;
 import com.palantir.gradle.revapi.ImmutableStyle;
+import java.util.List;
 import org.immutables.serial.Serial;
 import org.immutables.value.Value;
 
@@ -38,17 +40,19 @@ public interface GroupNameVersion extends Comparable<GroupNameVersion> {
 
     @JsonCreator
     static GroupNameVersion fromString(String groupNameVersionString) {
-        String[] split = groupNameVersionString.split(":");
+        List<String> split = Splitter.on(":").splitToList(groupNameVersionString);
 
-        if (split.length != 3) {
+        if (split.size() != 3) {
             throw new IllegalArgumentException(
                     String.format("%s could not be split into group name and version", groupNameVersionString));
         }
 
         return builder()
-                .groupAndName(
-                        GroupAndName.builder().group(split[0]).name(split[1]).build())
-                .version(Version.fromString(split[2]))
+                .groupAndName(GroupAndName.builder()
+                        .group(split.get(0))
+                        .name(split.get(1))
+                        .build())
+                .version(Version.fromString(split.get(2)))
                 .build();
     }
 
