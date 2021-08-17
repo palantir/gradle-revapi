@@ -28,12 +28,12 @@ class GradleUtilsSpec extends AbstractProjectSpec {
         def subproject = addSubproject('subproject')
         subproject.pluginManager.apply(JavaPlugin)
         subproject.dependencies {
-            compile project.project(":${subsubproject.name}")
+            implementation project.project(":${subsubproject.name}")
         }
 
         project.pluginManager.apply(JavaPlugin)
         project.dependencies {
-            compile project.project(":${subproject.name}")
+            implementation project.project(":${subproject.name}")
         }
 
         then:
