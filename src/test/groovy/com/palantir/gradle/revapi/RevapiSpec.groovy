@@ -732,7 +732,7 @@ class RevapiSpec extends IntegrationSpec {
                 }
             
                 dependencies {
-                    classpath 'com.palantir.baseline:gradle-baseline-java:4.0.0'
+                    classpath 'com.palantir.baseline:gradle-baseline-java:4.1.0'
                 }
             }
 
