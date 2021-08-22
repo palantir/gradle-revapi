@@ -46,8 +46,9 @@ public class RevapiExtension {
 
         this.oldVersions = project.getObjects().listProperty(String.class);
         this.oldVersions.set(project.getProviders()
-                .provider(
-                        () -> GitVersionUtils.previousGitTags(project, oldVersionPrefix.getOrElse("v")).limit(3).collect(Collectors.toList())));
+                .provider(() -> GitVersionUtils.previousGitTags(project, oldVersionPrefix.getOrElse("v"))
+                        .limit(3)
+                        .collect(Collectors.toList())));
 
         this.oldGroupAndName = project.provider(() ->
                 GroupAndName.builder().group(oldGroup.get()).name(oldName.get()).build());
