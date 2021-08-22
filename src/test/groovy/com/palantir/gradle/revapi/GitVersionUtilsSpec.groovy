@@ -112,7 +112,24 @@ class GitVersionUtilsSpec extends AbstractProjectSpec {
         assert previousGitTags() == ['1.2.3']
     }
 
+    def 'strips tags of configurable prefix'() {
+        given: 'a tag prefix'
+        def prefix = 'proj-'
+
+        when:
+        git.command 'git commit --allow-empty -m "Initial"'
+        git.command 'git tag proj-1.2.3'
+        git.command 'git commit --allow-empty -m "Additional"'
+
+        then:
+        assert previousGitTags(prefix) == ['1.2.3']
+    }
+
     private List<String> previousGitTags() {
         GitVersionUtils.previousGitTags(getProject()).collect(Collectors.toList())
+    }
+
+    private List<String> previousGitTags(String tagPrefix) {
+        GitVersionUtils.previousGitTags(getProject(), tagPrefix).collect(Collectors.toList())
     }
 }

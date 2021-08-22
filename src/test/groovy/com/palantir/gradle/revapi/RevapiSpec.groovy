@@ -150,6 +150,28 @@ class RevapiSpec extends IntegrationSpec {
         runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "fight me")
     }
 
+    def 'revapiAcceptAllBreaks succeeds when there are no breaking changes with configurable version prefix'() {
+        when:
+        buildFile << """
+            apply plugin: '${TestConstants.PLUGIN_NAME}'
+            apply plugin: 'java-library'
+
+            repositories {
+                mavenCentral()
+            }
+
+            revapi {
+                oldGroup = 'org.mnode.ical4j'
+                oldName = 'ical4j'
+                oldVersionPrefix = 'ical4j-'
+                oldVersion = '3.0.28'
+            }
+        """.stripIndent()
+
+        then:
+        runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "fight me")
+    }
+
     def 'does not error out when project has a version greater than the "old version"'() {
         def revapi = 'revapi'
 
