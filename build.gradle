@@ -2,8 +2,8 @@ import java.util.stream.Collectors
 
 buildscript {
     repositories {
-        gradlePluginPortal()
-        mavenCentral()
+        gradlePluginPortal() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+        mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
     }
 
     dependencies {
@@ -21,7 +21,7 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
+    mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
 }
 
 group 'com.palantir.gradle.revapi'
