@@ -50,9 +50,13 @@ final class GitVersionUtils {
 
         GitResult describeResult = execute(project, "git", "describe", "--tags", "--abbrev=0", beforeLastRef);
 
-        if (describeResult.stderr().contains("No tags can describe")
-                || describeResult.stderr().contains("No names found, cannot describe anything")) {
-            return Optional.empty();
+        if (describeResult.exitCode() != 0) {
+            GitResult alwaysDescribeResult =
+                    execute(project, "git", "describe", "--always", "--tags", "--abbrev=0", beforeLastRef);
+            if (alwaysDescribeResult.exitCode() == 0) {
+                // 'No tags can describe' or 'No names found, cannot describe anything'
+                return Optional.empty();
+            }
         }
 
         return Optional.of(describeResult.stdoutOrThrowIfNonZero());
