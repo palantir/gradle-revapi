@@ -1,9 +1,9 @@
 # Run ./gradlew --write-locks to regenerate this file
-com.fasterxml.jackson.core:jackson-annotations:2.13.3 (1 constraints: 89123821)
-com.fasterxml.jackson.core:jackson-core:2.13.3 (3 constraints: 55402171)
-com.fasterxml.jackson.core:jackson-databind:2.13.3 (3 constraints: 0733bbe3)
-com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3 (1 constraints: 3b053b3b)
-com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.3 (1 constraints: 3b053b3b)
+com.fasterxml.jackson.core:jackson-annotations:2.13.4 (1 constraints: 8a123921)
+com.fasterxml.jackson.core:jackson-core:2.13.4 (3 constraints: 5840e271)
+com.fasterxml.jackson.core:jackson-databind:2.13.4.1 (3 constraints: 6933101f)
+com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4 (1 constraints: 3c053c3b)
+com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.13.4 (1 constraints: 3c053c3b)
 com.google.code.findbugs:jsr305:3.0.2 (1 constraints: 170aecb4)
 com.google.errorprone:error_prone_annotations:2.11.0 (1 constraints: 460a32bf)
 com.google.guava:failureaccess:1.0.1 (1 constraints: 140ae1b4)
@@ -21,7 +21,7 @@ org.revapi:revapi-java:0.19.1 (1 constraints: 3d053f3b)
 org.revapi:revapi-java-spi:0.18.1 (1 constraints: 5f0a1ac2)
 org.revapi:revapi-reporter-text:0.10.1 (1 constraints: 3405243b)
 org.slf4j:slf4j-api:1.7.5 (2 constraints: 8016611d)
-org.yaml:snakeyaml:1.30 (1 constraints: 6c17f527)
+org.yaml:snakeyaml:1.31 (1 constraints: 6d17f627)
 
 [Test dependencies]
 cglib:cglib-nodep:3.2.2 (1 constraints: 490ded24)
