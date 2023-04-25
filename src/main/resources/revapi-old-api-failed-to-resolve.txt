@@ -1,4 +1,4 @@
-Failed to resolve old API, meaning revapi cannot use it tofind API/ABI breaks. This usually happens when the last
+Failed to resolve old API, meaning revapi cannot use it to find API/ABI breaks. This usually happens when the last
 release was git tagged correctly but the publish build was not successful. If this is the case, there are two options:
 
 1) Ideally: Retrigger the publish build to ensure the API is published.
