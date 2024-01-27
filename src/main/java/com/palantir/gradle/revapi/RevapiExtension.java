@@ -92,7 +92,7 @@ public class RevapiExtension {
             // Gradle can't cache lambdas
             return new VersionFilter() {
                 @Override
-                public boolean test(final String version) {
+                public boolean test(final String _version) {
                     return true;
                 }
             };
