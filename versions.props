@@ -1,6 +1,6 @@
 com.fasterxml.jackson.core:jackson-databind = 2.14.2
 com.netflix.nebula:nebula-test = 10.0.0
-org.junit:junit-bom = 5.10.1
+org.junit:junit-bom = 5.10.2
 org.revapi:revapi-basic-features = 0.8.1
 org.revapi:revapi-java = 0.19.1
 org.revapi:revapi-reporter-text = 0.10.1
