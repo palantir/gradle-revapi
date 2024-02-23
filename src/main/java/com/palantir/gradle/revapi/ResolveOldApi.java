@@ -58,10 +58,14 @@ final class ResolveOldApi {
             return Optional.empty();
         }
 
+        RevapiExtension.VersionFilter filter = extension.getOldVersionsFilter().get();
         GroupAndName oldGroupAndName = extension.oldGroupAndName().get();
 
         Map<Version, CouldNotResolveOldApiException> exceptionsPerVersion = new LinkedHashMap<>();
         for (String oldVersionString : oldVersionStrings) {
+            if (!filter.test(oldVersionString)) {
+                continue;
+            }
             GroupNameVersion oldGroupNameVersion = possiblyReplacedOldVersionFor(
                     config, oldGroupAndName.withVersion(Version.fromString(oldVersionString)));
 

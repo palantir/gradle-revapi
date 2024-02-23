@@ -20,6 +20,7 @@ import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.util.Collections;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
@@ -32,6 +33,7 @@ public class RevapiExtension {
     private final Property<String> oldName;
     private final ListProperty<String> oldVersions;
     private final Provider<GroupAndName> oldGroupAndName;
+    private final Property<VersionFilter> oldVersionsFilter;
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
@@ -45,6 +47,8 @@ public class RevapiExtension {
         this.oldVersions.set(project.getProviders()
                 .provider(
                         () -> GitVersionUtils.previousGitTags(project).limit(3).collect(Collectors.toList())));
+        this.oldVersionsFilter = project.getObjects().property(VersionFilter.class);
+        this.oldVersionsFilter.convention(VersionFilter.passThrough());
 
         this.oldGroupAndName = project.provider(() ->
                 GroupAndName.builder().group(oldGroup.get()).name(oldName.get()).build());
@@ -62,6 +66,10 @@ public class RevapiExtension {
         return oldVersions;
     }
 
+    public Property<VersionFilter> getOldVersionsFilter() {
+        return oldVersionsFilter;
+    }
+
     public void setOldVersion(String oldVersionValue) {
         oldVersions.set(Collections.singletonList(oldVersionValue));
     }
@@ -74,5 +82,20 @@ public class RevapiExtension {
 
     Provider<GroupAndName> oldGroupAndName() {
         return oldGroupAndName;
+    }
+
+    /**
+     * Filters old versions before considering them. Any 'v' prefix will be stripped before testing.
+     */
+    public interface VersionFilter extends Predicate<String> {
+        static VersionFilter passThrough() {
+            // Gradle can't cache lambdas
+            return new VersionFilter() {
+                @Override
+                public boolean test(final String _version) {
+                    return true;
+                }
+            };
+        }
     }
 }
