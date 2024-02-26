@@ -7,6 +7,7 @@ buildscript {
     }
 
     dependencies {
+        classpath 'com.palantir.gradle.failure-reports:gradle-failure-reports:1.6.0'
         classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.11.0'
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.32.0'
@@ -33,6 +34,7 @@ apply plugin: 'java-gradle-plugin'
 apply plugin: 'java-library'
 apply plugin: 'groovy'
 apply plugin: 'com.palantir.external-publish-jar'
+apply plugin: 'com.palantir.failure-reports'
 
 sourceCompatibility = 1.8
 
