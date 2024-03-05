@@ -39,7 +39,7 @@ runtime. An example from [Tritium](https://github.com/palantir/tritium) is where
 [method was changed from a `Map` to a `SortedMap`](https://github.com/palantir/tritium/pull/272#issuecomment-496526307).
 This compiles against direct dependencies but transitive dependencies using the older API
 would produce a `NoSuchMethodError` at runtime, which has caused a number of problems in production code. Similarly,
-there was a covariant return type change to `docker-compose-rule` (`ImmtuableDockerComposeRule` -> `DockerComposeRule`)
+there was a covariant return type change to `docker-compose-rule` (`ImmutableDockerComposeRule` -> `DockerComposeRule`)
 which [caused ABI breaks in `docker-proxy-rule`](https://github.com/palantir/docker-proxy-rule/releases/tag/0.8.0),
 among projects.
 
