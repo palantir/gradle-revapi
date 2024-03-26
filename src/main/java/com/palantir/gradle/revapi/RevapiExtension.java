@@ -25,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.resources.TextResource;
 
 @SuppressWarnings("DesignForExtension")
 public class RevapiExtension {
@@ -32,6 +33,7 @@ public class RevapiExtension {
     private final Property<String> oldName;
     private final ListProperty<String> oldVersions;
     private final Provider<GroupAndName> oldGroupAndName;
+    private TextResource config;
 
     public RevapiExtension(Project project) {
         this.oldGroup = project.getObjects().property(String.class);
@@ -74,5 +76,13 @@ public class RevapiExtension {
 
     Provider<GroupAndName> oldGroupAndName() {
         return oldGroupAndName;
+    }
+
+    public TextResource getConfig() {
+        return config;
+    }
+
+    public void setConfig(TextResource config) {
+        this.config = config;
     }
 }

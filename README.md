@@ -57,6 +57,14 @@ revapi {
 }
 ```
 
+If you want to change the location of the `gradle-revapi` configuration file (default: `.palantir/revapi.yml`), you can do so:
+
+```gradle
+revapi {
+    config = resources.text.fromFile("path/to/revapi.yml")
+}
+```
+
 ### Accepting breaks
 
 Sometimes you may wish to break your API, or feel that the particular API break identified by revapi is acceptable to
@@ -104,7 +112,7 @@ use the
 ./gradle revapiVersionOverride --replacement-version <last-published-version>
 ```
 
-task to use correctly published version instead. This will creare an entry in `.palantir/revapi.yml` of the following
+task to use correctly published version instead. This will creare an entry in the `gradle-revapi` configuration file (default: `.palantir/revapi.yml`) of the following
 format:
 
 ```yml
