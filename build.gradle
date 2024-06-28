@@ -9,16 +9,16 @@ buildscript {
     dependencies {
         classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.11.0'
-        classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.32.0'
+        classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.47.0'
     }
 }
 
 plugins {
     id 'com.gradle.plugin-publish' version '0.21.0'
-    id 'com.palantir.baseline' version '4.13.0'
-id 'com.palantir.consistent-versions' version '2.23.0'
- id 'com.palantir.git-version' version '3.1.0'
-id 'org.inferred.processors' version '3.7.0'
+    id 'com.palantir.baseline' version '5.61.0'
+    id 'com.palantir.consistent-versions' version '2.23.0'
+    id 'com.palantir.git-version' version '3.1.0'
+    id 'org.inferred.processors' version '3.7.0'
 }
 
 repositories {
@@ -71,23 +71,20 @@ test {
 }
 
 gradlePlugin {
-    plugins {
-        revapi {
-            id = 'com.palantir.revapi'
-            implementationClass = 'com.palantir.gradle.revapi.RevapiPlugin'
-        }
-    }
+
 }
 
-pluginBundle {
+gradlePlugin {
     website = 'https://github.com/palantir/gradle-revapi'
     vcsUrl = 'https://github.com/palantir/gradle-revapi'
     description = 'API/ABI backwards compatibility for Java libraries using Revapi'
-    tags = ['versions']
 
     plugins {
         revapi {
+            id = 'com.palantir.revapi'
             displayName = 'API/ABI backwards compatibility for Java libraries using Revapi'
+            implementationClass = 'com.palantir.gradle.revapi.RevapiPlugin'
+            tags.set(['versions'])
         }
     }
 }
