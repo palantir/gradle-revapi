@@ -56,7 +56,7 @@ public interface AcceptedBreak extends Comparable<AcceptedBreak> {
         return comparator().compare(this, other);
     }
 
-    class Builder extends ImmutableAcceptedBreak.Builder {
+    final class Builder extends ImmutableAcceptedBreak.Builder {
         public Builder justification(String justification) {
             justification(Justification.fromString(justification));
             return this;
