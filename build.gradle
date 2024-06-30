@@ -7,34 +7,25 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
+        classpath 'com.gradle.publish:plugin-publish-plugin:1.2.1'
+        classpath 'com.palantir.baseline:gradle-baseline-java:5.61.0'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.23.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.15.0'
+        classpath 'com.palantir.gradle.gitversion:gradle-git-version:3.1.0'
+        classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.32.0'
+        classpath 'gradle.plugin.org.inferred:gradle-processors:3.7.0'
     }
 }
 
-plugins {
-    id 'com.gradle.plugin-publish' version '1.2.1'
-    id 'com.palantir.baseline' version '5.61.0'
-id 'com.palantir.consistent-versions' version '2.23.0'
- id 'com.palantir.git-version' version '3.1.0'
-id 'org.inferred.processors' version '3.7.0'
-}
-
-repositories {
-    mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
-}
-
-group 'com.palantir.gradle.revapi'
-version System.env.CIRCLE_TAG ?: gitVersion()
-
 apply plugin: 'com.palantir.external-publish'
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'java-library'
 apply plugin: 'groovy'
+apply plugin: 'com.palantir.baseline'
+apply plugin: 'com.palantir.git-version'
+apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.external-publish-jar'
-
-sourceCompatibility = 1.8
+apply plugin: 'com.palantir.external-publish-gradle-plugin'
 
 dependencies {
     implementation 'org.revapi:revapi-basic-features'
@@ -62,6 +53,15 @@ dependencies {
 allprojects {
     apply plugin: 'com.palantir.java-format'
     apply plugin: 'com.palantir.jakarta-package-alignment'
+    apply plugin: 'org.inferred.processors'
+
+    repositories {
+        mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+    }
+
+    group 'com.palantir.gradle.revapi'
+    version System.env.CIRCLE_TAG ?: gitVersion()
+    sourceCompatibility = 1.8
 }
 
 test {
@@ -75,6 +75,8 @@ gradlePlugin {
         revapi {
             id = 'com.palantir.revapi'
             implementationClass = 'com.palantir.gradle.revapi.RevapiPlugin'
+            description = 'API/ABI backwards compatibility for Java libraries using Revapi'
+            displayName = 'API/ABI backwards compatibility for Java libraries using Revapi'
         }
     }
 }
@@ -83,13 +85,7 @@ pluginBundle {
     website = 'https://github.com/palantir/gradle-revapi'
     vcsUrl = 'https://github.com/palantir/gradle-revapi'
     description = 'API/ABI backwards compatibility for Java libraries using Revapi'
-    tags = ['versions']
-
-    plugins {
-        revapi {
-            displayName = 'API/ABI backwards compatibility for Java libraries using Revapi'
-        }
-    }
+    tags = ['java', 'versions']
 }
 
 tasks.named('processResources').configure {
