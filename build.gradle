@@ -26,6 +26,7 @@ apply plugin: 'com.palantir.git-version'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
+apply plugin: 'com.palantir.baseline-java-versions'
 
 dependencies {
     implementation 'org.revapi:revapi-basic-features'
@@ -61,7 +62,6 @@ allprojects {
 
     group 'com.palantir.gradle.revapi'
     version System.env.CIRCLE_TAG ?: gitVersion()
-    sourceCompatibility = 1.8
 }
 
 test {
@@ -98,4 +98,8 @@ publishPlugins.onlyIf {
 }
 project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
 project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
+
+javaVersions {
+    libraryTarget = 11
+}
 
