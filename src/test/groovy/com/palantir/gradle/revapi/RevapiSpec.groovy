@@ -26,6 +26,7 @@ class RevapiSpec extends IntegrationSpec {
     private Git git
 
     def setup() {
+        System.setProperty("ignoreDeprecations", "true")
         git = new Git(projectDir)
     }
 
