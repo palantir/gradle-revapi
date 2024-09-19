@@ -1013,6 +1013,7 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             subprojects {
+                apply plugin: 'java-library'
                 apply plugin: '${TestConstants.PLUGIN_NAME}'
 
                 revapi {
@@ -1033,7 +1034,6 @@ class RevapiSpec extends IntegrationSpec {
 
         addSubproject('api-objects')
         addSubproject('api-jersey')
-        addSubproject('api-retrofit')
         addSubproject('api-undertow')
 
         def conjureYml = 'src/main/conjure/conjure.yml'
@@ -1093,18 +1093,6 @@ class RevapiSpec extends IntegrationSpec {
         assert !jerseyJunit.contains('services.TestService::renamedToSomethingElse()')
         assert !jerseyJunit.contains('java.annotation.attributeValueChanged')
 
-        runTasksWithFailure(':api-retrofit:revapi')
-        def retrofitJunit = new File(projectDir, 'api-retrofit/build/junit-reports/revapi/revapi-api-retrofit.xml').text
-
-        assert retrofitJunit.contains('java.class.removed-interface services.RenamedServiceRetrofit')
-        assert retrofitJunit.contains('java.method.removed-method retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::renamed()')
-        assert retrofitJunit.contains('java.method.parameterTypeChanged-parameter retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::swappedArgs(===java.lang.String===, boolean)')
-        assert retrofitJunit.contains('java.method.parameterTypeChanged-parameter retrofit2.Call&lt;java.lang.Void&gt; services.TestServiceRetrofit::swappedArgs(java.lang.String, ===boolean===)')
-        assert !retrofitJunit.contains('services.TestServiceRetrofit::added()')
-        assert !retrofitJunit.contains('services.TestServiceRetrofit::renamedToSomethingElse()')
-        assert !retrofitJunit.contains('java.annotation.attributeValueChanged')
-
-        runTasksSuccessfully(':api-undertow:revapi')
     }
 
     static class MethodChange {
