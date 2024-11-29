@@ -33,6 +33,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.resources.TextResource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -50,7 +51,7 @@ public final class RevapiPlugin implements Plugin<Project> {
 
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
-        ConfigManager configManager = new ConfigManager(configFile(project));
+        ConfigManager configManager = new ConfigManager(configFile(project, extension));
 
         Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
@@ -173,8 +174,12 @@ public final class RevapiPlugin implements Plugin<Project> {
                         .collect(Collectors.toSet()));
     }
 
-    private static File configFile(Project project) {
-        return new File(project.getRootDir(), ".palantir/revapi.yml");
+    private static File configFile(Project project, RevapiExtension extension) {
+        TextResource config = extension.getConfig();
+        if (config == null) {
+            return new File(project.getRootDir(), ".palantir/revapi.yml");
+        }
+        return config.asFile();
     }
 
     private File junitOutput(Project project) {

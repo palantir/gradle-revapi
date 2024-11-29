@@ -1,0 +1,5 @@
+type: feature
+fix:
+  description: add config parameter to RevapiExtension
+  links:
+  - https://github.com/palantir/gradle-revapi/pull/650
