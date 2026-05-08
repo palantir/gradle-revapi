@@ -8,10 +8,12 @@ buildscript {
 
     dependencies {
         classpath 'com.gradle.publish:plugin-publish-plugin:1.2.1'
-        classpath 'com.palantir.baseline:gradle-baseline-java:5.61.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:5.69.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.23.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.15.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:3.1.0'
+        classpath 'com.palantir.gradle.jdks:gradle-jdks:0.79.0'
+        classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.26.0'
         classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.32.0'
         classpath 'gradle.plugin.org.inferred:gradle-processors:3.7.0'
@@ -26,6 +28,8 @@ apply plugin: 'com.palantir.git-version'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
+apply plugin: 'com.palantir.jdks'
+apply plugin: 'com.palantir.jdks.latest'
 
 dependencies {
     implementation 'org.revapi:revapi-basic-features'
@@ -71,21 +75,22 @@ test {
 }
 
 gradlePlugin {
+    website = 'https://github.com/palantir/gradle-revapi'
+    vcsUrl = 'https://github.com/palantir/gradle-revapi'
+
     plugins {
         revapi {
             id = 'com.palantir.revapi'
             implementationClass = 'com.palantir.gradle.revapi.RevapiPlugin'
             description = 'API/ABI backwards compatibility for Java libraries using Revapi'
             displayName = 'API/ABI backwards compatibility for Java libraries using Revapi'
+            tags.set(['java', 'versions'])
         }
     }
 }
 
-pluginBundle {
-    website = 'https://github.com/palantir/gradle-revapi'
-    vcsUrl = 'https://github.com/palantir/gradle-revapi'
-    description = 'API/ABI backwards compatibility for Java libraries using Revapi'
-    tags = ['java', 'versions']
+jdks {
+    daemonTarget = 21
 }
 
 tasks.named('processResources').configure {
