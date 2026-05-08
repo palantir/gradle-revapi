@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palantir.gradle.revapi.config.GradleRevapiConfig;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.UnaryOperator;
 
 final class ConfigManager {
@@ -45,7 +46,7 @@ final class ConfigManager {
             try {
                 OBJECT_MAPPER.writeValue(configFile, newGradleRevapiConfig);
             } catch (IOException e) {
-                throw new RuntimeException("Failed to modify revapi config file: " + configFile, e);
+                throw new UncheckedIOException("Failed to modify revapi config file: " + configFile, e);
             }
         }
     }
@@ -60,7 +61,7 @@ final class ConfigManager {
                 return OBJECT_MAPPER.readValue(configFile, GradleRevapiConfig.class);
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read revapi config file: " + configFile, e);
+            throw new UncheckedIOException("Failed to read revapi config file: " + configFile, e);
         }
     }
 }

@@ -55,6 +55,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
 
+        @SuppressWarnings("for-rollout:deprecation")
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     // Creating a new configuration instead of using compileClasspath in order to ensure that we
@@ -102,9 +103,10 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.getOldApiJars()
                             .set(maybeOldApi.map(oldApi ->
                                     oldApi.map(OldApi::jars).map(project::files).orElseGet(project::files)));
-                    task.getOldApiDependencyJars().set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::dependencyJars)
-                            .map(project::files)
-                            .orElseGet(project::files)));
+                    task.getOldApiDependencyJars()
+                            .set(maybeOldApi.map(oldApi -> oldApi.map(OldApi::dependencyJars)
+                                    .map(project::files)
+                                    .orElseGet(project::files)));
 
                     task.getAnalysisResultsFile().set(new File(project.getBuildDir(), "revapi/revapi-results.json"));
 
@@ -158,7 +160,8 @@ public final class RevapiPlugin implements Plugin<Project> {
     static Provider<Set<Jar>> allJarTasksIncludingDependencies(Project project, Configuration configuration) {
         // Provider so that we don't resolve the configuration at compile time, which is bad for gradle performance
         return GradleUtils.memoisedProvider(
-                project, () -> configuration.getIncoming().getResolutionResult().getAllComponents().stream()
+                project,
+                () -> configuration.getIncoming().getResolutionResult().getAllComponents().stream()
                         .map(ComponentResult::getId)
                         .filter(resolvedComponentResult ->
                                 resolvedComponentResult instanceof ProjectComponentIdentifier)
@@ -179,6 +182,7 @@ public final class RevapiPlugin implements Plugin<Project> {
 
     private File junitOutput(Project project) {
         Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
+        @SuppressWarnings("for-rollout:deprecation")
         File reportsDir = circleReportsDir.map(File::new).orElseGet(project::getBuildDir);
         return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
     }
