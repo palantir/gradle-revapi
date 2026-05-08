@@ -25,6 +25,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.palantir.gradle.revapi.config.AcceptedBreak;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,7 @@ abstract class RevapiConfig {
         try {
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(config());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -102,7 +103,7 @@ abstract class RevapiConfig {
         try {
             return fromJsonNodes(OBJECT_MAPPER.readValue(configJson, new TypeReference<List<JsonNode>>() {}));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

@@ -93,6 +93,7 @@ public abstract class GradleRevapiConfig {
                 new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)));
     }
 
+    @SuppressWarnings("for-rollout:deprecation")
     public static ObjectMapper newJsonObjectMapper() {
         return configureObjectMapper(new ObjectMapper()).enable(JsonParser.Feature.ALLOW_TRAILING_COMMA);
     }

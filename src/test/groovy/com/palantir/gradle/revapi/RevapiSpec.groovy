@@ -26,7 +26,7 @@ class RevapiSpec extends IntegrationSpec {
     private Git git
 
     def setup() {
-        //System.setProperty("ignoreDeprecations", "true")
+        System.setProperty("ignoreDeprecations", "true")
         git = new Git(projectDir)
     }
 
@@ -49,7 +49,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'revapi'
                 oldVersion = '0.11.1'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs("root-project")
 
@@ -59,7 +59,7 @@ class RevapiSpec extends IntegrationSpec {
             public interface Foo {
                 StreamEx<String> lol();
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         then:
         runRevapiExpectingToFindDifferences("root-project")
@@ -80,7 +80,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'empty-jar'
                 oldVersion = '1.7.7'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         then:
         runTasksSuccessfully("revapi")
@@ -111,11 +111,11 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """.stripIndent()
+        """.stripIndent(true)
 
         writeToFile 'src/main/java/foo/Foo.java', '''
             public class Foo extends org.junit.rules.ExternalResource { }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         println runTasksSuccessfully("publish").standardOutput
 
@@ -145,7 +145,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'empty-jar'
                 oldVersion = '1.7.7'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         then:
         runTasksSuccessfully("revapiAcceptAllBreaks", "--justification", "fight me")
@@ -169,7 +169,7 @@ class RevapiSpec extends IntegrationSpec {
             revapi {
                 oldVersion = '0.11.1'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs(revapi)
 
@@ -178,7 +178,7 @@ class RevapiSpec extends IntegrationSpec {
             public interface Foo {
                 String lol();
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         then:
         runRevapiExpectingToFindDifferences(revapi)
@@ -199,7 +199,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'revapi'
                 oldVersion = 'does-not-exist'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs("root-project")
 
@@ -225,7 +225,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'revapi'
                 oldVersion = 'does-not-exist'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs("root-project")
 
@@ -248,7 +248,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'revapi'
                 oldVersions = []
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         then:
         def executionResult = runTasksSuccessfully('revapi')
@@ -264,7 +264,7 @@ class RevapiSpec extends IntegrationSpec {
             .gradle*/
             build/
             mavenRepo/
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs 'name'
 
@@ -282,14 +282,14 @@ class RevapiSpec extends IntegrationSpec {
    
             ${mavenRepoGradle()}
             ${testMavenPublication()}
-        """.stripIndent()
+        """.stripIndent(true)
 
         def javaFile = 'src/main/java/foo/Foo.java'
         writeToFile javaFile, """
             public interface Foo {
                 String willBeRemoved();
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         git.command 'git add .'
         git.command 'git commit -m 0.1.0'
@@ -304,7 +304,7 @@ class RevapiSpec extends IntegrationSpec {
         and:
         writeToFile javaFile, """
             public interface Foo { }
-        """.stripIndent()
+        """.stripIndent(true)
 
         git.command 'git commit -am new-work'
 
@@ -360,7 +360,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'exist'
                 oldVersion = '1.0.0'
             }
-        """.stripIndent()
+        """.stripIndent(true)
     }
 
     def 'handles the output of extra source sets being added to compile configuration'() {
@@ -386,7 +386,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'revapi'
                 oldVersion = '0.11.1'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs("root-project")
 
@@ -409,7 +409,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'junit'
                 oldVersion = '4.12'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs("root-project")
         File revapiYml = new File(getProjectDir(), ".palantir/revapi.yml")
@@ -432,7 +432,7 @@ class RevapiSpec extends IntegrationSpec {
             repositories {
                 mavenCentral()
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         rootProjectNameIs("root-project")
 
@@ -482,7 +482,7 @@ class RevapiSpec extends IntegrationSpec {
 
                 ${testMavenPublication()}
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         def one = addSubproject 'one', """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
@@ -494,14 +494,14 @@ class RevapiSpec extends IntegrationSpec {
             revapi {
                 oldVersion = project.version
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         def two = addSubproject 'two'
 
         def originalJavaFile = writeToFile one, 'src/main/java/foo/Foo.java', '''
             package foo;
             public interface Foo {}
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         when:
         println runTasksSuccessfully("publish").standardOutput
@@ -533,7 +533,7 @@ class RevapiSpec extends IntegrationSpec {
 
                 ${testMavenPublication()}
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         def one = addSubproject 'one', """
             apply plugin: '${TestConstants.PLUGIN_NAME}'
@@ -545,14 +545,14 @@ class RevapiSpec extends IntegrationSpec {
             revapi {
                 oldVersion = project.version
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         writeToFile one, 'src/main/java/foo/Bar.java', '''
             package foo;
             public interface Bar {
                 Foo bar();
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         def two = addSubproject 'two'
 
@@ -560,7 +560,7 @@ class RevapiSpec extends IntegrationSpec {
             package foo;
             public interface Foo {
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         and:
         println runTasksSuccessfully("publish").standardOutput
@@ -597,7 +597,7 @@ class RevapiSpec extends IntegrationSpec {
             revapi {
                 oldVersion = project.version
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         writeToFile 'src/main/java/foo/Foo.java', '''
             package foo;
@@ -627,7 +627,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'chill-avro_2.12'
                 oldVersion = '0.9.3'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         then:
         runTasksSuccessfully("revapi")
@@ -656,12 +656,12 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """.stripIndent()
+        """.stripIndent(true)
 
         writeToFile 'src/main/groovy/foo/Foo.groovy', '''
             package foo
             class Foo {}
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         println runTasksSuccessfully("publish").standardOutput
 
@@ -692,7 +692,7 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """.stripIndent()
+        """.stripIndent(true)
 
         def groovyFile = 'src/main/groovy/foo/Foo.groovy'
 
@@ -701,7 +701,7 @@ class RevapiSpec extends IntegrationSpec {
             class Foo {
                 String someProperty
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         println runTasksSuccessfully("publish").standardOutput
 
@@ -709,7 +709,7 @@ class RevapiSpec extends IntegrationSpec {
         writeToFile groovyFile, '''
             package foo
             class Foo { }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         then:
         def stderr = runRevapiExpectingFailure()
@@ -761,7 +761,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'empty-jar'
                 oldVersion = '1.7.7'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         then:
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
@@ -783,7 +783,7 @@ class RevapiSpec extends IntegrationSpec {
                 oldName = 'empty-jar'
                 oldVersion = '1.7.7'
             }
-        """.stripIndent()
+        """.stripIndent(true)
 
         String javaFile = 'src/main/java/foo/Foo.java'
         writeToFile javaFile, '''
@@ -791,7 +791,7 @@ class RevapiSpec extends IntegrationSpec {
                 public void publicMethod() {}
                 private void privateMethod() {}
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         then:
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
@@ -801,7 +801,7 @@ class RevapiSpec extends IntegrationSpec {
                 public void publicMethod() {}
                 private void privateMethodRenamed() {}
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         runTasksSuccessfully('revapi').wasUpToDate('revapiAnalyze')
 
@@ -810,7 +810,7 @@ class RevapiSpec extends IntegrationSpec {
                 public void publicMethodRenamed() {}
                 private void privateMethodRenamed() {}
             }
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         runTasksSuccessfully('revapi').wasExecuted('revapiAnalyze')
     }
@@ -836,13 +836,13 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """.stripIndent()
+        """.stripIndent(true)
 
         def shadowedClass = 'src/main/java/shadow/com/palantir/foo/Bar.java'
         writeToFile shadowedClass, '''
             package shadow.com.palantir.foo;
             public class Bar {}
-        '''.stripIndent()
+        '''.stripIndent(true)
 
         and:
         println runTasksSuccessfully('publish').standardOutput
@@ -883,7 +883,7 @@ class RevapiSpec extends IntegrationSpec {
             }
             
             ${testMavenPublication()}
-        """.stripIndent()
+        """.stripIndent(true)
 
         def methodChanges = [
                 new MethodChange(
@@ -946,7 +946,7 @@ class RevapiSpec extends IntegrationSpec {
                 @Value.Immutable
                 @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
                 public abstract class Foo {
-            '''.stripIndent()
+            '''.stripIndent(true)
 
             methodChanges.forEach({ methodChange -> immutablesClassText
                     .append('    ')
@@ -955,7 +955,7 @@ class RevapiSpec extends IntegrationSpec {
 
             immutablesClassText.append '''
                 }
-            '''.stripIndent()
+            '''.stripIndent(true)
 
             writeToFile 'src/main/java/foo/Foo.java', immutablesClassText.toString()
         }
@@ -1053,7 +1053,7 @@ class RevapiSpec extends IntegrationSpec {
                     args:
                       one: string
                       two: boolean
-        """.stripIndent()
+        """.stripIndent(true)
 
         and:
         runTasksSuccessfully('compileConjure', 'publish')
@@ -1077,7 +1077,7 @@ class RevapiSpec extends IntegrationSpec {
                     args:
                       two: boolean
                       one: string
-        """.stripIndent()
+        """.stripIndent(true)
 
         runTasksSuccessfully('compileConjure')
 
