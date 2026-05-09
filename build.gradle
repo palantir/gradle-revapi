@@ -22,7 +22,6 @@ buildscript {
         classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.90.0'
         classpath 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.21.0'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:3.7.0'
     }
 }
 
@@ -67,7 +66,6 @@ dependencies {
 allprojects {
     apply plugin: 'com.palantir.java-format'
     apply plugin: 'com.palantir.jakarta-package-alignment'
-    apply plugin: 'org.inferred.processors'
 
     repositories {
         mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
