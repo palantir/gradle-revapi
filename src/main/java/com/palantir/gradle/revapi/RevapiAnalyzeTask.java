@@ -42,21 +42,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @CacheableTask
-public class RevapiAnalyzeTask extends DefaultTask {
+public abstract class RevapiAnalyzeTask extends DefaultTask {
     private static final Logger log = LoggerFactory.getLogger(RevapiAnalyzeTask.class);
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final SetProperty<AcceptedBreak> acceptedBreaks =
             getProject().getObjects().setProperty(AcceptedBreak.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<FileCollection> newApiJars =
             getProject().getObjects().property(FileCollection.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<FileCollection> newApiDependencyJars =
             getProject().getObjects().property(FileCollection.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<FileCollection> jarsToReportBreaks =
             getProject().getObjects().property(FileCollection.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<FileCollection> oldApiJars =
             getProject().getObjects().property(FileCollection.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<FileCollection> oldApiDependencyJars =
             getProject().getObjects().property(FileCollection.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty analysisResultsFile =
             getProject().getObjects().fileProperty();
 
@@ -110,6 +123,7 @@ public class RevapiAnalyzeTask extends DefaultTask {
                 .withTransforms(CheckWhitelist.class, ImmutablesFilter.class)
                 .build();
 
+        @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
         RevapiConfig revapiConfig = RevapiConfig.mergeAll(
                 RevapiConfig.defaults(jarsToReportBreaks.get()),
                 RevapiConfig.empty()
