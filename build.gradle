@@ -2,8 +2,8 @@ import java.util.stream.Collectors
 
 buildscript {
     repositories {
-        mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
-        gradlePluginPortal() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+        mavenCentral()
+        gradlePluginPortal()
     }
 
     dependencies {
