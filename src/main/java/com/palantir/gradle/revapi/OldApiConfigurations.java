@@ -39,6 +39,7 @@ final class OldApiConfigurations {
         String transitivityString = transitive ? "_transitive" : "";
         String configurationName = "revapiOldApi_" + groupNameVersion.version().asString() + transitivityString;
 
+        @SuppressWarnings("for-rollout:ConfigurationAvoidanceRegistration")
         Configuration oldApiConfiguration = project.getConfigurations().create(configurationName, conf -> {
             conf.getDependencies().add(oldApiDependency);
             conf.setCanBeConsumed(false);
