@@ -98,6 +98,7 @@ public abstract class GradleRevapiConfig {
         return configureObjectMapper(new ObjectMapper()).enable(JsonParser.Feature.ALLOW_TRAILING_COMMA);
     }
 
+    @SuppressWarnings("for-rollout:deprecation")
     private static ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
         return objectMapper.registerModule(new Jdk8Module()).setSerializationInclusion(Include.NON_EMPTY);
     }
