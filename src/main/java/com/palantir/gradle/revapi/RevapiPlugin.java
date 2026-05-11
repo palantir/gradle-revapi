@@ -43,11 +43,13 @@ public final class RevapiPlugin implements Plugin<Project> {
     public static final String ACCEPT_BREAK_TASK_NAME = "revapiAcceptBreak";
     public static final String ACCEPT_ALL_BREAKS_TASK_NAME = "revapiAcceptAllBreaks";
 
+    @SuppressWarnings("for-rollout:TaskDependsOn")
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
+        @SuppressWarnings({"for-rollout:GradleTypesAsFields", "for-rollout:NonAbstractGradleType"})
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         ConfigManager configManager = new ConfigManager(configFile(project));
@@ -61,6 +63,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                     // Creating a new configuration instead of using compileClasspath in order to ensure that we
                     // resolve jars and not classes directories (which is the default unless you set the LibraryElements
                     // attribute)
+                    @SuppressWarnings("for-rollout:ConfigurationAvoidanceRegistration")
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
                                 project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
@@ -69,6 +72,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                         conf.setVisible(false);
                     });
 
+                    @SuppressWarnings("for-rollout:ConfigurationAvoidanceRegistration")
                     Configuration revapiNewApiElements = project.getConfigurations()
                             .create("revapiNewApiElements", conf -> {
                                 conf.extendsFrom(project.getConfigurations()
@@ -113,6 +117,7 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.onlyIf(oldApiIsPresent);
                 });
 
+        @SuppressWarnings("for-rollout:TaskDependsOn")
         TaskProvider<RevapiReportTask> reportTask = project.getTasks()
                 .register("revapi", RevapiReportTask.class, task -> {
                     task.dependsOn(analyzeTask);

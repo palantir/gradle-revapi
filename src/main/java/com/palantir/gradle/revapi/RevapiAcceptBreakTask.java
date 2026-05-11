@@ -27,17 +27,26 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
-public class RevapiAcceptBreakTask extends DefaultTask {
+public abstract class RevapiAcceptBreakTask extends DefaultTask {
     private static final String CODE_OPTION = "code";
     private static final String OLD_OPTION = "old";
     private static final String NEW_OPTION = "new";
     private static final String JUSTIFICATION_OPTION = "justification";
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<ConfigManager> configManager =
             getProject().getObjects().property(ConfigManager.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> code = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> oldElement = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> newElement = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<Justification> justification =
             getProject().getObjects().property(Justification.class);
 
@@ -93,6 +102,7 @@ public class RevapiAcceptBreakTask extends DefaultTask {
         }
     }
 
+    @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
     private GroupNameVersion oldGroupNameVersion() {
         return getProject().getExtensions().getByType(RevapiExtension.class).oldGroupNameVersion();
     }

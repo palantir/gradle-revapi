@@ -29,16 +29,22 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 
-public class RevapiAcceptAllBreaksTask extends DefaultTask {
+public abstract class RevapiAcceptAllBreaksTask extends DefaultTask {
     public static final String JUSTIFICATION = "justification";
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<ConfigManager> configManager =
             getProject().getObjects().property(ConfigManager.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<GroupNameVersion> oldGroupNameVersion =
             getProject().getObjects().property(GroupNameVersion.class);
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty analysisResultsFile =
             getProject().getObjects().fileProperty();
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<Justification> justification =
             getProject().getObjects().property(Justification.class);
 
