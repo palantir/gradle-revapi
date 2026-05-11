@@ -77,9 +77,6 @@ class RevapiTest {
     void revapi_task_succeeds_when_there_are_no_breaking_changes(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
 
             revapi {
                 oldGroup = 'org.codehaus.cargo'
