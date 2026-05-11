@@ -102,13 +102,13 @@ com.palantir.gradle.failure-reports:gradle-failure-reports-exceptions:1.2.0 (1 c
 
 com.palantir.gradle.gitversion:gradle-git-version:3.1.0 (1 constraints: 0605fd35)
 
-com.palantir.gradle.plugintesting:configuration-cache-spec:0.69.0 (1 constraints: 4105523b)
+com.palantir.gradle.plugintesting:configuration-cache-spec:0.71.0 (1 constraints: 3a053e3b)
 
-com.palantir.gradle.plugintesting:discover-tests-cli:0.69.0 (1 constraints: 4105523b)
+com.palantir.gradle.plugintesting:discover-tests-cli:0.71.0 (1 constraints: 3a053e3b)
 
-com.palantir.gradle.plugintesting:gradle-plugin-testing-junit:0.69.0 (1 constraints: 4105523b)
+com.palantir.gradle.plugintesting:gradle-plugin-testing-junit:0.71.0 (1 constraints: 3a053e3b)
 
-com.palantir.gradle.plugintesting:plugin-testing-core:0.69.0 (2 constraints: 1e1f448f)
+com.palantir.gradle.plugintesting:plugin-testing-core:0.71.0 (2 constraints: 101f2b8d)
 
 com.palantir.gradle.utils:environment-variables:0.7.0 (1 constraints: f41192f7)
 
@@ -134,7 +134,7 @@ com.palantir.sls.versions:sls-versions:1.5.0 (2 constraints: 452da27f)
 
 com.palantir.tritium:tritium-registry:0.90.0 (1 constraints: 7f1ca4a4)
 
-commons-io:commons-io:2.21.0 (2 constraints: fa2b9bf1)
+commons-io:commons-io:2.22.0 (2 constraints: fb2b9ef1)
 
 commons-lang:commons-lang:2.6 (1 constraints: 6311bad1)
 

@@ -19,16 +19,15 @@ package com.palantir.gradle.revapi;
 import static com.palantir.gradle.testing.assertion.GradlePluginTestAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.gradle.revapi.utils.GitUtils;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.files.java.JavaFile;
+import com.palantir.gradle.testing.git.Git;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.maven.MavenRepo;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
@@ -596,10 +595,7 @@ class RevapiTest {
 
     @Test
     void when_the_previous_git_tag_has_failed_to_publish_it_will_look_back_up_to_a_further_git_tag(
-            GradleInvoker gradle, RootProject rootProject, MavenRepo repo) throws IOException, InterruptedException {
-        File projectDir = rootProject.path().toFile();
-        GitUtils.gitInit(projectDir);
-
+            GradleInvoker gradle, RootProject rootProject, MavenRepo repo, Git git) {
         rootProject.file(".gitignore").overwrite("""
             .gradle*/
             build/
@@ -628,20 +624,20 @@ class RevapiTest {
             }
             """);
 
-        GitUtils.runCommands(projectDir, "add", ".");
-        GitUtils.runCommands(projectDir, "commit", "-m", "0.1.0");
-        GitUtils.runCommands(projectDir, "tag", "0.1.0");
+        git.run("add", ".");
+        git.run("commit", "-m", "0.1.0");
+        git.tag("0.1.0");
 
         gradle.withArgs("publish").buildsSuccessfully();
 
-        GitUtils.runCommands(projectDir, "commit", "--allow-empty", "-m", "publish-failed");
-        GitUtils.runCommands(projectDir, "tag", "0.2.0");
+        git.commit("publish-failed");
+        git.tag("0.2.0");
 
         rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
             public interface Foo { }
             """);
 
-        GitUtils.runCommands(projectDir, "commit", "-am", "new-work");
+        git.run("commit", "-am", "new-work");
 
         InvocationResult result = gradle.withArgs("revapi").buildsWithFailure();
         assertThat(result).output().contains("willBeRemoved");
