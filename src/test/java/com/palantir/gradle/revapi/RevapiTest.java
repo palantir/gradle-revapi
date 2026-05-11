@@ -200,10 +200,6 @@ class RevapiTest {
             GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             revapi {
                 oldGroup = 'org.revapi'
                 oldName = 'revapi'
