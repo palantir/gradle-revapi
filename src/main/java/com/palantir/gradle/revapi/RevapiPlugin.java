@@ -43,13 +43,11 @@ public final class RevapiPlugin implements Plugin<Project> {
     public static final String ACCEPT_BREAK_TASK_NAME = "revapiAcceptBreak";
     public static final String ACCEPT_ALL_BREAKS_TASK_NAME = "revapiAcceptAllBreaks";
 
-    @SuppressWarnings("for-rollout:TaskDependsOn")
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        @SuppressWarnings({"for-rollout:GradleTypesAsFields", "for-rollout:NonAbstractGradleType"})
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         ConfigManager configManager = new ConfigManager(configFile(project));
@@ -57,13 +55,11 @@ public final class RevapiPlugin implements Plugin<Project> {
         Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
 
-        @SuppressWarnings("for-rollout:deprecation")
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     // Creating a new configuration instead of using compileClasspath in order to ensure that we
                     // resolve jars and not classes directories (which is the default unless you set the LibraryElements
                     // attribute)
-                    @SuppressWarnings("for-rollout:ConfigurationAvoidanceRegistration")
                     Configuration revapiNewApi = project.getConfigurations().create("revapiNewApi", conf -> {
                         conf.extendsFrom(
                                 project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
@@ -72,7 +68,6 @@ public final class RevapiPlugin implements Plugin<Project> {
                         conf.setVisible(false);
                     });
 
-                    @SuppressWarnings("for-rollout:ConfigurationAvoidanceRegistration")
                     Configuration revapiNewApiElements = project.getConfigurations()
                             .create("revapiNewApiElements", conf -> {
                                 conf.extendsFrom(project.getConfigurations()
@@ -117,7 +112,6 @@ public final class RevapiPlugin implements Plugin<Project> {
                     task.onlyIf(oldApiIsPresent);
                 });
 
-        @SuppressWarnings("for-rollout:TaskDependsOn")
         TaskProvider<RevapiReportTask> reportTask = project.getTasks()
                 .register("revapi", RevapiReportTask.class, task -> {
                     task.dependsOn(analyzeTask);
@@ -187,7 +181,6 @@ public final class RevapiPlugin implements Plugin<Project> {
 
     private File junitOutput(Project project) {
         Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
-        @SuppressWarnings("for-rollout:deprecation")
         File reportsDir = circleReportsDir.map(File::new).orElseGet(project::getBuildDir);
         return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
     }

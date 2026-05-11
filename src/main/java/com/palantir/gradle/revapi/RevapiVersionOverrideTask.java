@@ -26,11 +26,9 @@ import org.gradle.api.tasks.options.Option;
 public abstract class RevapiVersionOverrideTask extends DefaultTask {
     public static final String REPLACEMENT_VERSION_OPTION = "replacement-version";
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<ConfigManager> configManager =
             getProject().getObjects().property(ConfigManager.class);
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> replacementVersion =
             getProject().getObjects().property(String.class);
 
@@ -59,7 +57,6 @@ public abstract class RevapiVersionOverrideTask extends DefaultTask {
                 .modifyConfigFile(config -> config.addVersionOverride(oldGroupNameVersion(), replacementVersion.get()));
     }
 
-    @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
     private GroupNameVersion oldGroupNameVersion() {
         return getProject().getExtensions().getByType(RevapiExtension.class).oldGroupNameVersion();
     }

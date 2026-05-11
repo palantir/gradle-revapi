@@ -33,11 +33,9 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 public abstract class RevapiReportTask extends DefaultTask {
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty analysisResultsFile =
             getProject().getObjects().fileProperty();
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty junitOutputFile =
             getProject().getObjects().fileProperty();
 
@@ -51,7 +49,6 @@ public abstract class RevapiReportTask extends DefaultTask {
         return junitOutputFile;
     }
 
-    @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
     @TaskAction
     public final void reportBreaks() throws Exception {
         AnalysisResults results =

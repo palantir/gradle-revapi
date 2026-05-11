@@ -80,7 +80,6 @@ final class GitVersionUtils {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
-        @SuppressWarnings("for-rollout:deprecation")
         ExecResult execResult = project.exec(spec -> {
             spec.setCommandLine(Arrays.asList(command));
             spec.setStandardOutput(stdout);
