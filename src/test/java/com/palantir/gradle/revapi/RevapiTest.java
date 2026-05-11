@@ -217,10 +217,6 @@ class RevapiTest {
     void skips_revapi_tasks_when_the_versions_to_check_is_empty_list(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             revapi {
                 oldGroup = 'org.revapi'
                 oldName = 'revapi'
