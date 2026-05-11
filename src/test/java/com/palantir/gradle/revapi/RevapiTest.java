@@ -357,10 +357,6 @@ class RevapiTest {
         void setUp(RootProject rootProject) {
             rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
             rootProject.buildGradle().append("""
-                repositories {
-                    mavenCentral()
-                }
-
                 revapi {
                     oldGroup = 'does.not'
                     oldName = 'exist'
