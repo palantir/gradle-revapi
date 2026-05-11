@@ -19,23 +19,20 @@ package com.palantir.gradle.revapi;
 import static com.palantir.gradle.testing.assertion.GradlePluginTestAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.palantir.gradle.revapi.utils.GitUtils;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
-import com.palantir.gradle.testing.files.gradle.GradleFile;
+import com.palantir.gradle.testing.files.java.JavaFile;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.maven.MavenRepo;
 import com.palantir.gradle.testing.project.GradleProject;
 import com.palantir.gradle.testing.project.RootProject;
 import com.palantir.gradle.testing.project.SubProject;
+import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,38 +41,6 @@ import org.junit.jupiter.api.Test;
 @GradlePluginTests
 @DisabledConfigurationCache("revapi plugin is incompatible with configuration cache")
 class RevapiTest {
-
-    private static GradleFile testMavenPublication(GradleProject project, MavenRepo repo) {
-        return project.buildGradle().append("""
-            publishing {
-                publications {
-                    publication(MavenPublication) {
-                        from components.java
-                    }
-                }
-                repositories {
-                    maven { url uri('%s') }
-                }
-            }
-            """, repo.path());
-    }
-
-    private static void configureSharedAllProjectsBlock(RootProject rootProject, MavenRepo repo) {
-        rootProject.buildGradle().append("""
-            allprojects {
-                group = 'revapi.test'
-                version = '1.0.0'
-                repositories {
-                    maven { url uri('%s') }
-                }
-            }
-            """, repo.path());
-    }
-
-    private static void configurePublishingProject(GradleProject project, MavenRepo repo) {
-        project.buildGradle().plugins().add("java-library").add("maven-publish");
-        testMavenPublication(project, repo);
-    }
 
     @Test
     void fails_when_comparing_produced_jar_versus_some_random_other_jar(GradleInvoker gradle, RootProject rootProject) {
@@ -155,7 +120,7 @@ class RevapiTest {
                 oldVersion = project.version
             }
             """, repo.path());
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
             public class Foo extends org.junit.rules.ExternalResource { }
@@ -217,7 +182,6 @@ class RevapiTest {
         runRevapiExpectingToFindDifferences(gradle, rootProject, revapi);
     }
 
-    // errors_out_when_the_old_api_dependency_does_not_exist_but_then_works_once_you_run_the_version_override_task
     @Test
     void errors_out_when_old_api_does_not_exist_but_works_after_version_override(
             GradleInvoker gradle, RootProject rootProject) {
@@ -242,7 +206,6 @@ class RevapiTest {
         runRevapiExpectingToFindDifferences(gradle, rootProject, "root-project");
     }
 
-    // errors_out_when_the_target_dependency_does_not_exist_and_we_do_not_give_an_version_override
     @Test
     void errors_out_when_the_target_dependency_does_not_exist_and_we_do_not_give_an_version_override(
             GradleInvoker gradle, RootProject rootProject) {
@@ -285,12 +248,11 @@ class RevapiTest {
         assertThat(result).task(":revapi").skipped();
     }
 
-    // when_the_previous_git_tag_has_failed_to_publish_it_will_look_back_up_to_a_further_git_tag
     @Test
     void when_the_previous_git_tag_has_failed_to_publish_it_will_look_back_up_to_a_further_git_tag(
-            GradleInvoker gradle, RootProject rootProject, MavenRepo repo) {
-        Git git = new Git(rootProject.path());
-        git.initWithTestUser();
+            GradleInvoker gradle, RootProject rootProject, MavenRepo repo) throws IOException, InterruptedException {
+        File projectDir = rootProject.path().toFile();
+        GitUtils.gitInit(projectDir);
 
         rootProject.file(".gitignore").overwrite("""
             .gradle*/
@@ -312,7 +274,7 @@ class RevapiTest {
             version = gitVersion()
             """);
         rootProject.buildGradle().withMavenRepo(repo);
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
             public interface Foo {
@@ -320,20 +282,20 @@ class RevapiTest {
             }
             """);
 
-        git.command("git add .");
-        git.command("git commit -m 0.1.0");
-        git.command("git tag 0.1.0");
+        GitUtils.runCommands(projectDir, "add", ".");
+        GitUtils.runCommands(projectDir, "commit", "-m", "0.1.0");
+        GitUtils.runCommands(projectDir, "tag", "0.1.0");
 
         gradle.withArgs("publish").buildsSuccessfully();
 
-        git.command("git commit --allow-empty -m publish-failed");
-        git.command("git tag 0.2.0");
+        GitUtils.runCommands(projectDir, "commit", "--allow-empty", "-m", "publish-failed");
+        GitUtils.runCommands(projectDir, "tag", "0.2.0");
 
         rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
             public interface Foo { }
             """);
 
-        git.command("git commit -am new-work");
+        GitUtils.runCommands(projectDir, "commit", "-am", "new-work");
 
         InvocationResult result = gradle.withArgs("revapi").buildsWithFailure();
         assertThat(result).output().contains("willBeRemoved");
@@ -350,7 +312,6 @@ class RevapiTest {
         assertThat(result).task(":revapi").skipped();
     }
 
-    // if_there_are_no_published_versions_of_the_library_at_all_revapiAcceptAllBreaks_is_a_no_op
     @Test
     void if_there_are_no_published_versions_of_the_library_at_all_revapiAcceptAllBreaks_is_a_no_op(
             GradleInvoker gradle, RootProject rootProject) {
@@ -372,32 +333,6 @@ class RevapiTest {
                         "revapiAcceptBreak", "--justification", "foo", "--code", "bar", "--old", "old", "--new", "new")
                 .buildsSuccessfully();
         assertThat(result).task(":revapiAcceptBreak").succeeded();
-    }
-
-    private static void setupUnpublishedLibrary(RootProject rootProject) {
-        rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
-        rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
-            revapi {
-                oldGroup = 'does.not'
-                oldName = 'exist'
-                oldVersion = '1.0.0'
-            }
-            """);
-    }
-
-    private static void writeHelloWorld(RootProject rootProject) {
-        rootProject.mainSourceSet().java().writeClass("""
-            package hello;
-            public class HelloWorld {
-                public static void main(String[] args) {
-                    System.out.println("Hello, World!");
-                }
-            }
-            """);
     }
 
     @Test
@@ -446,16 +381,15 @@ class RevapiTest {
             """);
 
         rootProject.settingsGradle().rootProjectName("root-project");
-        Path revapiYml = rootProject.path().resolve(".palantir/revapi.yml");
 
         rootProject
-                .file(".palantir/revapi.yml")
+                .yamlFile(".palantir/revapi.yml")
                 .assertThat()
                 .as("revapi.yml should not exist yet")
                 .doesNotExist();
         gradle.withArgs("revapiAcceptAllBreaks", "--justification", "it's all good :)")
                 .buildsSuccessfully();
-        assertThat(readString(revapiYml)).contains("java.class.removed");
+        rootProject.yamlFile(".palantir/revapi.yml").assertThat().content().contains("java.class.removed");
 
         gradle.withArgs("revapi").buildsSuccessfully();
     }
@@ -489,7 +423,7 @@ class RevapiTest {
         gradle.withArgs("revapiAcceptBreak", "--code", "code3", "--new", "new3", "--justification", "j3")
                 .buildsSuccessfully();
 
-        String revapiYml = rootProject.file(".palantir/revapi.yml").text();
+        String revapiYml = rootProject.yamlFile(".palantir/revapi.yml").text();
         assertThat(revapiYml)
                 .contains("code: \"code1\"")
                 .contains("old: \"old1\"")
@@ -503,11 +437,11 @@ class RevapiTest {
                 .contains("justification: \"j3\"");
     }
 
-    // moving_a_class_from_one_project_to_a_dependent_project_is_not_a_break_only_if_it_is_in_the_api_configuration
     @Test
     void moving_a_class_from_one_project_to_a_dependent_project_is_not_a_break(
-            GradleInvoker gradle, RootProject rootProject, MavenRepo repo, SubProject one, SubProject two) {
-        configureSharedAllProjectsBlock(rootProject, repo);
+            GradleInvoker gradle, RootProject rootProject, MavenRepo repo, SubProject one, SubProject two)
+            throws IOException {
+        rootProject.buildGradle().append(sharedAllProjectsBlock(repo));
         configurePublishingProject(one, repo);
         configurePublishingProject(two, repo);
 
@@ -522,18 +456,16 @@ class RevapiTest {
             }
             """);
 
-        Path originalJavaFile =
-                one.mainSourceSet().java().fileByPath("foo/Foo.java").path();
-        one.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
+        JavaFile oneFoo = one.mainSourceSet().java().fileByPath("foo/Foo.java");
+        oneFoo.overwrite("""
             package foo;
             public interface Foo {}
             """);
 
         gradle.withArgs("publish").buildsSuccessfully();
 
-        String originalText = readString(originalJavaFile);
-        two.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite(originalText);
-        deleteFile(originalJavaFile);
+        two.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite(oneFoo.text());
+        Files.delete(oneFoo.path());
 
         gradle.withArgs("revapi").buildsSuccessfully();
 
@@ -546,7 +478,7 @@ class RevapiTest {
     @Test
     void ignores_breaks_in_dependent_projects(
             GradleInvoker gradle, RootProject rootProject, MavenRepo repo, SubProject one, SubProject two) {
-        configureSharedAllProjectsBlock(rootProject, repo);
+        rootProject.buildGradle().append(sharedAllProjectsBlock(repo));
         configurePublishingProject(one, repo);
         configurePublishingProject(two, repo);
 
@@ -568,7 +500,6 @@ class RevapiTest {
             }
             """);
 
-        Path twoFooJava = two.mainSourceSet().java().fileByPath("foo/Foo.java").path();
         two.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
             package foo;
             public interface Foo {
@@ -577,10 +508,7 @@ class RevapiTest {
 
         gradle.withArgs("publish").buildsSuccessfully();
 
-        two.mainSourceSet()
-                .java()
-                .fileByPath("foo/Foo.java")
-                .overwrite(readString(twoFooJava).replace("}", "void foo();\n}"));
+        two.mainSourceSet().java().fileByPath("foo/Foo.java").edit(text -> text.replace("}", "void foo();\n}"));
 
         gradle.withArgs("revapi").buildsSuccessfully();
     }
@@ -613,7 +541,7 @@ class RevapiTest {
             }
             """);
         rootProject.buildGradle().withMavenRepo(repo);
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
             package foo;
@@ -671,7 +599,7 @@ class RevapiTest {
                 oldVersion = project.version
             }
             """, repo.path());
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         rootProject.file("src/main/groovy/foo/Foo.groovy").overwrite("""
             package foo
@@ -709,7 +637,7 @@ class RevapiTest {
                 oldVersion = project.version
             }
             """, repo.path());
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         String groovyFile = "src/main/groovy/foo/Foo.groovy";
 
@@ -819,7 +747,8 @@ class RevapiTest {
     }
 
     @Test
-    void compatible_with_gradle_shadow_jar(GradleInvoker gradle, RootProject rootProject, MavenRepo repo) {
+    void compatible_with_gradle_shadow_jar(GradleInvoker gradle, RootProject rootProject, MavenRepo repo)
+            throws IOException {
         rootProject.settingsGradle().rootProjectName("root");
 
         rootProject
@@ -842,7 +771,7 @@ class RevapiTest {
                 oldVersion = project.version
             }
             """, repo.path());
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         String shadowedClass = "src/main/java/shadow/com/palantir/foo/Bar.java";
         rootProject.file(shadowedClass).overwrite("""
@@ -852,7 +781,7 @@ class RevapiTest {
 
         gradle.withArgs("publish").buildsSuccessfully();
 
-        deleteFile(rootProject.file(shadowedClass).path());
+        Files.delete(rootProject.file(shadowedClass).path());
 
         gradle.withArgs("revapi").buildsSuccessfully();
     }
@@ -891,7 +820,7 @@ class RevapiTest {
                 compileOnly "org.immutables:value:2.8.8:annotations"
             }
             """, repo.path());
-        testMavenPublication(rootProject, repo);
+        rootProject.buildGradle().append(testMavenPublication(repo));
 
         List<MethodChange> methodChanges = List.of(
                 new MethodChange(
@@ -958,32 +887,6 @@ class RevapiTest {
         }
     }
 
-    private static void writeImmutablesClass(
-            RootProject rootProject, List<MethodChange> methodChanges, Function<MethodChange, String> selector) {
-        StringBuilder immutablesClassText = new StringBuilder();
-        immutablesClassText.append("""
-            package foo;
-
-            import org.immutables.value.Value;
-
-            @Value.Immutable
-            @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
-            public abstract class Foo {
-            """);
-
-        for (MethodChange methodChange : methodChanges) {
-            immutablesClassText
-                    .append("    ")
-                    .append(selector.apply(methodChange))
-                    .append('\n');
-        }
-
-        immutablesClassText.append("}\n");
-
-        rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite(immutablesClassText.toString());
-    }
-
-    // breaks_detected_in_conjure_projects_should_be_limited_to_those_which_break_java_but_are_not_caught_by_conjure_backcompat
     @Test
     void breaks_detected_in_conjure_projects_should_be_limited_to_those_which_break_java(
             GradleInvoker gradle, RootProject rootProject, MavenRepo repo) {
@@ -1040,7 +943,7 @@ class RevapiTest {
         }
 
         String conjureYml = "src/main/conjure/conjure.yml";
-        rootProject.file(conjureYml).overwrite("""
+        rootProject.yamlFile(conjureYml).overwrite("""
             services:
               RenamedService:
                 name: RenamedService
@@ -1060,7 +963,7 @@ class RevapiTest {
 
         gradle.withArgs("compileConjure", "publish").buildsSuccessfully();
 
-        rootProject.file(conjureYml).overwrite("""
+        rootProject.yamlFile(conjureYml).overwrite("""
             services:
               RenamedToSomethingElseService:
                 name: RenamedToSomethingElseService
@@ -1083,10 +986,12 @@ class RevapiTest {
         gradle.withArgs("compileConjure").buildsSuccessfully();
 
         gradle.withArgs(":api-jersey:revapi").buildsWithFailure();
-        String jerseyJunit =
-                readString(apiJersey.buildDir().path().resolve("junit-reports/revapi/revapi-api-jersey.xml"));
 
-        assertThat(jerseyJunit)
+        apiJersey
+                .buildDir()
+                .file("junit-reports/revapi/revapi-api-jersey.xml")
+                .assertThat()
+                .content()
                 .contains("java.class.removed-interface services.RenamedService")
                 .contains("java.method.removed-method void services.TestService::renamed()")
                 .contains("java.method.parameterTypeChanged-parameter void"
@@ -1096,6 +1001,100 @@ class RevapiTest {
                 .doesNotContain("services.TestService::added()")
                 .doesNotContain("services.TestService::renamedToSomethingElse()")
                 .doesNotContain("java.annotation.attributeValueChanged");
+    }
+
+    private static String testMavenPublication(MavenRepo repo) {
+        return """
+            publishing {
+                publications {
+                    publication(MavenPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    maven { url uri('%s') }
+                }
+            }
+            """.formatted(repo.path());
+    }
+
+    private static String sharedAllProjectsBlock(MavenRepo repo) {
+        return """
+            allprojects {
+                group = 'revapi.test'
+                version = '1.0.0'
+                repositories {
+                    maven { url uri('%s') }
+                }
+            }
+            """.formatted(repo.path());
+    }
+
+    private static void configurePublishingProject(GradleProject project, MavenRepo repo) {
+        project.buildGradle().plugins().add("java-library").add("maven-publish");
+        project.buildGradle().append(testMavenPublication(repo));
+    }
+
+    private static void setupUnpublishedLibrary(RootProject rootProject) {
+        rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
+        rootProject.buildGradle().append("""
+            repositories {
+                mavenCentral()
+            }
+
+            revapi {
+                oldGroup = 'does.not'
+                oldName = 'exist'
+                oldVersion = '1.0.0'
+            }
+            """);
+    }
+
+    private static void writeHelloWorld(RootProject rootProject) {
+        rootProject.mainSourceSet().java().writeClass("""
+            package hello;
+            public class HelloWorld {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+            """);
+    }
+
+    private static void writeImmutablesClass(
+            RootProject rootProject, List<MethodChange> methodChanges, Function<MethodChange, String> selector) {
+        StringBuilder immutablesClassText = new StringBuilder();
+        immutablesClassText.append("""
+            package foo;
+
+            import org.immutables.value.Value;
+
+            @Value.Immutable
+            @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
+            public abstract class Foo {
+            """);
+
+        for (MethodChange methodChange : methodChanges) {
+            immutablesClassText
+                    .append("    ")
+                    .append(selector.apply(methodChange))
+                    .append('\n');
+        }
+
+        immutablesClassText.append("}\n");
+
+        rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite(immutablesClassText.toString());
+    }
+
+    private static void runRevapiExpectingToFindDifferences(
+            GradleInvoker gradle, RootProject rootProject, String projectName) {
+        gradle.withArgs("revapi").buildsWithFailure().assertThat().output().contains("java.class.removed");
+        rootProject
+                .buildDir()
+                .file("junit-reports/revapi/revapi-" + projectName + ".xml")
+                .assertThat()
+                .content()
+                .contains("java.class.removed");
     }
 
     record MethodChange(String oldText, String newText, boolean shouldBreak) {
@@ -1108,72 +1107,6 @@ class RevapiTest {
                 throw new IllegalArgumentException("Couldn't find method name in " + text);
             }
             return matcher.group(1);
-        }
-    }
-
-    private static void runRevapiExpectingToFindDifferences(
-            GradleInvoker gradle, RootProject rootProject, String projectName) {
-        InvocationResult result = gradle.withArgs("revapi").buildsWithFailure();
-        assertThat(result).output().contains("java.class.removed");
-        Path junitOutput = rootProject.buildDir().path().resolve("junit-reports/revapi/revapi-" + projectName + ".xml");
-        assertThat(readString(junitOutput)).contains("java.class.removed");
-    }
-
-    private static String readString(Path path) {
-        try {
-            return Files.readString(path);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static void deleteFile(Path path) {
-        try {
-            Files.delete(path);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static final class Git {
-        private final Path dir;
-
-        Git(Path dir) {
-            this.dir = dir;
-        }
-
-        void initWithTestUser() {
-            command("git init");
-            command("git config user.name \"Test User\"");
-            command("git config user.email \"test@example.com\"");
-        }
-
-        void command(String commandLine) {
-            try {
-                Process process = new ProcessBuilder(parseCommand(commandLine))
-                        .directory(dir.toFile())
-                        .redirectErrorStream(true)
-                        .start();
-                if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                    throw new RuntimeException("Command timed out: " + commandLine);
-                }
-                if (process.exitValue() != 0) {
-                    String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                    throw new RuntimeException(
-                            "Command failed: " + commandLine + " (exit " + process.exitValue() + ")\n" + output);
-                }
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Command failed: " + commandLine, e);
-            }
-        }
-
-        private static List<String> parseCommand(String commandLine) {
-            List<String> args = new ArrayList<>();
-            Matcher matcher = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(commandLine);
-            while (matcher.find()) {
-                args.add(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
-            }
-            return args;
         }
     }
 }
