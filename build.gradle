@@ -117,3 +117,6 @@ publishPlugins.onlyIf {
 project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
 project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
 
+gradleTestUtils {
+    configurationCacheEnabled = true
+}
