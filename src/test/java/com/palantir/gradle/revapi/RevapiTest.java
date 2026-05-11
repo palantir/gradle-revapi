@@ -393,12 +393,6 @@ class RevapiTest {
     @Test
     void accepting_breaks_individually_should_work(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
-        rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-            """);
-
         rootProject.settingsGradle().rootProjectName("root-project");
 
         gradle.withArgs(
