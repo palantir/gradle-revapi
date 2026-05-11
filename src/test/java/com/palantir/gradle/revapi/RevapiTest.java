@@ -663,10 +663,6 @@ class RevapiTest {
     void is_up_to_date_when_nothing_has_changed_after_running_once(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             revapi {
                 oldGroup = 'org.codehaus.cargo'
                 oldName = 'empty-jar'
