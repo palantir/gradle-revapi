@@ -47,10 +47,6 @@ class RevapiTest {
         rootProject.settingsGradle().rootProjectName("root-project");
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             dependencies {
                 implementation 'one.util:streamex:0.7.0'
             }
@@ -98,10 +94,6 @@ class RevapiTest {
                 .add("java-library")
                 .add("maven-publish");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             allprojects {
                 group = 'revapi.test'
                 repositories {
@@ -152,10 +144,6 @@ class RevapiTest {
 
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             group = 'org.revapi'
             version = '0.12.0'
 
