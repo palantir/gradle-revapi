@@ -548,10 +548,6 @@ class RevapiTest {
     void ignores_scala_classes(GradleInvoker gradle, RootProject rootProject) {
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
-            repositories {
-                mavenCentral()
-            }
-
             revapi {
                 oldGroup = 'com.twitter'
                 oldName = 'chill-avro_2.12'
