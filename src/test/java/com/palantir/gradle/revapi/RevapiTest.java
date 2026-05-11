@@ -155,7 +155,7 @@ class RevapiTest {
     @Test
     void does_not_error_out_when_project_has_a_version_greater_than_the_old_version(
             GradleInvoker gradle, RootProject rootProject) {
-        String revapi = "revapi";
+        String revApiProjectName = "revapi";
 
         rootProject.buildGradle().plugins().add(TestConstants.PLUGIN_NAME).add("java-library");
         rootProject.buildGradle().append("""
