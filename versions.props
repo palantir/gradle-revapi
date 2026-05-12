@@ -1,6 +1,7 @@
 com.fasterxml.jackson.*:* = 2.21.1
 com.fasterxml.jackson.core:jackson-annotations = 2.21
 com.netflix.nebula:nebula-test = 10.6.1
+org.junit.jupiter:* = 6.0.3
 org.junit.platform:* = 6.0.3
 org.junit:junit-bom = 6.0.3
 org.revapi:revapi-basic-features = 0.8.1
@@ -11,3 +12,6 @@ com.google.guava:guava = 33.6.0-jre
 org.immutables:* = 2.12.1
 org.mockito:mockito-core = 5.23.0
 org.assertj:assertj-core = 3.27.7
+com.palantir.baseline:gradle-baseline-java = 5.66.0
+com.palantir.gradle.conjure:gradle-conjure = 5.51.0
+com.palantir.gradle.gitversion:gradle-git-version = 3.1.0

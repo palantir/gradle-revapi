@@ -59,6 +59,10 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
 
+    gradlePluginForTesting 'com.palantir.baseline:gradle-baseline-java'
+    gradlePluginForTesting 'com.palantir.gradle.conjure:gradle-conjure'
+    gradlePluginForTesting 'com.palantir.gradle.gitversion:gradle-git-version'
+
     annotationProcessor "org.immutables:value"
     annotationProcessor "org.immutables:serial"
     compileOnly "org.immutables:value::annotations"
@@ -71,6 +75,7 @@ allprojects {
 
     repositories {
         mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+        gradlePluginPortal() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
     }
 
     group 'com.palantir.gradle.revapi'
@@ -82,6 +87,11 @@ test {
     environment = System.getenv().entrySet().stream()
             .filter { entry -> entry.key != 'CIRCLE_TEST_REPORTS' }
             .collect(Collectors.toMap({ it.key }, { it.value }))
+}
+
+tasks.named('compileTestJava').configure {
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
 }
 
 gradlePlugin {
@@ -114,3 +124,6 @@ publishPlugins.onlyIf {
 project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
 project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
 
+gradleTestUtils {
+    configurationCacheEnabled = true
+}
