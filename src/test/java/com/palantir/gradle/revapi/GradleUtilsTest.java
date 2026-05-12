@@ -59,7 +59,7 @@ class GradleUtilsTest {
         assertThat(jarTasks.get())
                 .containsExactlyInAnyOrder(
                         (Jar) rootProject.getTasks().getByName("jar"),
-                        (Jar) subproject.getTasks().getByName("jar"),
+                        (Jar) subprojectB.getTasks().getByName("jar"),
                         (Jar) subprojectA.getTasks().getByName("jar"));
     }
 }
