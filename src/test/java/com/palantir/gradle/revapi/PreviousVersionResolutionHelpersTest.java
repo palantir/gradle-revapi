@@ -42,7 +42,7 @@ class PreviousVersionResolutionHelpersTest {
     private Project project;
 
     @BeforeEach
-    void setUp() {
+    void before() {
         project = ProjectBuilder.builder().withProjectDir(tempDir).build();
         project.setGroup(ORIGINAL_GROUP_NAME);
     }
