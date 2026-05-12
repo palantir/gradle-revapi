@@ -33,21 +33,16 @@ public abstract class RevapiAcceptBreakTask extends DefaultTask {
     private static final String NEW_OPTION = "new";
     private static final String JUSTIFICATION_OPTION = "justification";
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
-    private final Property<ConfigManager> configManager =
+        private final Property<ConfigManager> configManager =
             getProject().getObjects().property(ConfigManager.class);
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
-    private final Property<String> code = getProject().getObjects().property(String.class);
+        private final Property<String> code = getProject().getObjects().property(String.class);
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
-    private final Property<String> oldElement = getProject().getObjects().property(String.class);
+        private final Property<String> oldElement = getProject().getObjects().property(String.class);
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
-    private final Property<String> newElement = getProject().getObjects().property(String.class);
+        private final Property<String> newElement = getProject().getObjects().property(String.class);
 
-    @SuppressWarnings("for-rollout:GradleTypesAsFields")
-    private final Property<Justification> justification =
+        private final Property<Justification> justification =
             getProject().getObjects().property(Justification.class);
 
     public RevapiAcceptBreakTask() {
@@ -102,8 +97,7 @@ public abstract class RevapiAcceptBreakTask extends DefaultTask {
         }
     }
 
-    @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
-    private GroupNameVersion oldGroupNameVersion() {
+        private GroupNameVersion oldGroupNameVersion() {
         return getProject().getExtensions().getByType(RevapiExtension.class).oldGroupNameVersion();
     }
 }
