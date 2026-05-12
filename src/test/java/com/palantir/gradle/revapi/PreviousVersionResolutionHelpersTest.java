@@ -48,7 +48,7 @@ class PreviousVersionResolutionHelpersTest {
     }
 
     @Test
-    void change_group_within_the_same_thread() throws Exception {
+    void change_group_within_the_same_thread() {
         Object group = withRenamedGroupForCurrentThread(project, project::getGroup);
 
         assertThat(group).isNotEqualTo(ORIGINAL_GROUP_NAME);
@@ -79,7 +79,7 @@ class PreviousVersionResolutionHelpersTest {
     }
 
     @Test
-    void reset_the_group_to_the_original_value_afterwards() throws Exception {
+    void reset_the_group_to_the_original_value_afterwards() {
         withRenamedGroupForCurrentThread(project, () -> null);
 
         assertThat(project.getGroup()).isSameAs(ORIGINAL_GROUP_NAME);
