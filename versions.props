@@ -1,6 +1,5 @@
 com.fasterxml.jackson.*:* = 2.21.1
 com.fasterxml.jackson.core:jackson-annotations = 2.21
-com.netflix.nebula:nebula-test = 10.6.1
 org.junit.jupiter:* = 6.0.3
 org.junit.platform:* = 6.0.3
 org.junit:junit-bom = 6.0.3
