@@ -35,22 +35,22 @@ class GradleUtilsTest {
     @Test
     void find_all_jar_tasks_from_all_subprojects() {
         Project rootProject = ProjectBuilder.builder().withProjectDir(tempDir).build();
-        Project subsubproject = ProjectBuilder.builder()
-                .withName("subsubproject")
+        Project subprojectA = ProjectBuilder.builder()
+                .withName("subprojectA")
                 .withParent(rootProject)
                 .build();
-        Project subproject = ProjectBuilder.builder()
-                .withName("subproject")
+        Project subprojectB = ProjectBuilder.builder()
+                .withName("subprojectB")
                 .withParent(rootProject)
                 .build();
 
-        subsubproject.getPluginManager().apply(JavaPlugin.class);
+        subprojectA.getPluginManager().apply(JavaPlugin.class);
 
-        subproject.getPluginManager().apply(JavaPlugin.class);
-        subproject.getDependencies().add("implementation", subproject.project(":" + subsubproject.getName()));
+        subprojectB.getPluginManager().apply(JavaPlugin.class);
+        subprojectB.getDependencies().add("implementation", subprojectB.project(":" + subprojectA.getName()));
 
         rootProject.getPluginManager().apply(JavaPlugin.class);
-        rootProject.getDependencies().add("implementation", rootProject.project(":" + subproject.getName()));
+        rootProject.getDependencies().add("implementation", rootProject.project(":" + subprojectB.getName()));
 
         Provider<Set<Jar>> jarTasks = RevapiPlugin.allJarTasksIncludingDependencies(
                 rootProject,
@@ -60,6 +60,6 @@ class GradleUtilsTest {
                 .containsExactlyInAnyOrder(
                         (Jar) rootProject.getTasks().getByName("jar"),
                         (Jar) subproject.getTasks().getByName("jar"),
-                        (Jar) subsubproject.getTasks().getByName("jar"));
+                        (Jar) subprojectA.getTasks().getByName("jar"));
     }
 }

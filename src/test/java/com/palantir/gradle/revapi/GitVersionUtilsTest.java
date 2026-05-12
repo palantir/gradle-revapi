@@ -43,7 +43,7 @@ class GitVersionUtilsTest {
     }
 
     @Test
-    void returns_nothing_in_a_repo_with_no_commits(GradleInvoker gradle, Git _git) {
+    void returns_nothing_in_a_repo_with_no_commits(GradleInvoker gradle) {
         assertOldVersions(gradle, "[]");
     }
 
