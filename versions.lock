@@ -10,11 +10,11 @@ com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.1 (1 constraints: 
 
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.21.1 (2 constraints: b921be76)
 
-com.google.errorprone:error_prone_annotations:2.41.0 (8 constraints: d5867d4d)
+com.google.errorprone:error_prone_annotations:2.47.0 (8 constraints: db86cd54)
 
 com.google.guava:failureaccess:1.0.3 (2 constraints: f3154f13)
 
-com.google.guava:guava:33.5.0-jre (13 constraints: 6a16cafd)
+com.google.guava:guava:33.6.0-jre (13 constraints: 6d16d906)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
