@@ -43,7 +43,9 @@ class GitVersionUtilsTest {
     }
 
     @Test
-    void returns_nothing_in_a_repo_with_no_commits(GradleInvoker gradle) {
+    void returns_nothing_in_a_repo_with_no_commits(GradleInvoker gradle, Git git) {
+        // ensure git is initialised
+        git.run("status");
         assertOldVersions(gradle, "[]");
     }
 
