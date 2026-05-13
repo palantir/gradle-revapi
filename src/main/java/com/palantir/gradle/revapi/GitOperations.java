@@ -18,7 +18,6 @@ package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.gitversion.GitInvoker;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.gradle.api.provider.Provider;
@@ -41,37 +40,30 @@ public abstract class GitOperations {
 
     private Provider<List<String>> previousGitTagsFromRef(String ref, int remaining) {
         if (remaining == 0) {
-            return emptyList();
+            return getProviderFactory().provider(List::of);
         }
         return previousGitTagFromRef(ref)
-                .flatMap(rawTag -> rawTag.map(tag -> previousGitTagsFromRef(tag, remaining - 1)
-                                .map(previousTags -> Stream.concat(Stream.of(stripVFromTag(tag)), previousTags.stream())
-                                        .toList()))
-                        .orElseGet(this::emptyList));
+                .flatMap(tag -> previousGitTagsFromRef(tag, remaining - 1)
+                        .map(previousTags -> Stream.concat(Stream.of(stripVFromTag(tag)), previousTags.stream())
+                                .toList()))
+                .orElse(List.of());
     }
 
-    private Provider<Optional<String>> previousGitTagFromRef(String ref) {
+    private Provider<String> previousGitTagFromRef(String ref) {
         String beforeLastRef = ref + "^";
         return commitExists(beforeLastRef).flatMap(exists -> {
             if (!exists) {
-                return emptyOptional();
+                return getProviderFactory().provider(() -> null);
             }
-            Provider<Optional<String>> tag = describeTagAt(beforeLastRef);
-            return tag.flatMap(maybeTag -> {
-                if (maybeTag.filter("0.0.0"::equals).isPresent()) {
-                    return keepTagIfHasParent("0.0.0");
-                }
-                return tag;
-            });
+            Provider<String> tag = describeTagAt(beforeLastRef);
+            return tag.flatMap(rawTag -> "0.0.0".equals(rawTag) ? keepTagIfHasParent("0.0.0") : tag);
         });
     }
 
-    private Provider<Optional<String>> keepTagIfHasParent(String tag) {
+    private Provider<String> keepTagIfHasParent(String tag) {
         return getGitInvoker()
                 .invokeWithResult("rev-parse", "--verify", "--quiet", tag + "^")
-                .filter(parentResult -> parentResult.exitCode() == 0)
-                .map(_parentResult -> Optional.of(tag))
-                .orElse(Optional.empty());
+                .map(result -> result.exitCode() == 0 ? tag : null);
     }
 
     private Provider<Boolean> commitExists(String ref) {
@@ -80,25 +72,17 @@ public abstract class GitOperations {
                 .map(result -> result.uncheckedStandardOut().equals("commit"));
     }
 
-    private Provider<Optional<String>> describeTagAt(String ref) {
+    private Provider<String> describeTagAt(String ref) {
         return getGitInvoker()
                 .invokeWithResult("describe", "--tags", "--abbrev=0", ref)
                 .map(result -> {
                     String stderr = result.standardError();
                     if (stderr.contains("No tags can describe")
                             || stderr.contains("No names found, cannot describe anything")) {
-                        return Optional.empty();
+                        return null;
                     }
-                    return Optional.of(result.standardOutputOfSuccessfulCommand());
+                    return result.standardOutputOfSuccessfulCommand();
                 });
-    }
-
-    private Provider<Optional<String>> emptyOptional() {
-        return getProviderFactory().provider(Optional::empty);
-    }
-
-    private Provider<List<String>> emptyList() {
-        return getProviderFactory().provider(List::of);
     }
 
     private static String stripVFromTag(String tag) {
