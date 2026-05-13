@@ -69,8 +69,6 @@ dependencies {
     compileOnly "org.immutables:serial"
 }
 
-version gitVersion()
-
 allprojects {
     apply plugin: 'com.palantir.java-format'
     apply plugin: 'com.palantir.jakarta-package-alignment'
@@ -81,7 +79,7 @@ allprojects {
     }
 
     group 'com.palantir.gradle.revapi'
-    version rootProject.version
+    version gitVersion()
 }
 
 javaVersions {
@@ -117,3 +115,6 @@ gradlePlugin {
 gradleTestUtils {
     configurationCacheEnabled = true
 }
+
+project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
+project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
