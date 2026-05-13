@@ -115,6 +115,3 @@ gradlePlugin {
 gradleTestUtils {
     configurationCacheEnabled = true
 }
-
-project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
-project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
