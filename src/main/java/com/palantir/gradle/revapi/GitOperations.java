@@ -44,11 +44,18 @@ public abstract class GitOperations {
 
     private Provider<String> previousGitTagFromRef(String ref) {
         String beforeLastRef = ref + "^";
-        Provider<String> tag = describeTagAt(beforeLastRef);
-        Provider<String> correctedTag = tag.flatMap(rawTag ->
-                "0.0.0".equals(rawTag) ? commitExistsAt("0.0.0^").map(hasParent -> hasParent ? "0.0.0" : null) : tag);
         return commitExistsAt(beforeLastRef)
-                .zip(correctedTag, (exists, correctedRawTag) -> exists ? correctedRawTag : null);
+                .zip(describeReleaseTagAt(beforeLastRef), (exists, releaseTag) -> exists ? releaseTag : null);
+    }
+
+    private Provider<String> describeReleaseTagAt(String ref) {
+        Provider<String> tag = describeTagAt(ref);
+        return tag.flatMap(rawTag -> {
+            if (!"0.0.0".equals(rawTag)) {
+                return tag;
+            }
+            return commitExistsAt("0.0.0^").map(hasParent -> hasParent ? "0.0.0" : null);
+        });
     }
 
     private Provider<Boolean> commitExistsAt(String ref) {
