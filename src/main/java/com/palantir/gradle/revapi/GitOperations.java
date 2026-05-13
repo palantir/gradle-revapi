@@ -16,10 +16,9 @@
 
 package com.palantir.gradle.revapi;
 
+import com.palantir.gradle.gitversion.GitExecOutput;
 import com.palantir.gradle.gitversion.GitInvoker;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 
@@ -31,51 +30,44 @@ public abstract class GitOperations {
     protected abstract GitInvoker getGitInvoker();
 
     public final Provider<List<String>> previousGitTags() {
-        return previousGitTagFromRef("HEAD")
-                .map(seed -> Stream.iterate(
-                                seed,
-                                Objects::nonNull,
-                                ref -> previousGitTagFromRef(ref).getOrNull())
-                        .limit(TAGS_TO_RETURN)
-                        .map(GitOperations::stripVFromTag)
-                        .toList())
-                .orElse(List.of());
+        return mergedTagsExcludingHead().zip(zeroZeroZeroHasParent(), GitOperations::filterAndLimit);
     }
 
-    private Provider<String> previousGitTagFromRef(String ref) {
-        String beforeLastRef = ref + "^";
-        return commitExistsAt(beforeLastRef)
-                .zip(describeReleaseTagAt(beforeLastRef), (exists, releaseTag) -> exists ? releaseTag : null);
-    }
-
-    private Provider<String> describeReleaseTagAt(String ref) {
-        Provider<String> tag = describeTagAt(ref);
-        return tag.flatMap(rawTag -> {
-            if (!"0.0.0".equals(rawTag)) {
-                return tag;
-            }
-            return commitExistsAt("0.0.0^").map(hasParent -> hasParent ? "0.0.0" : null);
-        });
-    }
-
-    private Provider<Boolean> commitExistsAt(String ref) {
+    private Provider<List<String>> mergedTagsExcludingHead() {
         return getGitInvoker()
-                .invokeWithResult("cat-file", "-t", ref)
+                .invokeWithResult(
+                        "for-each-ref",
+                        "--merged",
+                        "HEAD",
+                        "--no-contains",
+                        "HEAD",
+                        "--count=10",
+                        "--sort=-version:refname",
+                        "--format=%(refname:short)",
+                        "refs/tags")
+                .map(GitOperations::parseTags);
+    }
+
+    private static List<String> parseTags(GitExecOutput result) {
+        if (result.exitCode() != 0) {
+            return List.of();
+        }
+        String stdout = result.uncheckedStandardOut().strip();
+        return stdout.isEmpty() ? List.of() : List.of(stdout.split("\\R"));
+    }
+
+    private static List<String> filterAndLimit(List<String> tags, boolean hasZeroZeroZeroParent) {
+        return tags.stream()
+                .filter(tag -> !"0.0.0".equals(tag) || hasZeroZeroZeroParent)
+                .limit(TAGS_TO_RETURN)
+                .map(GitOperations::stripVFromTag)
+                .toList();
+    }
+
+    private Provider<Boolean> zeroZeroZeroHasParent() {
+        return getGitInvoker()
+                .invokeWithResult("cat-file", "-t", "0.0.0^")
                 .map(result -> "commit".equals(result.uncheckedStandardOut()));
-    }
-
-    private Provider<String> describeTagAt(String ref) {
-        return getGitInvoker()
-                .invokeWithResult("describe", "--tags", "--abbrev=0", ref)
-                .map(result -> {
-                    String stderr = result.standardError();
-                    if (stderr.contains("No tags can describe")
-                            || stderr.contains("No names found, cannot describe anything")
-                            || stderr.contains("Not a valid object name")) {
-                        return null;
-                    }
-                    return result.standardOutputOfSuccessfulCommand();
-                });
     }
 
     private static String stripVFromTag(String tag) {
