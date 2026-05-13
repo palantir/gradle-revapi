@@ -56,9 +56,12 @@ public abstract class GitOperations {
             if (!exists) {
                 return emptyOptional();
             }
-            Provider<Optional<String>> describedTag = describeTagAt(beforeLastRef);
-            return describedTag.flatMap(rawTag ->
-                    rawTag.filter("0.0.0"::equals).map(this::keepTagIfHasParent).orElse(describedTag));
+            return describeTagAt(beforeLastRef).flatMap(maybeTag -> {
+                if (maybeTag.filter("0.0.0"::equals).isPresent()) {
+                    return keepTagIfHasParent("0.0.0");
+                }
+                return getProviderFactory().provider(() -> maybeTag);
+            });
         });
     }
 
