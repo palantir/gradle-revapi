@@ -67,7 +67,15 @@ public abstract class GitOperations {
     private Provider<String> describeTagAt(String ref) {
         return getGitInvoker()
                 .invokeWithResult("describe", "--tags", "--abbrev=0", ref)
-                .map(result -> result.exitCode() == 0 ? result.standardOutputOfSuccessfulCommand() : null);
+                .map(result -> {
+                    String stderr = result.standardError();
+                    if (stderr.contains("No tags can describe")
+                            || stderr.contains("No names found, cannot describe anything")
+                            || stderr.contains("Not a valid object name")) {
+                        return null;
+                    }
+                    return result.standardOutputOfSuccessfulCommand();
+                });
     }
 
     private static String stripVFromTag(String tag) {
