@@ -14,3 +14,4 @@ org.assertj:assertj-core = 3.27.7
 com.palantir.baseline:gradle-baseline-java = 7.5.0
 com.palantir.gradle.conjure:gradle-conjure = 6.0.0
 com.palantir.gradle.gitversion:gradle-git-version = 5.0.0
+com.palantir.gradle.utils:providers = 0.24.0

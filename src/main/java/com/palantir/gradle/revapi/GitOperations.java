@@ -18,9 +18,11 @@ package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.gitversion.GitExecOutput;
 import com.palantir.gradle.gitversion.GitInvoker;
+import com.palantir.gradle.utils.providers.Zipper;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
@@ -32,10 +34,11 @@ public abstract class GitOperations {
     @Nested
     protected abstract GitInvoker getGitInvoker();
 
+    @Nested
+    protected abstract Zipper getZipper();
+
     public final Provider<List<String>> previousGitTags() {
-        return nonRootTags()
-                .zip(rootTag(), GitOperations::concat)
-                .zip(zeroZeroZeroHasParent(), GitOperations::filterAndLimit);
+        return getZipper().zip3(nonRootTags(), rootTag(), zeroZeroZeroHasParent(), GitOperations::filterAndLimit);
     }
 
     private Provider<List<String>> nonRootTags() {
@@ -75,25 +78,21 @@ public abstract class GitOperations {
         }
         return stdout.lines()
                 .map(GitOperations::lexSmallestTagFromDecoration)
-                .filter(tag -> !tag.isEmpty())
+                .flatMap(Optional::stream)
                 .toList();
     }
 
     // If a commit has multiple tags (e.g. `1.0.0-rc1` + `1.0.0`), pick the lex-smallest
-    private static String lexSmallestTagFromDecoration(String decoration) {
+    private static Optional<String> lexSmallestTagFromDecoration(String decoration) {
         return Arrays.stream(decoration.split(", "))
                 .filter(part -> part.startsWith("tag: "))
-                .map(part -> part.substring("tag: ".length()))
-                .min(Comparator.naturalOrder())
-                .orElse("");
+                .map(part -> part.substring(5))
+                .min(Comparator.naturalOrder());
     }
 
-    private static List<String> concat(List<String> first, List<String> second) {
-        return Stream.concat(first.stream(), second.stream()).toList();
-    }
-
-    private static List<String> filterAndLimit(List<String> tags, boolean hasZeroZeroZeroParent) {
-        return tags.stream()
+    private static List<String> filterAndLimit(
+            List<String> nonRootTags, List<String> rootTag, boolean hasZeroZeroZeroParent) {
+        return Stream.concat(nonRootTags.stream(), rootTag.stream())
                 .filter(tag -> !"0.0.0".equals(tag) || hasZeroZeroZeroParent)
                 .limit(TAGS_TO_RETURN)
                 .map(GitOperations::stripVFromTag)
