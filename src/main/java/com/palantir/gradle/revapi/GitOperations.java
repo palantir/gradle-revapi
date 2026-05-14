@@ -81,7 +81,6 @@ public abstract class GitOperations {
                 .toList();
     }
 
-    // If a commit has multiple tags (e.g. `1.0.0-rc1` + `1.0.0`), any one is fine — same commit, same API.
     private static Optional<String> firstTagFromDecoration(String decoration) {
         return Arrays.stream(decoration.split(", "))
                 .filter(part -> part.startsWith("tag: "))
