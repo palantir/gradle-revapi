@@ -102,7 +102,7 @@ public abstract class GitOperations {
     private Provider<Boolean> zeroZeroZeroHasParent() {
         return getGitInvoker()
                 .invokeWithResult("cat-file", "-t", "0.0.0^")
-                .map(result -> "commit".equals(result.uncheckedStandardOut()));
+                .map(result -> "commit".equals(result.uncheckedStandardOut().strip()));
     }
 
     private static String stripVFromTag(String tag) {
