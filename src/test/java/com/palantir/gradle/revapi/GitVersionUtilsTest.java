@@ -242,8 +242,6 @@ class GitVersionUtilsTest {
         assertOldVersions(gradle, "[]");
     }
 
-    // ---------- Release branches (no merge back) ----------
-
     /*
      *                       ┌── o (2.0.0) ── o (HEAD: default)
      *  o ── o (1.0.0) ──────┤
