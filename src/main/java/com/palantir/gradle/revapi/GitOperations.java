@@ -18,7 +18,10 @@ package com.palantir.gradle.revapi;
 
 import com.palantir.gradle.gitversion.GitExecOutput;
 import com.palantir.gradle.gitversion.GitInvoker;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 
@@ -30,30 +33,63 @@ public abstract class GitOperations {
     protected abstract GitInvoker getGitInvoker();
 
     public final Provider<List<String>> previousGitTags() {
-        return mergedTagsExcludingHead().zip(zeroZeroZeroHasParent(), GitOperations::filterAndLimit);
+        return nonRootTags()
+                .zip(rootTag(), GitOperations::concat)
+                .zip(zeroZeroZeroHasParent(), GitOperations::filterAndLimit);
     }
 
-    private Provider<List<String>> mergedTagsExcludingHead() {
+    private Provider<List<String>> nonRootTags() {
         return getGitInvoker()
                 .invokeWithResult(
-                        "for-each-ref",
-                        "--merged",
-                        "HEAD",
-                        "--no-contains",
-                        "HEAD",
-                        "--count=10",
-                        "--sort=-version:refname",
-                        "--format=%(refname:short)",
-                        "refs/tags")
-                .map(GitOperations::parseTags);
+                        "log",
+                        "--topo-order",
+                        "--simplify-by-decoration",
+                        "--decorate-refs=refs/tags",
+                        "--pretty=format:%D",
+                        "--max-count=" + TAGS_TO_RETURN,
+                        "HEAD^")
+                .map(GitOperations::parseDecoratedTags);
     }
 
-    private static List<String> parseTags(GitExecOutput result) {
+    // `--simplify-by-decoration` never emits the root commit, so we look it up separately
+    private Provider<List<String>> rootTag() {
+        return getGitInvoker()
+                .invokeWithResult(
+                        "log",
+                        "--first-parent",
+                        "--max-parents=0",
+                        "--max-count=1",
+                        "--decorate-refs=refs/tags",
+                        "--pretty=format:%D",
+                        "HEAD^")
+                .map(GitOperations::parseDecoratedTags);
+    }
+
+    private static List<String> parseDecoratedTags(GitExecOutput result) {
         if (result.exitCode() != 0) {
             return List.of();
         }
         String stdout = result.uncheckedStandardOut().strip();
-        return stdout.isEmpty() ? List.of() : List.of(stdout.split("\\R"));
+        if (stdout.isEmpty()) {
+            return List.of();
+        }
+        return stdout.lines()
+                .map(GitOperations::lexSmallestTagFromDecoration)
+                .filter(tag -> !tag.isEmpty())
+                .toList();
+    }
+
+    // If a commit has multiple tags (e.g. `1.0.0-rc1` + `1.0.0`), pick the lex-smallest
+    private static String lexSmallestTagFromDecoration(String decoration) {
+        return Arrays.stream(decoration.split(", "))
+                .filter(part -> part.startsWith("tag: "))
+                .map(part -> part.substring("tag: ".length()))
+                .min(Comparator.naturalOrder())
+                .orElse("");
+    }
+
+    private static List<String> concat(List<String> first, List<String> second) {
+        return Stream.concat(first.stream(), second.stream()).toList();
     }
 
     private static List<String> filterAndLimit(List<String> tags, boolean hasZeroZeroZeroParent) {
