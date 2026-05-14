@@ -20,7 +20,6 @@ import com.palantir.gradle.gitversion.GitExecOutput;
 import com.palantir.gradle.gitversion.GitInvoker;
 import com.palantir.gradle.utils.providers.Zipper;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -77,17 +76,17 @@ public abstract class GitOperations {
             return List.of();
         }
         return stdout.lines()
-                .map(GitOperations::lexSmallestTagFromDecoration)
+                .map(GitOperations::firstTagFromDecoration)
                 .flatMap(Optional::stream)
                 .toList();
     }
 
-    // If a commit has multiple tags (e.g. `1.0.0-rc1` + `1.0.0`), pick the lex-smallest
-    private static Optional<String> lexSmallestTagFromDecoration(String decoration) {
+    // If a commit has multiple tags (e.g. `1.0.0-rc1` + `1.0.0`), any one is fine — same commit, same API.
+    private static Optional<String> firstTagFromDecoration(String decoration) {
         return Arrays.stream(decoration.split(", "))
                 .filter(part -> part.startsWith("tag: "))
                 .map(part -> part.substring(5))
-                .min(Comparator.naturalOrder());
+                .findFirst();
     }
 
     private static List<String> filterAndLimit(
