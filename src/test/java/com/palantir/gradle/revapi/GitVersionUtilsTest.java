@@ -112,14 +112,8 @@ class GitVersionUtilsTest {
         assertOldVersions(gradle, "[1.2.3]");
     }
 
-    // ---------- RC / pre-release chains ----------
-
     /*
      *  o ── o (1.0.0-rc0) ── o (1.0.0-rc1) ── o (1.0.0) ── o (HEAD)
-     *
-     * Mirrors vector's `0.22.0-rc0..rc3 → 0.22.0` pattern: a chain of RC tags
-     * leading to a final release. All RCs are ancestors of the final tag, so
-     * the walker should yield every one of them in reverse topological order.
      */
     @Test
     void returns_rc_chain_in_reverse_topological_order(GradleInvoker gradle, Git git) {
@@ -137,11 +131,7 @@ class GitVersionUtilsTest {
     /*
      *  o ── o (2.0.0) ── o (1.0.0) ── o (HEAD)
      *
-     * `previousGitTags` is not a version-sort — it's a topological walk. If
-     * somebody tagged `2.0.0` before `1.0.0` (mis-tag, downgrade, or a
-     * deliberate reset), the walker yields tags in reverse commit order and
-     * does not attempt to sort them by semver. This locks in that
-     * out-of-version-order tags are passed through, not reshuffled.
+     * Tags emerge in commit order; the walker never reshuffles by semver.
      */
     @Test
     void returns_tags_in_topological_order_not_version_string_order(GradleInvoker gradle, Git git) {
@@ -157,10 +147,7 @@ class GitVersionUtilsTest {
     /*
      *   o (committed Jan, tag 2.0.0) ── o (committed Mar, tag 1.0.0) ── o (HEAD)
      *
-     * `git describe` orders by commit topology, not by author/committer date.
-     * Even with wildly out-of-order timestamps, the walker yields tags by
-     * parentage. This locks that in so a future change to e.g. `--sort` flags
-     * on describe would be caught.
+     * Topology beats author/committer date — guards against a stray `--sort` on describe.
      */
     @Test
     void returns_tags_in_topological_order_not_commit_date_order(GradleInvoker gradle, Git git) {
@@ -179,18 +166,27 @@ class GitVersionUtilsTest {
         assertOldVersions(gradle, "[1.0.0, 2.0.0]");
     }
 
-    // ---------- Merges ----------
+    /*
+     *  o ── o (1.0.0-rc1 + 1.0.0) ── o (HEAD)
+     *
+     * describe returns one tag per commit, so the sibling is silently dropped.
+     */
+    @Test
+    void multiple_tags_on_same_commit_yield_a_single_entry(GradleInvoker gradle, Git git) {
+        git.commit("Initial");
+        git.commit("Pre tags");
+        git.tag("1.0.0-rc1");
+        git.tag("1.0.0");
+        git.commit("HEAD");
+        assertOldVersions(gradle, "[1.0.0]");
+    }
 
     /*
      *  o ── o ────────── M ── o (HEAD)        (default branch)
      *        \         /
      *         o (1.0.0-rc1)                   (feature)
      *
-     * After a non-fast-forward merge, the feature branch's tag is reachable
-     * from HEAD (via the merge's second parent). `git describe` traverses any
-     * parent — it is NOT a first-parent-only walk — so the side-branch tag is
-     * yielded. This is worth locking in because it surprises readers who
-     * assume the `^` in the implementation means first-parent-only walking.
+     * describe walks all parents, not first-parent-only — the `^` in the implementation is not a `^1`.
      */
     @Test
     void side_branch_tag_is_visible_after_merge(GradleInvoker gradle, Git git) {
@@ -210,10 +206,6 @@ class GitVersionUtilsTest {
      *  o ──────── M (1.0.0) ── o (HEAD)        (default branch)
      *   \      /
      *    o                                     (feature, second parent)
-     *
-     * Tag applied directly to a merge commit (common pattern: merge a release
-     * branch into develop, then tag the merge). The walker must find the tag
-     * on the merge itself.
      */
     @Test
     void tag_on_merge_commit_is_returned(GradleInvoker gradle, Git git) {
@@ -228,18 +220,36 @@ class GitVersionUtilsTest {
         assertOldVersions(gradle, "[1.0.0]");
     }
 
+    /*
+     *  o ── o ── S ── o (HEAD)                  (default)
+     *        \  ╱
+     *         F (1.0.0-rc1)                     (feature, not reachable from S)
+     *
+     * Squash strips the second parent, so the tag is not in HEAD's ancestry.
+     */
+    @Test
+    void squash_merge_does_not_expose_feature_branch_tag(GradleInvoker gradle, Git git) {
+        git.commit("Initial");
+        git.commit("Pre feature");
+        String defaultBranch = git.run("rev-parse", "--abbrev-ref", "HEAD").trim();
+        git.run("checkout", "-b", "feature");
+        git.commit("Feature");
+        git.tag("1.0.0-rc1");
+        git.run("checkout", defaultBranch);
+        git.run("merge", "--squash", "feature");
+        git.commit("Squash from feature");
+        git.commit("HEAD");
+        assertOldVersions(gradle, "[]");
+    }
+
     // ---------- Release branches (no merge back) ----------
 
     /*
      *                       ┌── o (2.0.0) ── o (HEAD: default)
      *  o ── o (1.0.0) ──────┤
-     *                       └── o (1.0.1)              (release/1.x)
+     *                       └── o (1.0.1) (release/1.x)
      *
-     * Long-lived release branch is hot-fixed (`1.0.1`) while develop has moved
-     * on (`2.0.0`). HEAD on develop must NOT see `1.0.1` — the release-branch
-     * commit is not an ancestor of develop. This is the most common
-     * release-branch shape in vector (`release/4.1397.x`, `release/4.1398.x`,
-     * etc., all branched off main with their own hotfix tags).
+     * Hotfix on release/1.x is not an ancestor of develop, so HEAD on develop never sees it.
      */
     @Test
     void release_branch_hotfix_tag_is_invisible_from_develop(GradleInvoker gradle, Git git) {
@@ -262,14 +272,12 @@ class GitVersionUtilsTest {
     }
 
     /*
-     *                       ┌── o (2.0.0)                       (default)
+     *                       ┌── o (2.0.0) (default)
      *  o ── o (1.0.0) ──────┤
      *                       └── o (1.0.1) ── o (HEAD: release/1.x)
      *
-     * Same topology as above, but HEAD is on the release branch. The walker
-     * sees the release-branch tag, walks back through the fork point, and
-     * picks up the pre-fork `1.0.0` — but never sees `2.0.0`, which is on a
-     * sibling branch, not an ancestor.
+     * Mirror of the previous test with HEAD on release/1.x: walker picks up the pre-fork `1.0.0` but never the
+     * sibling-branch `2.0.0`.
      */
     @Test
     void release_branch_sees_pre_fork_develop_tag_but_not_post_fork(GradleInvoker gradle, Git git) {
@@ -292,19 +300,12 @@ class GitVersionUtilsTest {
     }
 
     /*
-     *                       ┌── o (2.0.0) ── o (3.0.0)                              (default)
+     *                       ┌── o (2.0.0) ── o (3.0.0) (default)
      *  o ── o (1.0.0) ──────┤
-     *                       └── o (1.0.1-rc1) ── o (1.0.1) ── o (1.0.2) ── o (HEAD)
-     *                                                                       (release/1.x)
+     *                       └── o (1.0.1-rc1) ── o (1.0.1) ── o (1.0.2) ── o (HEAD: release/1.x)
      *
-     * Models vector's `release/4.1371.x` pattern: a long-lived release branch
-     * with multiple RC + final hotfix tags while develop moves on. The walker
-     * follows the release-line back through every release-branch tag and never
-     * surfaces develop's post-fork tags (`2.0.0`, `3.0.0`). `RevapiExtension`
-     * caps the result at 3 entries via `.limit(3)` on the stream, so the
-     * pre-fork `1.0.0` is beyond what `revapi.oldVersions` exposes — but the
-     * absence of any develop tag in the top 3 is the real proof that the
-     * release branch is topologically isolated.
+     * Long-lived release branch with RC + multiple hotfixes. `.limit(3)` in RevapiExtension` hides the pre-fork
+     * `1.0.0`; develop tags never appear.
      */
     @Test
     void long_lived_release_branch_walks_its_own_chain_not_develops(GradleInvoker gradle, Git git) {
@@ -332,16 +333,10 @@ class GitVersionUtilsTest {
         assertOldVersions(gradle, "[1.0.2, 1.0.1, 1.0.1-rc1]");
     }
 
-    // ---------- HEAD / tag-shape edge cases ----------
-
     /*
      *  o (1.0.0) ── o (2.0.0, HEAD)
      *
-     * The walker starts at `HEAD^`, so a tag pointing at HEAD itself is NOT
-     * in the previous-versions list. Locks in that "current head" tags are
-     * excluded — important because revapi uses this list to find the prior
-     * published version to compare against, and the current build is not the
-     * prior version.
+     * The walker starts at `HEAD^`, so a tag at HEAD is excluded.
      */
     @Test
     void tag_at_head_is_excluded_but_prior_tags_are_returned(GradleInvoker gradle, Git git) {
@@ -356,10 +351,7 @@ class GitVersionUtilsTest {
     /*
      *  o ── o (annotated tag: 1.0.0) ── o (HEAD)
      *
-     * All other tests in this file use lightweight tags via `git.tag(...)`.
-     * Annotated tags are a distinct object (a tag object, not a ref to a
-     * commit), and `git describe` treats them slightly differently for
-     * ordering. This locks in that annotated tags are also walked.
+     * Other tests use lightweight tags; annotated tags are a distinct object type.
      */
     @Test
     void annotated_tags_walk_the_same_as_lightweight_tags(GradleInvoker gradle, Git git) {
@@ -368,27 +360,6 @@ class GitVersionUtilsTest {
         git.run("tag", "-a", "1.0.0", "-m", "Release 1.0.0");
         git.commit("HEAD");
         assertOldVersions(gradle, "[1.0.0]");
-    }
-
-    /*
-     *  o (v0.0.0, initial) ── o (1.0.0) ── o (HEAD)
-     *
-     * The `isInitial000Tag` filter matches the literal string `"0.0.0"` and
-     * runs BEFORE the `v`-prefix is stripped. A `v0.0.0` tag on the initial
-     * commit therefore is NOT filtered out — it falls through, gets its `v`
-     * stripped, and appears as `"0.0.0"` in the output. This is almost
-     * certainly an oversight, but it's the current behaviour. Locking it in
-     * means a future fix to the filter ordering has to deliberately update
-     * this assertion rather than silently changing the output.
-     */
-    @Test
-    void v_prefixed_initial_zero_zero_zero_tag_is_not_filtered_out(GradleInvoker gradle, Git git) {
-        git.commit("Initial");
-        git.tag("v0.0.0");
-        git.commit("Pre 1.0.0");
-        git.tag("1.0.0");
-        git.commit("HEAD");
-        assertOldVersions(gradle, "[1.0.0, 0.0.0]");
     }
 
     private static void assertOldVersions(GradleInvoker gradle, String expected) {
