@@ -32,9 +32,9 @@ com.palantir.gradle.utils:providers:0.24.0 (3 constraints: 9d256782)
 
 org.freemarker:freemarker:2.3.34 (2 constraints: 5f130f5a)
 
-org.immutables:serial:2.12.1 (1 constraints: 3805363b)
+org.immutables:serial:2.12.2 (1 constraints: 3905373b)
 
-org.immutables:value:2.12.1 (2 constraints: 0015bec1)
+org.immutables:value:2.12.2 (2 constraints: 0115edc1)
 
 org.jboss:jboss-dmr:1.2.0.Final (1 constraints: 710a5ab9)
 
