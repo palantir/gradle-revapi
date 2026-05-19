@@ -1,7 +1,7 @@
 com.fasterxml.jackson.*:* = 2.21.1
 com.fasterxml.jackson.core:jackson-annotations = 2.21
 org.junit.jupiter:* = 6.1.0
-org.junit.platform:* = 6.0.3
+org.junit.platform:* = 6.1.0
 org.junit:junit-bom = 6.1.0
 org.revapi:revapi-basic-features = 0.8.1
 org.revapi:revapi-java = 0.19.1
