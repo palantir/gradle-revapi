@@ -51,6 +51,7 @@ class ConfigManagerTest {
         verify(transformer).apply(GradleRevapiConfig.empty());
     }
 
+    @SuppressWarnings("for-rollout:StringConcatToTextBlock")
     @Test
     void withConfig_reads_the_existing_config_file_and_writes_back_the_transformed_one() throws IOException {
 
@@ -107,6 +108,7 @@ class ConfigManagerTest {
                         "      justification: \"j\""));
     }
 
+    @SuppressWarnings("for-rollout:StringConcatToTextBlock")
     @Test
     void read_config_correctly_when_there_are_version_overrides_but_not_accepted_breaks() throws IOException {
         File oldConfigFile = new File(tempDir, "revapi.yml");
