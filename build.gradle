@@ -41,6 +41,7 @@ apply plugin: 'com.palantir.failure-reports'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 apply plugin: 'com.palantir.jdks'
 apply plugin: 'com.palantir.jdks.latest'
+apply plugin: 'com.palantir.baseline-java-versions'
 
 dependencies {
     implementation 'org.revapi:revapi-basic-features'
@@ -79,7 +80,6 @@ allprojects {
 
     group 'com.palantir.gradle.revapi'
     version System.env.CIRCLE_TAG ?: gitVersion()
-    sourceCompatibility = 1.8
 }
 
 test {
@@ -89,8 +89,6 @@ test {
 }
 
 tasks.named('compileTestJava').configure {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
 }
 
 gradlePlugin {
@@ -125,4 +123,8 @@ project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
 
 gradleTestUtils {
     configurationCacheEnabled = true
+}
+
+javaVersions {
+    libraryTarget = 11
 }
