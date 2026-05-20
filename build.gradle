@@ -43,8 +43,6 @@ apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.jdks.latest'
 
 dependencies {
-    implementation 'com.palantir.gradle.gitversion:gradle-git-version'
-    implementation 'com.palantir.gradle.utils:providers'
     implementation 'org.revapi:revapi-basic-features'
     implementation 'org.revapi:revapi-java'
     implementation 'org.revapi:revapi-reporter-text'

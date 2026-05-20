@@ -22,7 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.palantir.gradle.testing.execution.GradleInvoker;
 import com.palantir.gradle.testing.execution.InvocationResult;
 import com.palantir.gradle.testing.files.java.JavaFile;
-import com.palantir.gradle.testing.git.Git;
 import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.maven.MavenRepo;
@@ -239,6 +238,11 @@ class RevapiTest {
         @Test
         void accepting_breaks_individually_should_work(GradleInvoker gradle, RootProject rootProject) {
             rootProject.settingsGradle().rootProjectName("root-project");
+            rootProject.buildGradle().append("""
+                revapi {
+                    oldVersion = '1.0.0'
+                }
+                """);
 
             gradle.withArgs(
                             "revapiAcceptBreak",
@@ -591,56 +595,6 @@ class RevapiTest {
         rootProject.buildGradle().edit(text -> text.replace("implementation", "compileOnly"));
 
         gradle.withArgs("revapi").buildsSuccessfully();
-    }
-
-    @Test
-    void when_the_previous_git_tag_has_failed_to_publish_it_will_look_back_up_to_a_further_git_tag(
-            GradleInvoker gradle, RootProject rootProject, MavenRepo repo, Git git) {
-        rootProject.file(".gitignore").overwrite("""
-            .gradle*/
-            build/
-            mavenRepo/
-            """);
-
-        rootProject.settingsGradle().rootProjectName("name");
-
-        rootProject
-                .buildGradle()
-                .plugins()
-                .add("com.palantir.git-version")
-                .add(TestConstants.PLUGIN_NAME)
-                .add("java-library")
-                .add("maven-publish");
-        rootProject.buildGradle().append("""
-            group = 'group'
-            version = gitVersion()
-            """);
-        rootProject.buildGradle().withMavenRepo(repo);
-        rootProject.buildGradle().append(testMavenPublication(repo));
-
-        rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
-            public interface Foo {
-                String willBeRemoved();
-            }
-            """);
-
-        git.run("add", ".");
-        git.run("commit", "-m", "0.1.0");
-        git.tag("0.1.0");
-
-        gradle.withArgs("publish").buildsSuccessfully();
-
-        git.commit("publish-failed");
-        git.tag("0.2.0");
-
-        rootProject.mainSourceSet().java().fileByPath("foo/Foo.java").overwrite("""
-            public interface Foo { }
-            """);
-
-        git.run("commit", "-am", "new-work");
-
-        InvocationResult result = gradle.withArgs("revapi").buildsWithFailure();
-        assertThat(result).output().contains("willBeRemoved");
     }
 
     @Test
