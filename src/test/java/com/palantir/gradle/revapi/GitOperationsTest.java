@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
 @DisabledConfigurationCache("revapi plugin is incompatible with configuration cache")
-class GitVersionUtilsTest {
+class GitOperationsTest {
 
     @BeforeEach
     void setUp(RootProject rootProject) {

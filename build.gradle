@@ -28,7 +28,6 @@ buildscript {
 
 apply plugin: 'com.palantir.external-publish'
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'groovy'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.baseline-error-prone-root'
 apply plugin: 'com.palantir.git-version'
@@ -40,9 +39,11 @@ apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.failure-reports'
 apply plugin: 'com.palantir.external-publish-gradle-plugin'
 apply plugin: 'com.palantir.jdks'
+apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.jdks.latest'
 
 dependencies {
+    implementation 'com.palantir.gradle.gitversion:gradle-git-version'
     implementation 'org.revapi:revapi-basic-features'
     implementation 'org.revapi:revapi-java'
     implementation 'org.revapi:revapi-reporter-text'
@@ -78,19 +79,22 @@ allprojects {
     }
 
     group 'com.palantir.gradle.revapi'
-    version System.env.CIRCLE_TAG ?: gitVersion()
-    sourceCompatibility = 1.8
+    version gitVersion()
+}
+
+javaVersions {
+    javaCompiler = 25
+    libraryTarget = 17
+}
+
+jdks {
+    daemonTarget = 21
 }
 
 test {
     environment = System.getenv().entrySet().stream()
             .filter { entry -> entry.key != 'CIRCLE_TEST_REPORTS' }
             .collect(Collectors.toMap({ it.key }, { it.value }))
-}
-
-tasks.named('compileTestJava').configure {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
 }
 
 gradlePlugin {
@@ -107,21 +111,6 @@ gradlePlugin {
         }
     }
 }
-
-jdks {
-    daemonTarget = 21
-}
-
-tasks.named('processResources').configure {
-    duplicatesStrategy 'include'
-}
-
-tasks.publish.dependsOn tasks.publishPlugins
-publishPlugins.onlyIf {
-    versionDetails().isCleanTag
-}
-project.ext.'gradle.publish.key' = System.env["GRADLE_KEY"]
-project.ext.'gradle.publish.secret' = System.env["GRADLE_SECRET"]
 
 gradleTestUtils {
     configurationCacheEnabled = true

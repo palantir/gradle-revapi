@@ -72,23 +72,14 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
 
     private static boolean shouldIgnore(
             @Nullable JavaElement oldElement, @Nullable JavaElement newElement, @Nonnull Difference difference) {
-        switch (Code.fromCode(difference.code)) {
-            case METHOD_ABSTRACT_METHOD_ADDED:
-                return inImmutablesClass(newElement);
-
-            case METHOD_RETURN_TYPE_CHANGED:
-            case METHOD_VISIBILITY_REDUCED:
-                return inImmutablesClass(oldElement) && inImmutablesClass(newElement) && abstractNonPublic(oldElement);
-
-            case METHOD_REMOVED:
-                return inImmutablesClass(oldElement) && abstractNonPublic(oldElement);
-
-            case METHOD_NOW_ABSTRACT:
-                return inImmutablesClass(oldElement) && inImmutablesClass(newElement);
-
-            default:
-                return false;
-        }
+        return switch (Code.fromCode(difference.code)) {
+            case METHOD_ABSTRACT_METHOD_ADDED -> inImmutablesClass(newElement);
+            case METHOD_RETURN_TYPE_CHANGED, METHOD_VISIBILITY_REDUCED ->
+                inImmutablesClass(oldElement) && inImmutablesClass(newElement) && abstractNonPublic(oldElement);
+            case METHOD_REMOVED -> inImmutablesClass(oldElement) && abstractNonPublic(oldElement);
+            case METHOD_NOW_ABSTRACT -> inImmutablesClass(oldElement) && inImmutablesClass(newElement);
+            default -> false;
+        };
     }
 
     private static boolean inImmutablesClass(JavaElement javaElement) {

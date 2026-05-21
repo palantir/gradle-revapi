@@ -20,14 +20,14 @@ import com.palantir.gradle.revapi.config.GroupAndName;
 import com.palantir.gradle.revapi.config.GroupNameVersion;
 import com.palantir.gradle.revapi.config.Version;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Nested;
 
 @SuppressWarnings("DesignForExtension")
-public class RevapiExtension {
+public abstract class RevapiExtension {
     private final Property<String> oldGroup;
     private final Property<String> oldName;
     private final ListProperty<String> oldVersions;
@@ -42,13 +42,14 @@ public class RevapiExtension {
         this.oldName.set(project.getProviders().provider(project::getName));
 
         this.oldVersions = project.getObjects().listProperty(String.class);
-        this.oldVersions.set(project.getProviders()
-                .provider(
-                        () -> GitVersionUtils.previousGitTags(project).limit(3).collect(Collectors.toList())));
+        this.oldVersions.set(getGitOperations().previousGitTags());
 
         this.oldGroupAndName = project.provider(() ->
                 GroupAndName.builder().group(oldGroup.get()).name(oldName.get()).build());
     }
+
+    @Nested
+    protected abstract GitOperations getGitOperations();
 
     public Property<String> getOldGroup() {
         return oldGroup;
