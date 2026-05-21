@@ -23,6 +23,20 @@ import java.util.stream.Stream;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 
+/**
+ * Walks back through git history to find the most recent release tags, used as candidate "previous versions" for
+ * revapi to compare against.
+ *
+ * <p>Starting from {@code HEAD}:
+ * <ol>
+ *   <li>Move to the parent commit ({@code ref^}) and verify it exists.
+ *   <li>Run {@code git describe --tags --abbrev=0} to find the nearest reachable tag from that commit.
+ *   <li>If the tag is the sentinel {@code 0.0.0}, only accept it when the commit has a parent (filters out the
+ *       synthetic root-commit tag used when no real releases exist yet).
+ *   <li>Feed that tag back in as the next ref and repeat, collecting up to {@link #TAGS_TO_RETURN} tags.
+ *   <li>Strip a leading {@code v} from each tag before returning.
+ * </ol>
+ */
 public abstract class GitOperations {
 
     private static final int TAGS_TO_RETURN = 3;
