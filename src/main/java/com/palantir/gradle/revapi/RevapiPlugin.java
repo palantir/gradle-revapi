@@ -49,7 +49,7 @@ public final class RevapiPlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        @SuppressWarnings({"for-rollout:GradleTypesAsFields", "for-rollout:NonAbstractGradleType"})
+        @SuppressWarnings("for-rollout:GradleTypesAsFields")
         RevapiExtension extension = project.getExtensions().create("revapi", RevapiExtension.class, project);
 
         ConfigManager configManager = new ConfigManager(configFile(project));
