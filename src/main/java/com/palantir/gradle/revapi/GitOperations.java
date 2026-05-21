@@ -70,7 +70,8 @@ public abstract class GitOperations {
                 .map(result -> {
                     String stderr = result.standardError();
                     if (stderr.contains("No tags can describe")
-                            || stderr.contains("No names found, cannot describe anything")) {
+                            || stderr.contains("No names found, cannot describe anything")
+                            || stderr.contains("Not a valid object name")) {
                         return null;
                     }
                     return result.standardOutputOfSuccessfulCommand();
