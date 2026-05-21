@@ -29,7 +29,7 @@ import org.gradle.api.tasks.Nested;
  *
  * <p>Starting from {@code HEAD}:
  * <ol>
- *   <li>Move to the parent commit ({@code ref^}) and verify it exists.
+ *   <li>Move to the first parent commit ({@code ref^}) and verify it exists.
  *   <li>Run {@code git describe --tags --abbrev=0} to find the nearest reachable tag from that commit.
  *   <li>If the tag is the sentinel {@code 0.0.0}, only accept it when the commit has a parent (filters out the
  *       synthetic root-commit tag used when no real releases exist yet).
