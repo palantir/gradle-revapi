@@ -2,9 +2,6 @@
 <a href="https://autorelease.general.dmz.palantir.tech/palantir/gradle-revapi"><img src="https://img.shields.io/badge/Perform%20an-Autorelease-success.svg" alt="Autorelease"></a>
 </p>
 
-# WARNING: This repo is no longer maintained.
-Use the fork established by the [Revapi](https://github.com/revapi/gradle-revapi) owners.
-
 # gradle-revapi
 
 _A gradle plugin which runs [Revapi](https://revapi.org) to warn you when there are breaks to your Java library's
