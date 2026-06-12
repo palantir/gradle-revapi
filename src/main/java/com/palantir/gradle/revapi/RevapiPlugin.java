@@ -69,7 +69,6 @@ public final class RevapiPlugin implements Plugin<Project> {
                                 project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
                         configureApiUsage(project, conf);
                         conf.setCanBeConsumed(false);
-                        conf.setVisible(false);
                     });
 
                     @SuppressWarnings("for-rollout:ConfigurationAvoidanceRegistration")
@@ -79,7 +78,6 @@ public final class RevapiPlugin implements Plugin<Project> {
                                         .getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME));
                                 configureApiUsage(project, conf);
                                 conf.setCanBeConsumed(false);
-                                conf.setVisible(false);
                             });
 
                     task.getAcceptedBreaks().set(acceptedBreaks(project, configManager, extension.oldGroupAndName()));
