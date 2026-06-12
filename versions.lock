@@ -286,7 +286,7 @@ org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10 (2 constraints: 8118c1c5)
 
 org.junit:junit-bom:6.1.0 (1 constraints: 09050c36)
 
-org.junit.jupiter:junit-jupiter:6.1.0 (2 constraints: 551059d1)
+org.junit.jupiter:junit-jupiter:6.1.0 (2 constraints: 80100bdd)
 
 org.junit.jupiter:junit-jupiter-api:6.1.0 (6 constraints: 0469fb37)
 
