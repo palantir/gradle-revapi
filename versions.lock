@@ -126,13 +126,13 @@ com.palantir.gradle.failure-reports:gradle-failure-reports-exceptions:1.18.0 (2 
 
 com.palantir.gradle.idea-configuration:gradle-idea-configuration:0.8.0 (2 constraints: 3227b4dc)
 
-com.palantir.gradle.plugintesting:configuration-cache-spec:0.72.0 (1 constraints: 3b05413b)
+com.palantir.gradle.plugintesting:configuration-cache-spec:0.73.0 (1 constraints: 3c05443b)
 
-com.palantir.gradle.plugintesting:discover-tests-cli:0.72.0 (1 constraints: 3b05413b)
+com.palantir.gradle.plugintesting:discover-tests-cli:0.73.0 (1 constraints: 3c05443b)
 
-com.palantir.gradle.plugintesting:gradle-plugin-testing-junit:0.72.0 (1 constraints: 3b05413b)
+com.palantir.gradle.plugintesting:gradle-plugin-testing-junit:0.73.0 (1 constraints: 3c05443b)
 
-com.palantir.gradle.plugintesting:plugin-testing-core:0.72.0 (2 constraints: 121f788d)
+com.palantir.gradle.plugintesting:plugin-testing-core:0.73.0 (2 constraints: 141fc58d)
 
 com.palantir.gradle.utils:circleci-artifacts:0.23.0 (1 constraints: 4a129719)
 
