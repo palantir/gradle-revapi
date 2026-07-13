@@ -286,23 +286,23 @@ org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10 (1 constraints: e210ffd2)
 
 org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10 (2 constraints: 8118c1c5)
 
-org.junit:junit-bom:6.1.1 (1 constraints: 0a050d36)
+org.junit:junit-bom:6.1.2 (1 constraints: 0b050e36)
 
-org.junit.jupiter:junit-jupiter:6.1.2 (2 constraints: 831048dd)
+org.junit.jupiter:junit-jupiter:6.1.2 (2 constraints: 841049dd)
 
-org.junit.jupiter:junit-jupiter-api:6.1.2 (6 constraints: 0b69a239)
+org.junit.jupiter:junit-jupiter-api:6.1.2 (6 constraints: 0c69293a)
 
-org.junit.jupiter:junit-jupiter-engine:6.1.2 (2 constraints: 1417993b)
+org.junit.jupiter:junit-jupiter-engine:6.1.2 (2 constraints: 1517c23b)
 
-org.junit.jupiter:junit-jupiter-params:6.1.2 (3 constraints: d22de953)
+org.junit.jupiter:junit-jupiter-params:6.1.2 (3 constraints: d32d1254)
 
-org.junit.platform:junit-platform-commons:6.1.2 (3 constraints: e7297f2a)
+org.junit.platform:junit-platform-commons:6.1.2 (3 constraints: e829dd2a)
 
-org.junit.platform:junit-platform-engine:6.1.2 (5 constraints: b14999f3)
+org.junit.platform:junit-platform-engine:6.1.2 (5 constraints: b34978f4)
 
-org.junit.platform:junit-platform-launcher:6.1.2 (3 constraints: 6724ecf5)
+org.junit.platform:junit-platform-launcher:6.1.2 (3 constraints: 6824edf5)
 
-org.junit.vintage:junit-vintage-engine:6.1.1 (1 constraints: 0f097c95)
+org.junit.vintage:junit-vintage-engine:6.1.2 (1 constraints: 10097d95)
 
 org.mockito:mockito-core:5.23.0 (1 constraints: 3c054e3b)
 
