@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi;
 import com.palantir.gradle.gitversion.GitInvoker;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
@@ -33,8 +34,9 @@ import org.gradle.api.tasks.Nested;
  *   <li>Run {@code git describe --tags --abbrev=0} to find the nearest reachable tag from that commit.
  *   <li>If the tag is the sentinel {@code 0.0.0}, only accept it when the commit has a parent (filters out the
  *       synthetic root-commit tag used when no real releases exist yet).
- *   <li>Feed that tag back in as the next ref and repeat, collecting up to {@link #TAGS_TO_RETURN} tags.
- *   <li>Strip a leading {@code v} from each tag before returning.
+ *   <li>Feed that tag back in as the next ref and repeat.
+ *   <li>Strip a leading {@code v}, filter the tags using the configured version pattern, and return up to
+ *       {@link #TAGS_TO_RETURN} matches.
  * </ol>
  */
 public abstract class GitOperations {
@@ -45,13 +47,22 @@ public abstract class GitOperations {
     protected abstract GitInvoker getGitInvoker();
 
     public final Provider<List<String>> previousGitTags() {
+        return previousGitTags(Pattern.compile(".*"));
+    }
+
+    final Provider<List<String>> previousGitTags(Provider<String> versionPattern) {
+        return versionPattern.flatMap(patternString -> previousGitTags(Pattern.compile(patternString)));
+    }
+
+    private Provider<List<String>> previousGitTags(Pattern versionPattern) {
         return previousGitTagFromRef("HEAD")
                 .map(seed -> Stream.iterate(
                                 seed,
                                 Objects::nonNull,
                                 ref -> previousGitTagFromRef(ref).getOrNull())
-                        .limit(TAGS_TO_RETURN)
                         .map(GitOperations::stripVFromTag)
+                        .filter(tag -> versionPattern.matcher(tag).matches())
+                        .limit(TAGS_TO_RETURN)
                         .toList())
                 .orElse(List.of());
     }

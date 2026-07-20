@@ -188,6 +188,23 @@ class RevapiTest {
         }
 
         @Test
+        void skips_revapi_tasks_when_all_explicit_old_versions_are_filtered_out(
+                GradleInvoker gradle, RootProject rootProject) {
+            rootProject.buildGradle().append("""
+                revapi {
+                    oldGroup = 'org.revapi'
+                    oldName = 'revapi'
+                    oldVersions = ['0.11.1-beta']
+                    oldVersionPattern = '[0-9]+[.][0-9]+[.][0-9]+'
+                }
+                """);
+
+            InvocationResult result = gradle.withArgs("revapi").buildsSuccessfully();
+            assertThat(result).task(":revapiAnalyze").skipped();
+            assertThat(result).task(":revapi").skipped();
+        }
+
+        @Test
         void handles_the_output_of_extra_source_sets_being_added_to_compile_configuration(
                 GradleInvoker gradle, RootProject rootProject) {
             rootProject.buildGradle().append("""

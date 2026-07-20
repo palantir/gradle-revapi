@@ -52,10 +52,25 @@ to need to override the artifact to compare against, you can do so:
 ```gradle
 revapi {
     oldGroup = '<artifact-group>'
-    oldNamed = '<artifact-name>'
+    oldName = '<artifact-name>'
     oldVersion = '<artifact-version>'
 }
 ```
+
+### Ignoring prerelease versions
+
+By default, the plugin considers every previous Git tag when selecting the old version. To ignore prerelease tags such
+as alpha, beta, or release candidate builds, configure `oldVersionPattern` with a regular expression that stable
+versions match:
+
+```gradle
+revapi {
+    oldVersionPattern = '[0-9]+[.][0-9]+[.][0-9]+'
+}
+```
+
+The pattern is matched against the entire version after a leading `v` has been removed from Git tags. It also applies
+to versions configured explicitly through `oldVersion` or `oldVersions`.
 
 ### Accepting breaks
 
