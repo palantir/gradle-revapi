@@ -1,10 +1,10 @@
 # Run ./gradlew writeVersionsLocks to regenerate this file. Blank lines are to minimize merge conflicts.
 
-com.fasterxml.jackson.core:jackson-annotations:2.22 (14 constraints: e8ffd0c5)
+com.fasterxml.jackson.core:jackson-annotations:2.22 (14 constraints: e9ffb5c6)
 
 com.fasterxml.jackson.core:jackson-core:2.22.1 (11 constraints: 7ff72834)
 
-com.fasterxml.jackson.core:jackson-databind:2.22.1 (16 constraints: a9585f69)
+com.fasterxml.jackson.core:jackson-databind:2.22.1 (16 constraints: af58646d)
 
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.22.1 (1 constraints: 39053a3b)
 
@@ -24,7 +24,7 @@ com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
 com.palantir.gradle.gitversion:gradle-git-version:5.0.0 (1 constraints: 07050436)
 
-com.palantir.gradle.utils:environment-variables:0.26.0 (6 constraints: 727b3e76)
+com.palantir.gradle.utils:environment-variables:0.26.0 (6 constraints: 747bc477)
 
 com.palantir.gradle.utils:exec:0.24.0 (2 constraints: 27248bb6)
 
@@ -108,19 +108,19 @@ com.palantir.baseline:gradle-baseline-java:7.7.0 (1 constraints: 10052336)
 
 com.palantir.baseline-error-prone:gradle-baseline-error-prone:0.7.0 (1 constraints: c01105f5)
 
-com.palantir.conjure.java:conjure-lib:8.80.0 (1 constraints: 861cd0a4)
+com.palantir.conjure.java:conjure-lib:8.82.0 (1 constraints: 881cd6a4)
 
-com.palantir.conjure.java.api:errors:2.73.0 (1 constraints: 2410aba9)
+com.palantir.conjure.java.api:errors:2.75.0 (1 constraints: 2610b1a9)
 
-com.palantir.conjure.java.runtime:conjure-java-jackson-optimizations:8.38.0 (1 constraints: 891cd4a4)
+com.palantir.conjure.java.runtime:conjure-java-jackson-optimizations:8.39.0 (1 constraints: 8a1cd7a4)
 
-com.palantir.conjure.java.runtime:conjure-java-jackson-serialization:8.38.0 (1 constraints: 3012ff09)
+com.palantir.conjure.java.runtime:conjure-java-jackson-serialization:8.39.0 (1 constraints: 3112020a)
 
-com.palantir.gradle.better-exec:better-exec:3.8.0 (1 constraints: f811a4f7)
+com.palantir.gradle.better-exec:better-exec:3.9.0 (1 constraints: f911a7f7)
 
-com.palantir.gradle.conjure:gradle-conjure:6.2.0 (1 constraints: 0a050f36)
+com.palantir.gradle.conjure:gradle-conjure:6.3.0 (1 constraints: 0b051236)
 
-com.palantir.gradle.conjure:gradle-conjure-api:6.2.0 (1 constraints: f511a1f7)
+com.palantir.gradle.conjure:gradle-conjure-api:6.3.0 (1 constraints: f611a4f7)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-common:1.18.0 (1 constraints: f21c3bc2)
 
@@ -148,29 +148,29 @@ com.palantir.javaformat:palantir-java-format-jdk-bootstrap:2.73.0 (1 constraints
 
 com.palantir.javaformat:palantir-java-format-spi:2.73.0 (3 constraints: 1e406830)
 
-com.palantir.ri:resource-identifier:2.18.0 (1 constraints: 2310a2a9)
+com.palantir.ri:resource-identifier:2.20.0 (1 constraints: 1c108ea9)
 
-com.palantir.safe-logging:logger:3.16.0 (4 constraints: 014a8c69)
+com.palantir.safe-logging:logger:3.17.0 (4 constraints: 044a956a)
 
-com.palantir.safe-logging:logger-slf4j:3.16.0 (1 constraints: 350e9950)
+com.palantir.safe-logging:logger-slf4j:3.17.0 (1 constraints: 360e9c50)
 
-com.palantir.safe-logging:logger-spi:3.16.0 (2 constraints: 791e18b1)
+com.palantir.safe-logging:logger-spi:3.17.0 (2 constraints: 7b1e4eb1)
 
-com.palantir.safe-logging:preconditions:3.16.0 (9 constraints: c6a5a1dc)
+com.palantir.safe-logging:preconditions:3.17.0 (9 constraints: cfa557e5)
 
-com.palantir.safe-logging:safe-logging:3.16.0 (9 constraints: c99c7c9c)
+com.palantir.safe-logging:safe-logging:3.17.0 (9 constraints: d49cb5a5)
 
 com.palantir.sls-packaging:gradle-recommended-product-dependencies:7.89.0 (1 constraints: 3512100a)
 
-com.palantir.sls.versions:sls-versions:1.15.0 (2 constraints: a42dbfcd)
+com.palantir.sls.versions:sls-versions:1.16.0 (2 constraints: a52d0ece)
 
 com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.26.0 (1 constraints: 7419b3d0)
 
-com.palantir.tokens:auth-tokens:4.5.0 (1 constraints: f10f8399)
+com.palantir.tokens:auth-tokens:4.7.0 (1 constraints: f30f8999)
 
 com.palantir.tritium:tritium-ids:0.128.0 (1 constraints: fe0f9aa6)
 
-com.palantir.tritium:tritium-registry:0.131.0 (1 constraints: ab1c3cc1)
+com.palantir.tritium:tritium-registry:0.134.0 (1 constraints: ae1c45c1)
 
 com.squareup.okhttp3:okhttp:4.12.0 (1 constraints: f6093eb3)
 
