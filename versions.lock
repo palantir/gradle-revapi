@@ -32,7 +32,7 @@ com.palantir.gradle.utils:providers:0.24.0 (2 constraints: 6820125d)
 
 com.palantir.gradle.utils:safe-exec-commandline:0.24.0 (1 constraints: 710de031)
 
-org.freemarker:freemarker:2.3.34 (2 constraints: 5f130f5a)
+org.freemarker:freemarker:2.3.35 (2 constraints: 6013395a)
 
 org.immutables:serial:2.12.2 (1 constraints: 3905373b)
 
