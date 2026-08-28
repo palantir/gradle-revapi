@@ -1,10 +1,10 @@
 # Run ./gradlew writeVersionsLocks to regenerate this file. Blank lines are to minimize merge conflicts.
 
-com.fasterxml.jackson.core:jackson-annotations:2.22 (14 constraints: e9ffb5c6)
+com.fasterxml.jackson.core:jackson-annotations:2.22 (14 constraints: 82ff3bee)
 
 com.fasterxml.jackson.core:jackson-core:2.22.1 (11 constraints: 7ff72834)
 
-com.fasterxml.jackson.core:jackson-databind:2.22.1 (16 constraints: af58646d)
+com.fasterxml.jackson.core:jackson-databind:2.22.1 (16 constraints: a6583169)
 
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.22.1 (1 constraints: 39053a3b)
 
@@ -16,7 +16,7 @@ com.google.errorprone:error_prone_annotations:2.50.0 (11 constraints: 61b8980e)
 
 com.google.guava:failureaccess:1.0.3 (2 constraints: f3154f13)
 
-com.google.guava:guava:33.7.1-jre (17 constraints: b47ca478)
+com.google.guava:guava:33.7.1-jre (17 constraints: a87c986d)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
@@ -24,7 +24,7 @@ com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
 com.palantir.gradle.gitversion:gradle-git-version:5.1.0 (1 constraints: 08050736)
 
-com.palantir.gradle.utils:environment-variables:0.28.0 (6 constraints: 797b6c7a)
+com.palantir.gradle.utils:environment-variables:0.28.0 (6 constraints: 7b7bc47c)
 
 com.palantir.gradle.utils:exec:0.24.0 (2 constraints: 2824bab6)
 
@@ -84,7 +84,7 @@ com.fasterxml.jackson.dataformat:jackson-dataformat-smile:2.22.1 (1 constraints:
 
 com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.1 (2 constraints: d7358945)
 
-com.fasterxml.jackson.datatype:jackson-datatype-guava:2.22.1 (3 constraints: ac4bbd11)
+com.fasterxml.jackson.datatype:jackson-datatype-guava:2.22.1 (3 constraints: a34ba711)
 
 com.fasterxml.jackson.datatype:jackson-datatype-joda:2.22.1 (1 constraints: 7f1c9ba4)
 
@@ -104,7 +104,7 @@ com.googlecode.javaewah:JavaEWAH:1.2.3 (1 constraints: 460e7e50)
 
 com.netflix.nebula:nebula-test:10.6.2 (1 constraints: 9c18268f)
 
-com.palantir.baseline:gradle-baseline-java:7.8.0 (1 constraints: 11052636)
+com.palantir.baseline:gradle-baseline-java:7.9.0 (1 constraints: 12052936)
 
 com.palantir.baseline-error-prone:gradle-baseline-error-prone:0.7.0 (1 constraints: c01105f5)
 
@@ -126,7 +126,7 @@ com.palantir.gradle.failure-reports:gradle-failure-reports-common:1.18.0 (1 cons
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-exceptions:1.18.0 (2 constraints: 4124fbd7)
 
-com.palantir.gradle.idea-configuration:gradle-idea-configuration:0.8.0 (2 constraints: 3227b4dc)
+com.palantir.gradle.idea-configuration:gradle-idea-configuration:0.8.0 (2 constraints: 3627c0dc)
 
 com.palantir.gradle.plugintesting:configuration-cache-spec:0.75.0 (1 constraints: 3e054a3b)
 
@@ -138,15 +138,15 @@ com.palantir.gradle.plugintesting:plugin-testing-core:0.75.0 (2 constraints: 181
 
 com.palantir.gradle.utils:circleci-artifacts:0.24.0 (1 constraints: 4b129a19)
 
-com.palantir.gradle.utils:lazily-configured-mapping:0.26.0 (1 constraints: f1110407)
+com.palantir.gradle.utils:lazily-configured-mapping:0.28.0 (1 constraints: f3110a07)
 
-com.palantir.gradle.utils:platform:0.24.0 (2 constraints: ec278a49)
+com.palantir.gradle.utils:platform:0.24.0 (2 constraints: ed278e49)
 
-com.palantir.javaformat:gradle-palantir-java-format:2.73.0 (1 constraints: f5111b07)
+com.palantir.javaformat:gradle-palantir-java-format:2.87.0 (1 constraints: fa112b07)
 
-com.palantir.javaformat:palantir-java-format-jdk-bootstrap:2.73.0 (1 constraints: ab152ad4)
+com.palantir.javaformat:palantir-java-format-jdk-bootstrap:2.87.0 (1 constraints: b0153ad4)
 
-com.palantir.javaformat:palantir-java-format-spi:2.73.0 (3 constraints: 1e406830)
+com.palantir.javaformat:palantir-java-format-spi:2.87.0 (3 constraints: 2d407134)
 
 com.palantir.ri:resource-identifier:2.20.0 (1 constraints: 1c108ea9)
 
