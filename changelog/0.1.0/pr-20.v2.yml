@@ -1,6 +1,0 @@
-type: improvement
-improvement:
-  description: Now no longer needs to gradle git version plugin to automatically discover
-    the previous git tag
-  links:
-  - https://internal-github/foundry/gradle-revapi/pull/20

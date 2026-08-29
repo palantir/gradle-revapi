@@ -1,6 +1,0 @@
-type: fix
-fix:
-  description: '`./gradlew revapiAcceptAllBreaks` no longer fails when a repo contains
-    a project which has never been published before.'
-  links:
-  - https://github.com/palantir/gradle-revapi/pull/230
