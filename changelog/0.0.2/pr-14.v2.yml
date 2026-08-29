@@ -1,6 +1,0 @@
-type: improvement
-improvement:
-  description: Change the revapi extension variables to be set with `=` rather than
-    `.set(`
-  links:
-  - https://internal-github/foundry/gradle-revapi/pull/14
