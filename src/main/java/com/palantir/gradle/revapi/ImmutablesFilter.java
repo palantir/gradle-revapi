@@ -91,7 +91,6 @@ public final class ImmutablesFilter implements DifferenceTransform<JavaElement> 
                 .orElse(false);
     }
 
-    @SuppressWarnings("for-rollout:PatternMatchingInstanceof")
     private static Optional<MethodElement> methodElementFor(JavaElement javaElement) {
         if (javaElement == null) {
             return Optional.empty();
