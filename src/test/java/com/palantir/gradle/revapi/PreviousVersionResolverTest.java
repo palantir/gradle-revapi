@@ -19,7 +19,6 @@ package com.palantir.gradle.revapi;
 import static com.palantir.gradle.testing.assertion.GradlePluginTestAssertions.assertThat;
 
 import com.palantir.gradle.testing.execution.GradleInvoker;
-import com.palantir.gradle.testing.junit.DisabledConfigurationCache;
 import com.palantir.gradle.testing.junit.GradlePluginTests;
 import com.palantir.gradle.testing.maven.MavenRepo;
 import com.palantir.gradle.testing.project.RootProject;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @GradlePluginTests
-@DisabledConfigurationCache("previous-version resolution temporarily changes the project group")
 class PreviousVersionResolverTest {
 
     @BeforeEach
@@ -58,9 +56,10 @@ class PreviousVersionResolverTest {
                 }
             }
 
+            def oldVersions = revapi.oldVersions
             tasks.register('printOldVersions') {
                 doLast {
-                    println "OLD_VERSIONS=" + revapi.oldVersions.get()
+                    println "OLD_VERSIONS=" + oldVersions.get()
                 }
             }
             """, mavenRepo.path(), mavenRepo.path());
