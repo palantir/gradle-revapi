@@ -238,6 +238,13 @@ class RevapiTest {
         @Test
         void accepting_breaks_individually_should_work(GradleInvoker gradle, RootProject rootProject) {
             rootProject.settingsGradle().rootProjectName("root-project");
+            rootProject.buildGradle().append("""
+                revapi {
+                    oldGroup = 'com.palantir.test'
+                    oldName = 'library'
+                    oldVersion = '1.0.0'
+                }
+                """);
 
             gradle.withArgs(
                             "revapiAcceptBreak",
