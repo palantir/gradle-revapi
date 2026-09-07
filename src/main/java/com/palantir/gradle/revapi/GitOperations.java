@@ -19,6 +19,7 @@ package com.palantir.gradle.revapi;
 import com.palantir.gradle.gitversion.GitInvoker;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
@@ -33,13 +34,16 @@ import org.gradle.api.tasks.Nested;
  *   <li>Run {@code git describe --tags --abbrev=0} to find the nearest reachable tag from that commit.
  *   <li>If the tag is the sentinel {@code 0.0.0}, only accept it when the commit has a parent (filters out the
  *       synthetic root-commit tag used when no real releases exist yet).
- *   <li>Feed that tag back in as the next ref and repeat, collecting up to {@link #TAGS_TO_RETURN} tags.
- *   <li>Strip a leading {@code v} from each tag before returning.
+ *   <li>Feed that tag back in as the next ref and repeat.
+ *   <li>Strip leading {@code v} prefixes, discard release candidates, and return up to
+ *       {@link #TAGS_TO_RETURN} tags.
  * </ol>
  */
 public abstract class GitOperations {
 
     private static final int TAGS_TO_RETURN = 3;
+    private static final Pattern RELEASE_CANDIDATE =
+            Pattern.compile("(?:^|[._-])rc(?:[._-]?\\d+)?(?:$|[._+-])", Pattern.CASE_INSENSITIVE);
 
     @Nested
     protected abstract GitInvoker getGitInvoker();
@@ -50,8 +54,9 @@ public abstract class GitOperations {
                                 seed,
                                 Objects::nonNull,
                                 ref -> previousGitTagFromRef(ref).getOrNull())
-                        .limit(TAGS_TO_RETURN)
                         .map(GitOperations::stripVFromTag)
+                        .filter(tag -> !RELEASE_CANDIDATE.matcher(tag).find())
+                        .limit(TAGS_TO_RETURN)
                         .toList())
                 .orElse(List.of());
     }

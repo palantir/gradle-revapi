@@ -86,6 +86,21 @@ class GitOperationsTest {
     }
 
     @Test
+    void ignores_release_candidate_tags(GradleInvoker gradle, Git git) {
+        git.commit("Stable");
+        git.tag("1.0.0");
+        git.commit("RC 1");
+        git.tag("1.1.0-rc1");
+        git.commit("RC 2");
+        git.tag("1.1.0-rc2");
+        git.commit("RC 3");
+        git.tag("1.1.0-rc3");
+        git.commit("Current");
+
+        assertOldVersions(gradle, "[1.0.0]");
+    }
+
+    @Test
     void when_the_initial_commit_is_0_0_0_ignore_it_as_its_the_first_unpublished_release(
             GradleInvoker gradle, Git git) {
         git.commit("Initial");
