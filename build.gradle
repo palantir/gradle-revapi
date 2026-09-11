@@ -43,7 +43,6 @@ apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.jdks.latest'
 
 dependencies {
-    implementation 'com.palantir.gradle.gitversion:gradle-git-version'
     implementation 'org.revapi:revapi-basic-features'
     implementation 'org.revapi:revapi-java'
     implementation 'org.revapi:revapi-reporter-text'
@@ -61,7 +60,6 @@ dependencies {
 
     gradlePluginForTesting 'com.palantir.baseline:gradle-baseline-java'
     gradlePluginForTesting 'com.palantir.gradle.conjure:gradle-conjure'
-    gradlePluginForTesting 'com.palantir.gradle.gitversion:gradle-git-version'
 
     annotationProcessor "org.immutables:value"
     annotationProcessor "org.immutables:serial"
