@@ -24,7 +24,6 @@ import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Nested;
 
 @SuppressWarnings("DesignForExtension")
 public abstract class RevapiExtension {
@@ -41,15 +40,12 @@ public abstract class RevapiExtension {
         this.oldName = project.getObjects().property(String.class);
         this.oldName.set(project.getProviders().provider(project::getName));
 
-        this.oldVersions = project.getObjects().listProperty(String.class);
-        this.oldVersions.set(getGitOperations().previousGitTags());
-
         this.oldGroupAndName = project.provider(() ->
                 GroupAndName.builder().group(oldGroup.get()).name(oldName.get()).build());
-    }
 
-    @Nested
-    protected abstract GitOperations getGitOperations();
+        this.oldVersions = project.getObjects().listProperty(String.class);
+        this.oldVersions.set(PreviousVersionResolver.previousVersion(project, oldGroupAndName));
+    }
 
     public Property<String> getOldGroup() {
         return oldGroup;
