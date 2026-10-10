@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
@@ -52,7 +53,11 @@ final class ResolveOldApi {
     private static Optional<OldApi> resolveOldApiAcrossAllOldVersions(
             Project project, RevapiExtension extension, GradleRevapiConfig config) {
 
-        List<String> oldVersionStrings = extension.getOldVersions().get();
+        Pattern oldVersionPattern =
+                Pattern.compile(extension.getOldVersionPattern().get());
+        List<String> oldVersionStrings = extension.getOldVersions().get().stream()
+                .filter(version -> oldVersionPattern.matcher(version).matches())
+                .toList();
 
         if (oldVersionStrings.isEmpty()) {
             return Optional.empty();
