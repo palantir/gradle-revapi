@@ -34,9 +34,9 @@ com.palantir.gradle.utils:safe-exec-commandline:0.26.0 (1 constraints: 730de631)
 
 org.freemarker:freemarker:2.3.35 (2 constraints: 6013395a)
 
-org.immutables:serial:2.12.2 (1 constraints: 3905373b)
+org.immutables:serial:2.12.3 (1 constraints: 3a05383b)
 
-org.immutables:value:2.12.2 (2 constraints: 0215eec1)
+org.immutables:value:2.12.3 (2 constraints: 03151dc2)
 
 org.jboss:jboss-dmr:1.2.0.Final (1 constraints: 710a5ab9)
 
