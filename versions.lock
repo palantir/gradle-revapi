@@ -10,7 +10,7 @@ com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.22.3 (1 constraints: 
 
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.22.3 (3 constraints: 5b3c5e58)
 
-com.github.ben-manes.caffeine:caffeine:3.3.0 (2 constraints: 8926138b)
+com.github.ben-manes.caffeine:caffeine:3.3.1 (2 constraints: 8a264e8b)
 
 com.google.errorprone:error_prone_annotations:2.50.0 (11 constraints: 41b845e8)
 
@@ -104,7 +104,7 @@ com.googlecode.javaewah:JavaEWAH:1.2.3 (1 constraints: 460e7e50)
 
 com.netflix.nebula:nebula-test:11.1.0 (1 constraints: 96181a8f)
 
-com.palantir.baseline:gradle-baseline-java:7.11.0 (1 constraints: 3b05503b)
+com.palantir.baseline:gradle-baseline-java:7.12.0 (1 constraints: 3c05533b)
 
 com.palantir.baseline-error-prone:gradle-baseline-error-prone:0.7.0 (1 constraints: c01105f5)
 
