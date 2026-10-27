@@ -1,14 +1,14 @@
 # Run ./gradlew writeVersionsLocks to regenerate this file. Blank lines are to minimize merge conflicts.
 
-com.fasterxml.jackson.core:jackson-annotations:2.22 (14 constraints: 87ff38f1)
+com.fasterxml.jackson.core:jackson-annotations:2.22 (14 constraints: 88fff1f1)
 
-com.fasterxml.jackson.core:jackson-core:2.22.4 (11 constraints: 96f7b25b)
+com.fasterxml.jackson.core:jackson-core:2.22.4 (11 constraints: 9af7525c)
 
-com.fasterxml.jackson.core:jackson-databind:2.22.4 (16 constraints: b758bea8)
+com.fasterxml.jackson.core:jackson-databind:2.22.4 (16 constraints: c158f8b1)
 
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.22.4 (1 constraints: 3c053d3b)
 
-com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.22.4 (3 constraints: 5c3cf758)
+com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.22.4 (3 constraints: 5e3c8d59)
 
 com.github.ben-manes.caffeine:caffeine:3.3.1 (2 constraints: 8a264e8b)
 
@@ -16,7 +16,7 @@ com.google.errorprone:error_prone_annotations:2.50.0 (11 constraints: 41b845e8)
 
 com.google.guava:failureaccess:1.0.3 (2 constraints: f3154f13)
 
-com.google.guava:guava:33.7.2-jre (17 constraints: b17c1684)
+com.google.guava:guava:33.7.2-jre (17 constraints: b37c4587)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
@@ -24,19 +24,19 @@ com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
 com.palantir.gradle.gitversion:gradle-git-version:5.1.0 (1 constraints: 08050736)
 
-com.palantir.gradle.utils:environment-variables:0.30.0 (6 constraints: 7b7b6c79)
+com.palantir.gradle.utils:environment-variables:0.30.0 (6 constraints: 797b3077)
 
-com.palantir.gradle.utils:exec:0.26.0 (2 constraints: 2a24c0b6)
+com.palantir.gradle.utils:exec:0.29.0 (2 constraints: 2d24c9b6)
 
-com.palantir.gradle.utils:providers:0.26.0 (2 constraints: 6c206e5d)
+com.palantir.gradle.utils:providers:0.29.0 (2 constraints: 7220f85d)
 
-com.palantir.gradle.utils:safe-exec-commandline:0.26.0 (1 constraints: 730de631)
+com.palantir.gradle.utils:safe-exec-commandline:0.29.0 (1 constraints: 760def31)
 
 org.freemarker:freemarker:2.3.35 (2 constraints: 6013395a)
 
 org.immutables:serial:2.12.3 (1 constraints: 3a05383b)
 
-org.immutables:value:2.12.3 (2 constraints: 03151dc2)
+org.immutables:value:2.12.3 (1 constraints: 3a05383b)
 
 org.jboss:jboss-dmr:1.2.0.Final (1 constraints: 710a5ab9)
 
@@ -78,17 +78,17 @@ com.diffplug.spotless:spotless-lib-extra:3.3.1 (1 constraints: 1713d42d)
 
 com.diffplug.spotless:spotless-plugin-gradle:7.2.1 (1 constraints: c3111af5)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.22.4 (1 constraints: 7d1c9ba4)
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.22.4 (1 constraints: 7f1c9da4)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-smile:2.22.4 (1 constraints: 7d1c9ba4)
+com.fasterxml.jackson.dataformat:jackson-dataformat-smile:2.22.4 (1 constraints: 7f1c9da4)
 
 com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.4 (2 constraints: d7358945)
 
-com.fasterxml.jackson.datatype:jackson-datatype-guava:2.22.4 (3 constraints: a14b9f10)
+com.fasterxml.jackson.datatype:jackson-datatype-guava:2.22.4 (3 constraints: a34ba911)
 
-com.fasterxml.jackson.datatype:jackson-datatype-joda:2.22.4 (1 constraints: 7d1c9ba4)
+com.fasterxml.jackson.datatype:jackson-datatype-joda:2.22.4 (1 constraints: 7f1c9da4)
 
-com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.4 (1 constraints: 7d1c9ba4)
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.4 (1 constraints: 7f1c9da4)
 
 com.fasterxml.woodstox:woodstox-core:7.2.0 (1 constraints: 3d174b26)
 
@@ -108,19 +108,19 @@ com.palantir.baseline:gradle-baseline-java:7.13.0 (1 constraints: 3d05563b)
 
 com.palantir.baseline-error-prone:gradle-baseline-error-prone:0.7.0 (1 constraints: c01105f5)
 
-com.palantir.conjure.java:conjure-lib:8.86.0 (1 constraints: 8c1ce2a4)
+com.palantir.conjure.java:conjure-lib:8.93.0 (1 constraints: 8a1cdda4)
 
-com.palantir.conjure.java.api:errors:2.78.0 (1 constraints: 2910baa9)
+com.palantir.conjure.java.api:errors:2.81.0 (1 constraints: 2310a9a9)
 
-com.palantir.conjure.java.runtime:conjure-java-jackson-optimizations:8.42.0 (1 constraints: 841cc6a4)
+com.palantir.conjure.java.runtime:conjure-java-jackson-optimizations:8.45.0 (1 constraints: 871ccfa4)
 
-com.palantir.conjure.java.runtime:conjure-java-jackson-serialization:8.42.0 (1 constraints: 2b12f109)
+com.palantir.conjure.java.runtime:conjure-java-jackson-serialization:8.45.0 (1 constraints: 2e12fa09)
 
-com.palantir.gradle.better-exec:better-exec:3.10.0 (1 constraints: 2112c109)
+com.palantir.gradle.better-exec:better-exec:3.11.0 (1 constraints: 2212c409)
 
-com.palantir.gradle.conjure:gradle-conjure:6.6.0 (1 constraints: 0e051b36)
+com.palantir.gradle.conjure:gradle-conjure:6.7.0 (1 constraints: 0f051e36)
 
-com.palantir.gradle.conjure:gradle-conjure-api:6.6.0 (1 constraints: f911adf7)
+com.palantir.gradle.conjure:gradle-conjure-api:6.7.0 (1 constraints: fa11b0f7)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-common:1.18.0 (1 constraints: f21c3bc2)
 
@@ -136,11 +136,11 @@ com.palantir.gradle.plugintesting:gradle-plugin-testing-junit:0.80.0 (1 constrai
 
 com.palantir.gradle.plugintesting:plugin-testing-core:0.80.0 (2 constraints: 101f2d8d)
 
-com.palantir.gradle.utils:circleci-artifacts:0.26.0 (1 constraints: 4d12a019)
+com.palantir.gradle.utils:circleci-artifacts:0.29.0 (1 constraints: 5012a919)
 
 com.palantir.gradle.utils:lazily-configured-mapping:0.30.0 (1 constraints: ec11f606)
 
-com.palantir.gradle.utils:platform:0.26.0 (2 constraints: ef270e4a)
+com.palantir.gradle.utils:platform:0.29.0 (2 constraints: f227ce4a)
 
 com.palantir.javaformat:gradle-palantir-java-format:2.87.0 (1 constraints: fa112b07)
 
@@ -148,29 +148,29 @@ com.palantir.javaformat:palantir-java-format-jdk-bootstrap:2.87.0 (1 constraints
 
 com.palantir.javaformat:palantir-java-format-spi:2.87.0 (3 constraints: 2d407134)
 
-com.palantir.ri:resource-identifier:2.22.0 (1 constraints: 1e1094a9)
+com.palantir.ri:resource-identifier:2.24.0 (1 constraints: 20109aa9)
 
-com.palantir.safe-logging:logger:3.19.0 (4 constraints: 0a4aa76c)
+com.palantir.safe-logging:logger:3.20.0 (4 constraints: f3498f64)
 
-com.palantir.safe-logging:logger-slf4j:3.19.0 (1 constraints: 380ea250)
+com.palantir.safe-logging:logger-slf4j:3.20.0 (1 constraints: 300e8b50)
 
-com.palantir.safe-logging:logger-spi:3.19.0 (2 constraints: 7f1ebab1)
+com.palantir.safe-logging:logger-spi:3.20.0 (2 constraints: 6f1e0cb0)
 
-com.palantir.safe-logging:preconditions:3.19.0 (9 constraints: dba54cef)
+com.palantir.safe-logging:preconditions:3.20.0 (9 constraints: a7a567c0)
 
-com.palantir.safe-logging:safe-logging:3.19.0 (9 constraints: e49c34b1)
+com.palantir.safe-logging:safe-logging:3.20.0 (9 constraints: 9f9c517c)
 
 com.palantir.sls-packaging:gradle-recommended-product-dependencies:7.89.0 (1 constraints: 3512100a)
 
-com.palantir.sls.versions:sls-versions:1.19.0 (2 constraints: a82dfbce)
+com.palantir.sls.versions:sls-versions:1.20.0 (2 constraints: a02d84cc)
 
 com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.26.0 (1 constraints: 7419b3d0)
 
-com.palantir.tokens:auth-tokens:4.9.0 (1 constraints: f50f8f99)
+com.palantir.tokens:auth-tokens:4.12.0 (1 constraints: 1f109ca9)
 
 com.palantir.tritium:tritium-ids:0.128.0 (1 constraints: fe0f9aa6)
 
-com.palantir.tritium:tritium-registry:0.137.0 (1 constraints: b11c4ec1)
+com.palantir.tritium:tritium-registry:0.139.0 (1 constraints: b31c54c1)
 
 com.squareup.okhttp3:okhttp:4.12.0 (1 constraints: f6093eb3)
 
@@ -186,7 +186,7 @@ dev.equo.ide:solstice:1.8.1 (1 constraints: 771167da)
 
 info.picocli:picocli:4.7.7 (1 constraints: 2816dcdd)
 
-io.dropwizard.metrics:metrics-core:4.2.40 (2 constraints: 4b2daa96)
+io.dropwizard.metrics:metrics-core:4.2.40 (2 constraints: 432da396)
 
 javax.annotation:javax.annotation-api:1.2 (1 constraints: e01020af)
 
@@ -196,7 +196,7 @@ joda-time:joda-time:2.12.7 (1 constraints: 2f16b1f1)
 
 junit:junit:4.13.2 (1 constraints: b010e9c0)
 
-net.bytebuddy:byte-buddy:1.18.14 (3 constraints: f728553b)
+net.bytebuddy:byte-buddy:1.18.16 (3 constraints: f928df3b)
 
 net.bytebuddy:byte-buddy-agent:1.17.7 (1 constraints: 4a0b4ede)
 
