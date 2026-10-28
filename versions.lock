@@ -104,7 +104,7 @@ com.googlecode.javaewah:JavaEWAH:1.2.3 (1 constraints: 460e7e50)
 
 com.netflix.nebula:nebula-test:11.1.0 (1 constraints: 96181a8f)
 
-com.palantir.baseline:gradle-baseline-java:7.13.0 (1 constraints: 3d05563b)
+com.palantir.baseline:gradle-baseline-java:7.14.0 (1 constraints: 3e05593b)
 
 com.palantir.baseline-error-prone:gradle-baseline-error-prone:0.7.0 (1 constraints: c01105f5)
 
@@ -306,6 +306,6 @@ org.objenesis:objenesis:3.3 (2 constraints: 9b17f557)
 
 org.opentest4j:opentest4j:1.3.0 (2 constraints: cf209249)
 
-org.ow2.asm:asm:9.11 (3 constraints: 03436adf)
+org.ow2.asm:asm:9.11.1 (3 constraints: 62434b35)
 
 org.tukaani:xz:1.9 (1 constraints: 6b09e995)
