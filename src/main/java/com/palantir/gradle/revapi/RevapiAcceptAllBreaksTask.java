@@ -26,9 +26,13 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.work.DisableCachingByDefault;
 
+@DisableCachingByDefault(because = "Not opting into build caching; explicit opt-out is required by Gradle 9.7")
 public abstract class RevapiAcceptAllBreaksTask extends DefaultTask {
     public static final String JUSTIFICATION = "justification";
 
@@ -62,6 +66,7 @@ public abstract class RevapiAcceptAllBreaksTask extends DefaultTask {
         return oldGroupNameVersion;
     }
 
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     @InputFile
     final RegularFileProperty getAnalysisResultsFile() {
         return analysisResultsFile;
