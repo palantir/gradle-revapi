@@ -57,7 +57,6 @@ public final class RevapiPlugin implements Plugin<Project> {
         Provider<Optional<OldApi>> maybeOldApi = ResolveOldApi.oldApiProvider(project, extension, configManager);
         Spec<Task> oldApiIsPresent = _task -> maybeOldApi.get().isPresent();
 
-        @SuppressWarnings("for-rollout:deprecation")
         TaskProvider<RevapiAnalyzeTask> analyzeTask = project.getTasks()
                 .register("revapiAnalyze", RevapiAnalyzeTask.class, task -> {
                     // Creating a new configuration instead of using compileClasspath in order to ensure that we
@@ -185,7 +184,6 @@ public final class RevapiPlugin implements Plugin<Project> {
 
     private File junitOutput(Project project) {
         Optional<String> circleReportsDir = Optional.ofNullable(System.getenv("CIRCLE_TEST_REPORTS"));
-        @SuppressWarnings("for-rollout:deprecation")
         File reportsDir = circleReportsDir.map(File::new).orElseGet(project::getBuildDir);
         return new File(reportsDir, "junit-reports/revapi/revapi-" + project.getName() + ".xml");
     }
