@@ -46,8 +46,8 @@ among projects.
 ## Configuration
 
 `gradle-revapi` should work out of the box for most uses cases once applied. By default it compares against the previous
-version of the jar from the project it is applied in by finding the last tag using `git describe`. However, if you need
-to need to override the artifact to compare against, you can do so:
+version of the jar from the project it is applied in by finding the last non-release-candidate tag using `git describe`.
+However, if you need to need to override the artifact to compare against, you can do so:
 
 ```gradle
 revapi {
