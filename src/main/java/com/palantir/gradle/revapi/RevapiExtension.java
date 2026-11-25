@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Nested;
 public abstract class RevapiExtension {
     private final Property<String> oldGroup;
     private final Property<String> oldName;
+    private final Property<String> oldVersionPattern;
     private final ListProperty<String> oldVersions;
     private final Provider<GroupAndName> oldGroupAndName;
 
@@ -41,8 +42,10 @@ public abstract class RevapiExtension {
         this.oldName = project.getObjects().property(String.class);
         this.oldName.set(project.getProviders().provider(project::getName));
 
+        this.oldVersionPattern = project.getObjects().property(String.class).convention(".*");
+
         this.oldVersions = project.getObjects().listProperty(String.class);
-        this.oldVersions.set(getGitOperations().previousGitTags());
+        this.oldVersions.set(getGitOperations().previousGitTags(oldVersionPattern));
 
         this.oldGroupAndName = project.provider(() ->
                 GroupAndName.builder().group(oldGroup.get()).name(oldName.get()).build());
@@ -57,6 +60,14 @@ public abstract class RevapiExtension {
 
     public Property<String> getOldName() {
         return oldName;
+    }
+
+    /**
+     * A regular expression which candidate old versions must match. This can be used to exclude prerelease versions
+     * such as alpha, beta, and release candidate builds. Defaults to matching every version.
+     */
+    public Property<String> getOldVersionPattern() {
+        return oldVersionPattern;
     }
 
     public ListProperty<String> getOldVersions() {

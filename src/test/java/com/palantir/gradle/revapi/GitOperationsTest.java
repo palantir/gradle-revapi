@@ -86,6 +86,27 @@ class GitOperationsTest {
     }
 
     @Test
+    void filters_tags_before_limiting_the_number_returned(GradleInvoker gradle, Git git, RootProject rootProject) {
+        rootProject.buildGradle().append("""
+            revapi {
+                oldVersionPattern = '[0-9]+[.][0-9]+[.][0-9]+'
+            }
+            """);
+
+        git.commit("First");
+        git.tag("1.0.0");
+        git.commit("Second");
+        git.tag("2.0.0-alpha.1");
+        git.commit("Third");
+        git.tag("2.0.0-beta.1");
+        git.commit("Fourth");
+        git.tag("2.0.0-rc.1");
+        git.commit("Fifth");
+
+        assertOldVersions(gradle, "[1.0.0]");
+    }
+
+    @Test
     void when_the_initial_commit_is_0_0_0_ignore_it_as_its_the_first_unpublished_release(
             GradleInvoker gradle, Git git) {
         git.commit("Initial");
